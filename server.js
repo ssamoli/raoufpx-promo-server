@@ -31,11 +31,21 @@ setInterval(() => {
 app.use(express.json());
 app.use(cookieParser());
 
-// ── CORS: only allow requests from your own origin ──
-// Change this to your actual domain when deployed, e.g. 'https://raoufpx.com'
+// ── CORS: allow GitHub Pages frontend + local dev ──
+const ALLOWED_ORIGINS = [
+  'https://raoufpx.com',
+  'https://www.raoufpx.com',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+];
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGIN || '*',
-  methods: ['POST'],
+  origin: (origin, cb) => {
+    // Allow requests with no origin (e.g. curl, Postman) and listed origins
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    cb(new Error(`CORS blocked: ${origin}`));
+  },
+  methods: ['GET', 'POST'],
+  credentials: true, // required for HttpOnly cookie to be sent cross-origin
 }));
 
 // ── Serve static files (secret.html, promo.html, css, images, etc.) ──
@@ -127,8 +137,8 @@ app.post('/check-code', (req, res) => {
   // Set as HttpOnly cookie (JS can't read it — prevents XSS theft)
   res.cookie('raoufpx_access', token, {
     httpOnly: true,
-    sameSite: 'Strict',
-    // secure: true, // ← uncomment when serving over HTTPS in production
+    sameSite: 'None',  // required for cross-origin cookie (GitHub Pages → Railway)
+    secure: true,      // required when sameSite=None
     maxAge: TOKEN_TTL_MS,
   });
 
