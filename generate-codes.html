@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>RAOUF px — Admin: Code Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="robots" content="noindex,nofollow,noarchive"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#080810;--surface:rgba(255,255,255,.04);--surface2:rgba(255,255,255,.08);
+      --accent:#f0b44c;--accent2:#ff7e3e;--accent3:#4cf0d0;--red:#ff4d6a;--green:#4cf0a0;
+      --muted:rgba(255,255,255,.45);--text:rgba(255,255,255,.85);
+      --border:rgba(240,180,76,.2);
+    }
+    html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;overflow-x:hidden}
+
+    /* CRT */
+    body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px);pointer-events:none;z-index:9000;opacity:.4}
+
+    /* ── LOGIN SCREEN ── */
+    #loginScreen{
+      position:fixed;inset:0;z-index:500;
+      display:flex;align-items:center;justify-content:center;
+      background:var(--bg);padding:1.5rem;
+    }
+    #loginScreen.hidden{display:none}
+
+    .login-card{
+      width:100%;max-width:420px;
+      border:2px solid var(--border);
+      background:var(--surface);
+      padding:2.5rem 2rem;position:relative;
+    }
+    .login-card::before{content:'';position:absolute;top:-2px;left:-2px;width:18px;height:18px;border-top:2px solid var(--accent);border-left:2px solid var(--accent)}
+    .login-card::after{content:'';position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;border-bottom:2px solid var(--accent3);border-right:2px solid var(--accent3)}
+
+    .login-title{
+      font-family:'Press Start 2P',monospace;font-size:.6rem;
+      color:var(--accent);letter-spacing:.1em;line-height:2;
+      margin-bottom:.4rem;
+    }
+    .login-sub{font-family:'Press Start 2P',monospace;font-size:.28rem;color:var(--muted);letter-spacing:.1em;margin-bottom:2rem}
+    .login-label{font-family:'Press Start 2P',monospace;font-size:.28rem;color:rgba(255,255,255,.3);letter-spacing:.12em;display:block;margin-bottom:.5rem}
+    .login-input{
+      width:100%;font-family:'Space Mono',monospace;font-size:.9rem;
+      color:#fff;background:rgba(255,255,255,.05);
+      border:2px solid rgba(240,180,76,.2);padding:.9rem 1rem;
+      outline:none;caret-color:var(--accent);
+      transition:border-color .2s;margin-bottom:1.2rem;
+    }
+    .login-input:focus{border-color:var(--accent)}
+    .login-btn{
+      width:100%;font-family:'Press Start 2P',monospace;font-size:.42rem;
+      color:#080810;background:var(--accent);border:none;
+      padding:1rem;cursor:pointer;letter-spacing:.07em;
+      box-shadow:3px 3px 0 #7a5a20;
+      transition:box-shadow .1s steps(1),transform .1s steps(1);
+    }
+    .login-btn:hover{box-shadow:1px 1px 0 #7a5a20;transform:translate(2px,2px)}
+    .login-error{
+      font-family:'Press Start 2P',monospace;font-size:.28rem;
+      color:var(--red);letter-spacing:.1em;
+      margin-top:.8rem;min-height:1rem;text-align:center;
+    }
+    .login-error::before{content:'✕ '}
+
+    /* ── MAIN APP ── */
+    #app{display:none;min-height:100vh}
+    #app.visible{display:block}
+
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:1.2rem 2rem;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      background:rgba(8,8,16,.8);
+      position:sticky;top:0;z-index:100;
+      flex-wrap:wrap;gap:.8rem;
+    }
+    .topbar-title{
+      font-family:'Press Start 2P',monospace;font-size:.5rem;
+      color:var(--accent);letter-spacing:.1em;
+    }
+    .topbar-title span{color:var(--muted);font-size:.32rem}
+    .logout-btn{
+      font-family:'Press Start 2P',monospace;font-size:.28rem;
+      color:var(--muted);background:none;border:1px solid rgba(255,255,255,.1);
+      padding:.4rem .8rem;cursor:pointer;letter-spacing:.07em;
+      transition:color .15s,border-color .15s;
+    }
+    .logout-btn:hover{color:#fff;border-color:rgba(255,255,255,.3)}
+
+    .page{max-width:860px;margin:0 auto;padding:2.5rem clamp(1rem,4vw,2.5rem) 5rem}
+
+    /* Stats bar */
+    .stats-bar{
+      display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;
+      margin-bottom:3rem;
+    }
+    .stat-card{
+      background:var(--surface);border:1px solid var(--border);
+      padding:1.2rem 1.4rem;position:relative;
+    }
+    .stat-card::before{content:'';position:absolute;top:-1px;left:-1px;width:10px;height:10px;border-top:2px solid var(--accent);border-left:2px solid var(--accent)}
+    .stat-num{
+      font-family:'Press Start 2P',monospace;
+      font-size:clamp(1rem,3vw,1.6rem);
+      color:var(--accent);display:block;margin-bottom:.5rem;
+    }
+    .stat-num.red{color:var(--accent2)}
+    .stat-num.green{color:var(--accent3)}
+    .stat-label{font-family:'Press Start 2P',monospace;font-size:.26rem;color:var(--muted);letter-spacing:.1em}
+
+    /* Section */
+    .section-label{
+      font-family:'Press Start 2P',monospace;font-size:.32rem;
+      color:var(--accent3);letter-spacing:.2em;
+      display:block;margin-bottom:1.4rem;
+    }
+    .section-label::before{content:'> ';color:var(--accent)}
+
+    /* Generator panel */
+    .gen-panel{
+      background:var(--surface);border:2px solid var(--border);
+      padding:2rem;margin-bottom:3rem;position:relative;
+    }
+    .gen-panel::before{content:'';position:absolute;top:-2px;left:-2px;width:14px;height:14px;border-top:2px solid var(--accent);border-left:2px solid var(--accent)}
+    .gen-panel::after{content:'';position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-bottom:2px solid var(--accent3);border-right:2px solid var(--accent3)}
+
+    .gen-row{display:flex;align-items:flex-end;gap:1rem;flex-wrap:wrap;margin-bottom:1.4rem}
+    .gen-field{display:flex;flex-direction:column;gap:.5rem;flex:1;min-width:120px}
+    .gen-label{font-family:'Press Start 2P',monospace;font-size:.28rem;color:rgba(255,255,255,.3);letter-spacing:.12em}
+    .gen-input{
+      font-family:'Space Mono',monospace;font-size:.9rem;color:#fff;
+      background:rgba(255,255,255,.05);border:2px solid rgba(240,180,76,.2);
+      padding:.85rem 1rem;outline:none;caret-color:var(--accent);
+      transition:border-color .2s;width:100%;
+    }
+    .gen-input:focus{border-color:var(--accent)}
+
+    .gen-buttons{display:flex;gap:.8rem;flex-wrap:wrap}
+    .btn{
+      font-family:'Press Start 2P',monospace;font-size:.38rem;
+      border:none;padding:.9rem 1.4rem;cursor:pointer;
+      letter-spacing:.07em;position:relative;
+      box-shadow:3px 3px 0 rgba(0,0,0,.4);
+      transition:box-shadow .1s steps(1),transform .1s steps(1);
+      min-height:48px;
+    }
+    .btn:hover{box-shadow:1px 1px 0 rgba(0,0,0,.4);transform:translate(2px,2px)}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:3px 3px 0 rgba(0,0,0,.4)}
+    .btn-primary{background:var(--accent);color:#080810}
+    .btn-secondary{background:transparent;color:var(--accent);border:2px solid rgba(240,180,76,.3)}
+    .btn-secondary:hover{background:rgba(240,180,76,.07)}
+    .btn-danger{background:transparent;color:var(--red);border:2px solid rgba(255,77,106,.3)}
+    .btn-danger:hover{background:rgba(255,77,106,.07)}
+    .btn-sm{font-size:.3rem;padding:.6rem 1rem}
+
+    /* Output area */
+    .output-wrap{margin-top:1.4rem}
+    .output-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;flex-wrap:wrap;gap:.5rem}
+    .output-title{font-family:'Press Start 2P',monospace;font-size:.3rem;color:var(--muted);letter-spacing:.1em}
+    .output-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+
+    .output-box{
+      width:100%;min-height:120px;max-height:320px;
+      font-family:'Space Mono',monospace;font-size:.82rem;
+      color:var(--accent3);background:rgba(0,0,0,.35);
+      border:1px solid rgba(76,240,208,.15);
+      padding:1rem;resize:vertical;outline:none;
+      line-height:1.9;overflow-y:auto;
+      white-space:pre-wrap;word-break:break-all;
+    }
+
+    .gen-status{
+      font-family:'Press Start 2P',monospace;font-size:.3rem;
+      letter-spacing:.1em;margin-top:.8rem;min-height:1.2rem;
+    }
+    .gen-status.ok{color:var(--green)}
+    .gen-status.ok::before{content:'✓ '}
+    .gen-status.err{color:var(--red)}
+    .gen-status.err::before{content:'✕ '}
+    .gen-status.loading{color:var(--muted)}
+    .gen-status.loading::before{content:'... '}
+
+    /* Code table */
+    .table-wrap{overflow-x:auto;margin-top:1rem}
+    table{width:100%;border-collapse:collapse;font-family:'Space Mono',monospace;font-size:.75rem}
+    th{
+      font-family:'Press Start 2P',monospace;font-size:.24rem;
+      color:rgba(255,255,255,.25);letter-spacing:.1em;
+      text-align:left;padding:.7rem .8rem;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      white-space:nowrap;
+    }
+    td{
+      padding:.65rem .8rem;
+      border-bottom:1px solid rgba(255,255,255,.04);
+      color:var(--muted);white-space:nowrap;
+    }
+    td.code-cell{color:#fff;font-weight:700;letter-spacing:.06em}
+    td.used-true{color:var(--accent2)}
+    td.used-false{color:var(--accent3)}
+    tr:hover td{background:rgba(255,255,255,.02)}
+    .pill{
+      font-family:'Press Start 2P',monospace;font-size:.22rem;
+      padding:.2rem .4rem;letter-spacing:.06em;
+    }
+    .pill.used{background:rgba(255,126,62,.12);color:var(--accent2)}
+    .pill.avail{background:rgba(76,240,208,.1);color:var(--accent3)}
+
+    /* Search */
+    .table-controls{display:flex;align-items:center;gap:.8rem;margin-bottom:1rem;flex-wrap:wrap}
+    .search-input{
+      flex:1;min-width:160px;
+      font-family:'Space Mono',monospace;font-size:.82rem;color:#fff;
+      background:var(--surface);border:1px solid rgba(240,180,76,.15);
+      padding:.7rem .9rem;outline:none;caret-color:var(--accent);
+    }
+    .search-input:focus{border-color:var(--accent)}
+    .filter-btn{
+      font-family:'Press Start 2P',monospace;font-size:.26rem;
+      background:transparent;color:var(--muted);
+      border:1px solid rgba(255,255,255,.1);
+      padding:.5rem .8rem;cursor:pointer;letter-spacing:.06em;
+      transition:color .15s,border-color .15s;
+    }
+    .filter-btn.active{color:var(--accent);border-color:rgba(240,180,76,.4)}
+    .filter-btn:hover{color:#fff}
+
+    @media(max-width:600px){
+      .stats-bar{grid-template-columns:1fr 1fr}
+      .gen-row{flex-direction:column}
+      .topbar{padding:1rem}
+    }
+    @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+    :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-title">RAOUF px</div>
+    <div class="login-sub">ADMIN / CODE GENERATOR</div>
+    <label class="login-label" for="adminKeyInput">ADMIN KEY</label>
+    <input
+      class="login-input"
+      type="password"
+      id="adminKeyInput"
+      placeholder="Enter your admin key"
+      autocomplete="current-password"
+    />
+    <button class="login-btn" id="loginBtn">[ ENTER ]</button>
+    <p class="login-error" id="loginError" style="display:none"></p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════ -->
+<div id="app">
+
+  <div class="topbar">
+    <div class="topbar-title">
+      RAOUF px <span>/ ADMIN / CODE GENERATOR</span>
+    </div>
+    <button class="logout-btn" id="logoutBtn">[ LOGOUT ]</button>
+  </div>
+
+  <div class="page">
+
+    <!-- Stats -->
+    <div class="stats-bar" id="statsBar">
+      <div class="stat-card">
+        <span class="stat-num" id="statTotal">—</span>
+        <span class="stat-label">TOTAL CODES</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num green" id="statAvail">—</span>
+        <span class="stat-label">AVAILABLE</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num red" id="statUsed">—</span>
+        <span class="stat-label">REDEEMED</span>
+      </div>
+    </div>
+
+    <!-- Generator -->
+    <span class="section-label">GENERATE_CODES</span>
+    <div class="gen-panel">
+      <div class="gen-row">
+        <div class="gen-field">
+          <label class="gen-label" for="countInput">NUMBER OF CODES</label>
+          <input
+            class="gen-input"
+            type="number"
+            id="countInput"
+            min="1" max="200"
+            value="1"
+            placeholder="1"
+          />
+        </div>
+        <div class="gen-buttons">
+          <button class="btn btn-primary" id="btnGenOne">[ GENERATE 1 ]</button>
+          <button class="btn btn-secondary" id="btnGenBulk">[ GENERATE BULK ]</button>
+        </div>
+      </div>
+
+      <p class="gen-status" id="genStatus"></p>
+
+      <div class="output-wrap" id="outputWrap" style="display:none">
+        <div class="output-header">
+          <span class="output-title" id="outputTitle">GENERATED CODES</span>
+          <div class="output-actions">
+            <button class="btn btn-secondary btn-sm" id="btnCopyAll">[ COPY ALL ]</button>
+            <button class="btn btn-secondary btn-sm" id="btnCopyCsv">[ COPY CSV ]</button>
+            <button class="btn btn-danger btn-sm" id="btnClearOutput">[ CLEAR ]</button>
+          </div>
+        </div>
+        <textarea
+          class="output-box"
+          id="outputBox"
+          readonly
+          aria-label="Generated codes"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Code list -->
+    <span class="section-label">ALL_CODES</span>
+    <div class="table-controls">
+      <input
+        class="search-input"
+        type="text"
+        id="searchInput"
+        placeholder="Search codes..."
+        aria-label="Search codes"
+      />
+      <button class="filter-btn active" data-filter="all">ALL</button>
+      <button class="filter-btn" data-filter="available">AVAILABLE</button>
+      <button class="filter-btn" data-filter="used">REDEEMED</button>
+      <button class="btn btn-secondary btn-sm" id="btnRefresh">[ REFRESH ]</button>
+    </div>
+    <div class="table-wrap">
+      <table id="codesTable" aria-label="Code list">
+        <thead>
+          <tr>
+            <th>CODE</th>
+            <th>STATUS</th>
+            <th>CREATED</th>
+            <th>REDEEMED AT</th>
+          </tr>
+        </thead>
+        <tbody id="codesBody">
+          <tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted)">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const API = 'https://raoufpx-promo-server-production.up.railway.app';
+  const KEY_STORE = 'raoufpx_admin_key'; // sessionStorage — cleared on tab close
+
+  // ── State ──
+  let adminKey    = '';
+  let allCodes    = [];
+  let filterMode  = 'all';
+  let searchQuery = '';
+
+  // ── Elements ──
+  const loginScreen  = document.getElementById('loginScreen');
+  const adminKeyInput= document.getElementById('adminKeyInput');
+  const loginBtn     = document.getElementById('loginBtn');
+  const loginError   = document.getElementById('loginError');
+  const appEl        = document.getElementById('app');
+  const logoutBtn    = document.getElementById('logoutBtn');
+  const countInput   = document.getElementById('countInput');
+  const btnGenOne    = document.getElementById('btnGenOne');
+  const btnGenBulk   = document.getElementById('btnGenBulk');
+  const genStatus    = document.getElementById('genStatus');
+  const outputWrap   = document.getElementById('outputWrap');
+  const outputBox    = document.getElementById('outputBox');
+  const outputTitle  = document.getElementById('outputTitle');
+  const btnCopyAll   = document.getElementById('btnCopyAll');
+  const btnCopyCsv   = document.getElementById('btnCopyCsv');
+  const btnClearOutput = document.getElementById('btnClearOutput');
+  const searchInput  = document.getElementById('searchInput');
+  const codesBody    = document.getElementById('codesBody');
+  const btnRefresh   = document.getElementById('btnRefresh');
+  const statTotal    = document.getElementById('statTotal');
+  const statAvail    = document.getElementById('statAvail');
+  const statUsed     = document.getElementById('statUsed');
+
+  // ── Login ──
+  function tryLogin() {
+    const key = adminKeyInput.value.trim();
+    if (!key) return showLoginError('Enter your admin key.');
+    adminKey = key;
+    // Verify by hitting /admin/codes — if it returns 403 the key is wrong
+    setLoginLoading(true);
+    fetch(`${API}/admin/codes`, {
+      headers: { 'Authorization': `Bearer ${key}` }
+    })
+    .then(r => {
+      if (r.status === 403) throw new Error('Invalid admin key.');
+      if (!r.ok) throw new Error('Server error.');
+      return r.json();
+    })
+    .then(data => {
+      sessionStorage.setItem(KEY_STORE, key);
+      loginScreen.classList.add('hidden');
+      appEl.classList.add('visible');
+      populateTable(data.codes);
+      updateStats(data);
+      allCodes = data.codes;
+    })
+    .catch(err => {
+      adminKey = '';
+      showLoginError(err.message);
+    })
+    .finally(() => setLoginLoading(false));
+  }
+
+  function showLoginError(msg) {
+    loginError.textContent = msg;
+    loginError.style.display = 'block';
+  }
+  function setLoginLoading(on) {
+    loginBtn.disabled = on;
+    loginBtn.textContent = on ? '[ CHECKING... ]' : '[ ENTER ]';
+  }
+
+  loginBtn.addEventListener('click', tryLogin);
+  adminKeyInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+
+  // Auto-login if key is in sessionStorage from this tab session
+  const savedKey = sessionStorage.getItem(KEY_STORE);
+  if (savedKey) {
+    adminKeyInput.value = savedKey;
+    tryLogin();
+  }
+
+  // ── Logout ──
+  logoutBtn.addEventListener('click', () => {
+    sessionStorage.removeItem(KEY_STORE);
+    adminKey = '';
+    allCodes = [];
+    loginError.style.display = 'none';
+    adminKeyInput.value = '';
+    loginScreen.classList.remove('hidden');
+    appEl.classList.remove('visible');
+  });
+
+  // ── Generate helpers ──
+  function setGenLoading(on) {
+    btnGenOne.disabled  = on;
+    btnGenBulk.disabled = on;
+  }
+  function setGenStatus(type, msg) {
+    genStatus.className = 'gen-status ' + type;
+    genStatus.textContent = msg;
+  }
+
+  function showGeneratedCodes(codes, label) {
+    outputWrap.style.display = 'block';
+    outputTitle.textContent = label;
+    outputBox.value = codes.map(c => c.code || c).join('\n');
+  }
+
+  function appendGeneratedCodes(codes) {
+    const existing = outputBox.value ? outputBox.value + '\n' : '';
+    outputBox.value = existing + codes.map(c => c.code || c).join('\n');
+  }
+
+  // ── Generate 1 ──
+  btnGenOne.addEventListener('click', async () => {
+    setGenLoading(true);
+    setGenStatus('loading', 'Generating...');
+    try {
+      const r = await fetch(`${API}/admin/generate-code`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${adminKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await r.json();
+      if (!data.success) throw new Error(data.error || 'Failed.');
+      setGenStatus('ok', `Code generated: ${data.code}`);
+      outputWrap.style.display = 'block';
+      outputTitle.textContent = 'GENERATED CODES';
+      appendGeneratedCodes([data]);
+      await refreshCodes();
+    } catch (err) {
+      setGenStatus('err', err.message);
+    } finally {
+      setGenLoading(false);
+    }
+  });
+
+  // ── Generate Bulk ──
+  btnGenBulk.addEventListener('click', async () => {
+    const count = parseInt(countInput.value, 10);
+    if (!count || count < 1 || count > 200) {
+      setGenStatus('err', 'Enter a number between 1 and 200.');
+      return;
+    }
+    setGenLoading(true);
+    setGenStatus('loading', `Generating ${count} codes...`);
+    try {
+      const r = await fetch(`${API}/admin/generate-bulk`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${adminKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ count }),
+      });
+      const data = await r.json();
+      if (!data.success && data.generated === 0) throw new Error(data.error || 'Failed.');
+      setGenStatus('ok', `Generated ${data.generated} codes successfully.`);
+      outputWrap.style.display = 'block';
+      outputTitle.textContent = `GENERATED CODES (${data.generated})`;
+      appendGeneratedCodes(data.codes);
+      await refreshCodes();
+    } catch (err) {
+      setGenStatus('err', err.message);
+    } finally {
+      setGenLoading(false);
+    }
+  });
+
+  // ── Copy buttons ──
+  btnCopyAll.addEventListener('click', () => {
+    const text = outputBox.value;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      btnCopyAll.textContent = '[ COPIED! ]';
+      setTimeout(() => btnCopyAll.textContent = '[ COPY ALL ]', 2000);
+    });
+  });
+
+  btnCopyCsv.addEventListener('click', () => {
+    const codes = outputBox.value.split('\n').filter(Boolean);
+    const csv = 'code\n' + codes.join('\n');
+    navigator.clipboard.writeText(csv).then(() => {
+      btnCopyCsv.textContent = '[ COPIED! ]';
+      setTimeout(() => btnCopyCsv.textContent = '[ COPY CSV ]', 2000);
+    });
+  });
+
+  btnClearOutput.addEventListener('click', () => {
+    outputBox.value = '';
+    outputWrap.style.display = 'none';
+    genStatus.className = 'gen-status';
+    genStatus.textContent = '';
+  });
+
+  // ── Table ──
+  function formatDate(iso) {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleString('en-AE', {
+        year:'numeric', month:'short', day:'numeric',
+        hour:'2-digit', minute:'2-digit',
+      });
+    } catch { return iso; }
+  }
+
+  function populateTable(codes) {
+    let filtered = codes;
+
+    if (filterMode === 'available') filtered = filtered.filter(c => !c.used);
+    if (filterMode === 'used')      filtered = filtered.filter(c => c.used);
+
+    if (searchQuery) {
+      const q = searchQuery.toUpperCase();
+      filtered = filtered.filter(c => c.code.includes(q));
+    }
+
+    if (filtered.length === 0) {
+      codesBody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted)">No codes found.</td></tr>`;
+      return;
+    }
+
+    // Sort: available first, then by createdAt desc
+    filtered.sort((a, b) => {
+      if (a.used !== b.used) return a.used ? 1 : -1;
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+
+    codesBody.innerHTML = filtered.map(c => `
+      <tr>
+        <td class="code-cell">${c.code}</td>
+        <td>
+          <span class="pill ${c.used ? 'used' : 'avail'}">
+            ${c.used ? 'REDEEMED' : 'AVAILABLE'}
+          </span>
+        </td>
+        <td>${formatDate(c.createdAt)}</td>
+        <td>${formatDate(c.usedAt)}</td>
+      </tr>
+    `).join('');
+  }
+
+  function updateStats(data) {
+    statTotal.textContent = data.total ?? '—';
+    statAvail.textContent = data.available ?? '—';
+    statUsed.textContent  = data.used ?? '—';
+  }
+
+  async function refreshCodes() {
+    try {
+      const r    = await fetch(`${API}/admin/codes`, {
+        headers: { 'Authorization': `Bearer ${adminKey}` },
+      });
+      const data = await r.json();
+      allCodes   = data.codes || [];
+      updateStats(data);
+      populateTable(allCodes);
+    } catch (err) {
+      console.warn('Refresh failed:', err.message);
+    }
+  }
+
+  btnRefresh.addEventListener('click', refreshCodes);
+
+  // ── Search & filter ──
+  searchInput.addEventListener('input', () => {
+    searchQuery = searchInput.value.trim();
+    populateTable(allCodes);
+  });
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterMode = btn.dataset.filter;
+      populateTable(allCodes);
+    });
+  });
+
+})();
+</script>
+
+</body>
+</html>
