@@ -31,6 +31,7 @@ app.use(cookieParser());
 const ALLOWED_ORIGINS = [
   'https://raoufpx.com',
   'https://www.raoufpx.com',
+  'https://raoufpx-promo-server-production.up.railway.app',
   'http://localhost:3000',
   'http://127.0.0.1:3000',
 ];
@@ -247,8 +248,13 @@ app.post('/admin/generate-bulk', requireAdmin, (req, res) => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Catch-all
+// /admin/* routes are never redirected — return 404 JSON instead.
+// Everything else (unknown page URLs) redirects to the gate.
 // ─────────────────────────────────────────────────────────────────────────────
 app.get('*', (req, res) => {
+  if (req.path.startsWith('/admin/')) {
+    return res.status(404).json({ error: 'Not found.' });
+  }
   res.redirect('/secret.html');
 });
 
