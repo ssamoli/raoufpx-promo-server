@@ -14,12 +14,10 @@ const fs           = require('fs');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-// ── Access token store (in-memory, keyed by token string) ──
-// { [token]: { createdAt: Date, expiresAt: Date } }
-const TOKEN_TTL_MS = 48 * 60 * 60 * 1000; // 48 hours — matches the offer window
+// ── Access token store (in-memory) ──
+const TOKEN_TTL_MS = 48 * 60 * 60 * 1000;
 const tokenStore   = new Map();
 
-// Clean up expired tokens every hour
 setInterval(() => {
   const now = Date.now();
   for (const [t, meta] of tokenStore) {
@@ -27,11 +25,9 @@ setInterval(() => {
   }
 }, 60 * 60 * 1000);
 
-// ── Parse JSON bodies & cookies ──
 app.use(express.json());
 app.use(cookieParser());
 
-// ── CORS: allow GitHub Pages frontend + local dev ──
 const ALLOWED_ORIGINS = [
   'https://raoufpx.com',
   'https://www.raoufpx.com',
@@ -40,21 +36,32 @@ const ALLOWED_ORIGINS = [
 ];
 app.use(cors({
   origin: (origin, cb) => {
-    // Allow requests with no origin (e.g. curl, Postman) and listed origins
     if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
     cb(new Error(`CORS blocked: ${origin}`));
   },
   methods: ['GET', 'POST'],
-  credentials: true, // required for HttpOnly cookie to be sent cross-origin
+  credentials: true,
 }));
 
-// ── Serve static files (secret.html, promo.html, css, images, etc.) ──
 app.use(express.static(path.join(__dirname)));
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CODE LIST — 50 pre-generated codes
-// Each entry: { code, used: bool, usedAt: timestamp|null }
-// Persisted to codes.json so restarts don't reset "used" state.
+// ADMIN SECRET
+// Set ADMIN_KEY environment variable in Railway dashboard.
+// ─────────────────────────────────────────────────────────────────────────────
+const ADMIN_KEY = process.env.ADMIN_KEY || 'raoufpx-admin-2024';
+
+function requireAdmin(req, res, next) {
+  const queryKey   = req.query.key;
+  const authHeader = req.headers['authorization'] || '';
+  const bearerKey  = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (queryKey === ADMIN_KEY || bearerKey === ADMIN_KEY) return next();
+  return res.status(403).json({ error: 'Forbidden.' });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CODE STORE — persisted to codes.json
+// Schema per entry: { code, used, createdAt, usedAt }
 // ─────────────────────────────────────────────────────────────────────────────
 const CODES_FILE = path.join(__dirname, 'codes.json');
 
@@ -69,25 +76,26 @@ const MASTER_CODES = [
   'J7L1C4VN','E5H9M2QK','Z4T6B3LD','N1R7K8XP','Y8F2J5QW',
   'W3M6V1KL','C9P4H7DZ','G1K8L5QN','D2T7R3VM','F5L9M1QX',
   'H3C6P8WR','S7N2J4QK','V1F5K9ZD','T6R3M7PX','B2L8H1VQ',
-  'TEST1234','TEST2345','TEST3456','TEST4567','TEST5678',
 ];
 
-// Load or initialise code store
 function loadCodes() {
   if (fs.existsSync(CODES_FILE)) {
     try {
-      const data = JSON.parse(fs.readFileSync(CODES_FILE, 'utf8'));
-      // Merge: add any new master codes not yet in file
+      const data   = JSON.parse(fs.readFileSync(CODES_FILE, 'utf8'));
       const stored = new Map(data.map(c => [c.code, c]));
       MASTER_CODES.forEach(code => {
-        if (!stored.has(code)) stored.set(code, { code, used: false, usedAt: null });
+        if (!stored.has(code)) {
+          stored.set(code, { code, used: false, createdAt: new Date().toISOString(), usedAt: null });
+        }
       });
       return stored;
     } catch {
       console.warn('codes.json corrupt — rebuilding.');
     }
   }
-  return new Map(MASTER_CODES.map(code => [code, { code, used: false, usedAt: null }]));
+  return new Map(MASTER_CODES.map(code => [
+    code, { code, used: false, createdAt: new Date().toISOString(), usedAt: null }
+  ]));
 }
 
 function saveCodes(store) {
@@ -95,13 +103,37 @@ function saveCodes(store) {
 }
 
 let codeStore = loadCodes();
-saveCodes(codeStore); // Ensure file exists on first run
+saveCodes(codeStore);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// POST /check-code
-// Body: { "code": "XXXXXXXX" }
-// Returns: { valid: true|false, message: string }
+// CODE GENERATOR HELPERS
+// Format: PX-XXXXXXXX  (8 chars, no O/0 or I/1)
 // ─────────────────────────────────────────────────────────────────────────────
+const CODE_CHARS  = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const CODE_LENGTH = 8;
+
+function generateCode() {
+  const bytes = crypto.randomBytes(CODE_LENGTH);
+  let result = 'PX-';
+  for (let i = 0; i < CODE_LENGTH; i++) {
+    result += CODE_CHARS[bytes[i] % CODE_CHARS.length];
+  }
+  return result;
+}
+
+function generateUniqueCode() {
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const code = generateCode();
+    if (!codeStore.has(code)) return code;
+  }
+  throw new Error('Could not generate a unique code after 100 attempts.');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EXISTING ROUTES — UNCHANGED
+// ─────────────────────────────────────────────────────────────────────────────
+
+// POST /check-code
 app.post('/check-code', (req, res) => {
   const raw  = req.body?.code;
   const code = typeof raw === 'string' ? raw.trim().toUpperCase() : '';
@@ -113,7 +145,6 @@ app.post('/check-code', (req, res) => {
   const entry = codeStore.get(code);
 
   if (!entry) {
-    // Unknown code — add small artificial delay to slow brute-force
     return setTimeout(() => {
       res.json({ valid: false, message: 'Invalid code.' });
     }, 300);
@@ -123,35 +154,28 @@ app.post('/check-code', (req, res) => {
     return res.json({ valid: false, message: 'Code already redeemed.' });
   }
 
-  // ✅ Valid — mark as used
   entry.used   = true;
   entry.usedAt = new Date().toISOString();
   codeStore.set(code, entry);
   saveCodes(codeStore);
 
-  // Generate a cryptographically secure access token
   const token     = crypto.randomBytes(32).toString('hex');
   const createdAt = Date.now();
   const expiresAt = createdAt + TOKEN_TTL_MS;
   tokenStore.set(token, { createdAt, expiresAt });
 
-  // Set as HttpOnly cookie (JS can't read it — prevents XSS theft)
   res.cookie('raoufpx_access', token, {
     httpOnly: true,
-    sameSite: 'None',  // required for cross-origin cookie (GitHub Pages → Railway)
-    secure: true,      // required when sameSite=None
+    sameSite: 'None',
+    secure: true,
     maxAge: TOKEN_TTL_MS,
   });
 
-  console.log(`[${entry.usedAt}] Code redeemed: ${code} | Token issued: ${token.slice(0,8)}...`);
+  console.log(`[${entry.usedAt}] Code redeemed: ${code} | Token: ${token.slice(0,8)}...`);
   return res.json({ valid: true, message: 'Code accepted.', expiresAt });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
 // GET /verify-token
-// Called by promo.html on load. Reads HttpOnly cookie and confirms it's valid.
-// Returns: { valid: true, expiresAt: number } or { valid: false }
-// ─────────────────────────────────────────────────────────────────────────────
 app.get('/verify-token', (req, res) => {
   const token = req.cookies?.raoufpx_access;
   if (!token) return res.json({ valid: false });
@@ -166,17 +190,8 @@ app.get('/verify-token', (req, res) => {
   return res.json({ valid: true, expiresAt: meta.expiresAt });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ADMIN: GET /admin/codes?key=YOUR_ADMIN_KEY
-// Shows redemption status of all codes.
-// Set ADMIN_KEY env var before deploying: export ADMIN_KEY=somethingSecret
-// ─────────────────────────────────────────────────────────────────────────────
-const ADMIN_KEY = process.env.ADMIN_KEY || 'raoufpx-admin-2024';
-
-app.get('/admin/codes', (req, res) => {
-  if (req.query.key !== ADMIN_KEY) {
-    return res.status(403).json({ error: 'Forbidden.' });
-  }
+// GET /admin/codes — view all + stats
+app.get('/admin/codes', requireAdmin, (req, res) => {
   const all   = [...codeStore.values()];
   const used  = all.filter(c => c.used).length;
   const avail = all.length - used;
@@ -184,7 +199,54 @@ app.get('/admin/codes', (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Catch-all: redirect unknown routes to the gate page
+// NEW: POST /admin/generate-code — generate exactly 1 code
+// Auth: ?key=ADMIN_KEY  OR  Authorization: Bearer ADMIN_KEY
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/admin/generate-code', requireAdmin, (req, res) => {
+  try {
+    const code      = generateUniqueCode();
+    const createdAt = new Date().toISOString();
+    codeStore.set(code, { code, used: false, createdAt, usedAt: null });
+    saveCodes(codeStore);
+    console.log(`[ADMIN] Generated: ${code}`);
+    return res.json({ success: true, code, createdAt });
+  } catch (err) {
+    console.error('[ADMIN] generate-code error:', err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NEW: POST /admin/generate-bulk — generate N codes at once
+// Body: { "count": 10 }   (clamped 1–200)
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/admin/generate-bulk', requireAdmin, (req, res) => {
+  const raw   = parseInt(req.body?.count, 10);
+  const count = isNaN(raw) ? 1 : Math.min(Math.max(raw, 1), 200);
+  const created   = [];
+  const createdAt = new Date().toISOString();
+
+  try {
+    for (let i = 0; i < count; i++) {
+      const code = generateUniqueCode();
+      codeStore.set(code, { code, used: false, createdAt, usedAt: null });
+      created.push({ code, createdAt });
+    }
+    saveCodes(codeStore);
+    console.log(`[ADMIN] Bulk generated ${created.length} codes`);
+    return res.json({ success: true, generated: created.length, codes: created });
+  } catch (err) {
+    if (created.length > 0) saveCodes(codeStore);
+    console.error('[ADMIN] generate-bulk error:', err.message);
+    return res.status(500).json({
+      success: false, error: err.message,
+      generated: created.length, codes: created,
+    });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Catch-all
 // ─────────────────────────────────────────────────────────────────────────────
 app.get('*', (req, res) => {
   res.redirect('/secret.html');
@@ -192,5 +254,5 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`RAOUF px promo server running on http://localhost:${PORT}`);
-  console.log(`Admin panel: http://localhost:${PORT}/admin/codes?key=${ADMIN_KEY}`);
+  console.log(`Admin: http://localhost:${PORT}/admin/codes?key=${ADMIN_KEY}`);
 });
