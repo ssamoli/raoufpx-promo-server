@@ -1,814 +1,942 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <title>RAOUF px — Admin Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta name="robots" content="noindex,nofollow,noarchive"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
-  <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{
-      --bg:#080810;--s:rgba(255,255,255,.04);--s2:rgba(255,255,255,.08);
-      --a:#f0b44c;--a2:#ff7e3e;--a3:#4cf0d0;--red:#ff4d6a;--green:#4cf0a0;
-      --muted:rgba(255,255,255,.45);--text:rgba(255,255,255,.85);
-      --border:rgba(240,180,76,.18);
-    }
-    html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;overflow-x:hidden}
-    body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px);pointer-events:none;z-index:9000;opacity:.35}
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>RAOUF px — Admin</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Press+Start+2P&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080810;--surface:#0e0e1a;--surface2:#13131f;
+  --accent:#f0b44c;--accent2:#ff7e3e;--accent3:#4cf0d0;--accent4:#c84bff;
+  --danger:#ff4c4c;--success:#4cf0a0;--warn:#f0d44c;
+  --text:rgba(255,255,255,.85);--muted:rgba(255,255,255,.45);
+  --border:rgba(255,255,255,.08);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;font-size:13px}
 
-    /* ── LOGIN ── */
-    #loginScreen{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:1.5rem}
-    #loginScreen.hidden{display:none}
-    .login-card{width:100%;max-width:400px;border:2px solid var(--border);background:var(--s);padding:2.5rem 2rem;position:relative}
-    .login-card::before{content:'';position:absolute;top:-2px;left:-2px;width:16px;height:16px;border-top:2px solid var(--a);border-left:2px solid var(--a)}
-    .login-card::after{content:'';position:absolute;bottom:-2px;right:-2px;width:16px;height:16px;border-bottom:2px solid var(--a3);border-right:2px solid var(--a3)}
-    .px-title{font-family:'Press Start 2P',monospace;font-size:.65rem;color:var(--a);letter-spacing:.1em;line-height:2;margin-bottom:.3rem}
-    .px-sub{font-family:'Press Start 2P',monospace;font-size:.28rem;color:var(--muted);letter-spacing:.1em;margin-bottom:2rem}
-    .f-label{font-family:'Press Start 2P',monospace;font-size:.26rem;color:rgba(255,255,255,.28);letter-spacing:.12em;display:block;margin-bottom:.4rem}
-    .f-input{width:100%;font-family:'Space Mono',monospace;font-size:.9rem;color:#fff;background:rgba(255,255,255,.05);border:2px solid rgba(240,180,76,.2);padding:.85rem 1rem;outline:none;caret-color:var(--a);transition:border-color .2s;margin-bottom:1.2rem}
-    .f-input:focus{border-color:var(--a)}
-    .btn-login{width:100%;font-family:'Press Start 2P',monospace;font-size:.42rem;color:#080810;background:var(--a);border:none;padding:1rem;cursor:pointer;letter-spacing:.07em;box-shadow:3px 3px 0 #7a5a20;transition:box-shadow .1s steps(1),transform .1s steps(1)}
-    .btn-login:hover{box-shadow:1px 1px 0 #7a5a20;transform:translate(2px,2px)}
-    .login-err{font-family:'Press Start 2P',monospace;font-size:.26rem;color:var(--red);letter-spacing:.1em;margin-top:.8rem;min-height:1rem;text-align:center}
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.topbar h1{font-family:'Press Start 2P',monospace;font-size:11px;color:var(--accent);letter-spacing:.05em;margin-right:auto}
+.key-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:6px 10px;border-radius:3px;width:220px}
+.key-input:focus{outline:none;border-color:var(--accent)}
+.btn{font-family:'Space Mono',monospace;font-size:11px;padding:6px 14px;border:1px solid;border-radius:3px;cursor:pointer;transition:.15s}
+.btn-amber{background:transparent;border-color:var(--accent);color:var(--accent)}
+.btn-amber:hover{background:var(--accent);color:#000}
+.btn-teal{background:transparent;border-color:var(--accent3);color:var(--accent3)}
+.btn-teal:hover{background:var(--accent3);color:#000}
+.btn-danger{background:transparent;border-color:var(--danger);color:var(--danger)}
+.btn-danger:hover{background:var(--danger);color:#fff}
+.btn-sm{padding:4px 10px;font-size:10px}
 
-    /* ── LAYOUT ── */
-    #app{display:none}
-    #app.visible{display:block}
+/* ── TABS ── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 20px;background:var(--surface);overflow-x:auto}
+.tab{padding:12px 18px;font-family:'Press Start 2P',monospace;font-size:9px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:.15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 
-    .topbar{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.8rem;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(8,8,16,.9);position:sticky;top:0;z-index:200;flex-wrap:wrap;gap:.6rem}
-    .topbar-left{display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap}
-    .logo-txt{font-family:'Press Start 2P',monospace;font-size:.5rem;color:var(--a);letter-spacing:.1em}
-    .logo-txt span{color:var(--muted);font-size:.28rem}
+/* ── CONTENT ── */
+.content{padding:20px;overflow-y:auto}
+.panel{display:none}
+.panel.active{display:block}
 
-    .tab-nav{display:flex;gap:.3rem;flex-wrap:wrap}
-    .tab-btn{font-family:'Press Start 2P',monospace;font-size:.26rem;color:var(--muted);background:none;border:1px solid transparent;padding:.5rem .8rem;cursor:pointer;letter-spacing:.06em;transition:color .15s,border-color .15s}
-    .tab-btn:hover{color:#fff}
-    .tab-btn.active{color:var(--a);border-color:rgba(240,180,76,.3)}
+/* ── STAT CARDS ── */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:18px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:14px;position:relative;overflow:hidden}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat.amber::before{background:var(--accent)}
+.stat.teal::before{background:var(--accent3)}
+.stat.orange::before{background:var(--accent2)}
+.stat.purple::before{background:var(--accent4)}
+.stat.green::before{background:var(--success)}
+.stat.red::before{background:var(--danger)}
+.stat-label{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;font-family:'Press Start 2P',monospace}
+.stat-value{font-size:22px;font-weight:700;color:var(--text)}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:4px}
 
-    .topbar-right{display:flex;gap:.5rem;align-items:center}
-    .btn-sm{font-family:'Press Start 2P',monospace;font-size:.26rem;background:none;border:1px solid rgba(255,255,255,.1);color:var(--muted);padding:.4rem .7rem;cursor:pointer;letter-spacing:.06em;transition:color .15s,border-color .15s}
-    .btn-sm:hover{color:#fff;border-color:rgba(255,255,255,.3)}
-    .btn-sm.accent{color:var(--a);border-color:rgba(240,180,76,.3)}
-    .btn-sm.accent:hover{background:rgba(240,180,76,.08)}
+/* ── SECTION HEADER ── */
+.section-hdr{display:flex;align-items:center;gap:10px;margin:20px 0 10px;border-bottom:1px solid var(--border);padding-bottom:8px}
+.section-hdr h2{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--accent);letter-spacing:.05em}
+.section-hdr .sep{flex:1}
 
-    .page{max-width:1020px;margin:0 auto;padding:2rem clamp(.8rem,3vw,2rem) 5rem}
+/* ── TABLES ── */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:4px}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--surface2);color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.08em;padding:8px 12px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--border)}
+tbody tr{border-bottom:1px solid var(--border);transition:.1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.03)}
+td{padding:8px 12px;font-size:11px;vertical-align:middle}
 
-    /* tab panels */
-    .tab-panel{display:none}
-    .tab-panel.active{display:block}
+/* ── PILLS ── */
+.pill{display:inline-block;padding:2px 8px;border-radius:2px;font-size:9px;font-family:'Press Start 2P',monospace;letter-spacing:.04em}
+.pill-available{background:rgba(240,180,76,.12);color:var(--accent);border:1px solid rgba(240,180,76,.3)}
+.pill-issued{background:rgba(76,240,208,.12);color:var(--accent3);border:1px solid rgba(76,240,208,.3)}
+.pill-redeemed{background:rgba(200,75,255,.12);color:var(--accent4);border:1px solid rgba(200,75,255,.3)}
+.pill-expired{background:rgba(255,76,76,.12);color:var(--danger);border:1px solid rgba(255,76,76,.3)}
+.pill-hot{background:rgba(255,126,62,.18);color:var(--accent2);border:1px solid rgba(255,126,62,.4);animation:pulse-hot 2s infinite}
+@keyframes pulse-hot{0%,100%{opacity:1}50%{opacity:.6}}
 
-    /* ── STATS GRID ── */
-    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.7rem;margin-bottom:2.5rem}
-    .stat-card{background:var(--s);border:1px solid var(--border);padding:1.1rem 1.2rem;position:relative}
-    .stat-card::before{content:'';position:absolute;top:-1px;left:-1px;width:9px;height:9px;border-top:2px solid var(--a);border-left:2px solid var(--a)}
-    .stat-num{font-family:'Press Start 2P',monospace;font-size:clamp(.9rem,2.5vw,1.5rem);color:var(--a);display:block;margin-bottom:.4rem}
-    .stat-num.teal{color:var(--a3)}
-    .stat-num.orange{color:var(--a2)}
-    .stat-num.red{color:var(--red)}
-    .stat-lbl{font-family:'Press Start 2P',monospace;font-size:.22rem;color:var(--muted);letter-spacing:.09em;line-height:1.8}
+/* ── FILTERS ROW ── */
+.filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.filter-row input,.filter-row select{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:6px 10px;border-radius:3px}
+.filter-row input:focus,.filter-row select:focus{outline:none;border-color:var(--accent)}
+.filter-row select option{background:var(--surface2)}
+.filter-row label{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer}
+.filter-row input[type=checkbox]{width:14px;height:14px;accent-color:var(--accent2)}
 
-    /* ── FUNNEL RATES ── */
-    .rates-row{display:flex;gap:.7rem;margin-bottom:2.5rem;flex-wrap:wrap}
-    .rate-card{flex:1;min-width:140px;background:rgba(76,240,208,.04);border:1px solid rgba(76,240,208,.15);padding:1rem 1.2rem}
-    .rate-val{font-family:'Press Start 2P',monospace;font-size:1.1rem;color:var(--a3);display:block;margin-bottom:.35rem}
-    .rate-lbl{font-family:'Press Start 2P',monospace;font-size:.22rem;color:rgba(76,240,208,.45);letter-spacing:.09em}
+/* ── CODE OUTPUT BOX ── */
+.code-output{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:12px;font-family:'Space Mono',monospace;font-size:12px;max-height:220px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;color:var(--accent3);line-height:1.7}
+.copy-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
 
-    /* ── PACKAGES ── */
-    .pkg-row{display:flex;gap:.7rem;margin-bottom:2.5rem;flex-wrap:wrap}
-    .pkg-card{flex:1;min-width:120px;background:var(--s);border:1px solid var(--border);padding:1rem 1.2rem;text-align:center}
-    .pkg-num{font-family:'Press Start 2P',monospace;font-size:1.2rem;color:var(--a);display:block;margin-bottom:.35rem}
-    .pkg-lbl{font-family:'Press Start 2P',monospace;font-size:.22rem;color:var(--muted);letter-spacing:.08em}
+/* ── MINI STATS ── */
+.mini-stats{display:flex;gap:16px;margin:10px 0;flex-wrap:wrap}
+.mini-stat{font-size:10px;color:var(--muted)}.mini-stat b{color:var(--accent)}
 
-    /* ── SECTION LABEL ── */
-    .sec-label{font-family:'Press Start 2P',monospace;font-size:.3rem;color:var(--a3);letter-spacing:.2em;display:block;margin-bottom:1.2rem}
-    .sec-label::before{content:'> ';color:var(--a)}
+/* ── GEN QUICK TABLE ── */
+.gen-tbl{max-height:280px;overflow-y:auto}
 
-    /* ── TABLES ── */
-    .tbl-wrap{overflow-x:auto;margin-bottom:2.5rem}
-    table{width:100%;border-collapse:collapse;font-family:'Space Mono',monospace;font-size:.75rem}
-    th{font-family:'Press Start 2P',monospace;font-size:.22rem;color:rgba(255,255,255,.22);letter-spacing:.09em;text-align:left;padding:.65rem .7rem;border-bottom:1px solid rgba(255,255,255,.06);white-space:nowrap}
-    td{padding:.6rem .7rem;border-bottom:1px solid rgba(255,255,255,.04);color:var(--muted);white-space:nowrap;vertical-align:middle}
-    td.code-cell{color:#fff;font-weight:700;letter-spacing:.06em;cursor:pointer;text-decoration:underline;text-decoration-color:rgba(240,180,76,.3)}
-    td.code-cell:hover{color:var(--a)}
-    tr:hover td{background:rgba(255,255,255,.015)}
-    .pill{font-family:'Press Start 2P',monospace;font-size:.2rem;padding:.2rem .45rem;letter-spacing:.06em}
-    .pill.available{background:rgba(255,255,255,.06);color:rgba(255,255,255,.3)}
-    .pill.issued{background:rgba(240,180,76,.1);color:var(--a)}
-    .pill.redeemed{background:rgba(76,240,208,.1);color:var(--a3)}
-    .pill.expired{background:rgba(255,77,106,.1);color:var(--red)}
+/* ── CHARTS ── */
+.chart-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:18px}
+.chart-box{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:14px}
+.chart-box h3{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted);margin-bottom:12px;letter-spacing:.06em}
+canvas{max-width:100%}
 
-    /* ── CONTROLS ROW ── */
-    .ctrl-row{display:flex;align-items:center;gap:.7rem;margin-bottom:1rem;flex-wrap:wrap}
-    .search-in{flex:1;min-width:150px;font-family:'Space Mono',monospace;font-size:.8rem;color:#fff;background:var(--s);border:1px solid rgba(240,180,76,.15);padding:.6rem .85rem;outline:none;caret-color:var(--a)}
-    .search-in:focus{border-color:var(--a)}
-    .filt-btn{font-family:'Press Start 2P',monospace;font-size:.22rem;background:none;color:var(--muted);border:1px solid rgba(255,255,255,.08);padding:.45rem .7rem;cursor:pointer;letter-spacing:.06em;transition:color .15s,border-color .15s}
-    .filt-btn.active{color:var(--a);border-color:rgba(240,180,76,.35)}
-    .filt-btn:hover{color:#fff}
+/* ── FUNNEL BAR ── */
+.funnel{display:flex;flex-direction:column;gap:8px}
+.funnel-row{display:flex;align-items:center;gap:10px}
+.funnel-label{width:130px;font-size:10px;color:var(--muted);flex-shrink:0}
+.funnel-bar-wrap{flex:1;background:rgba(255,255,255,.05);border-radius:2px;height:18px;overflow:hidden}
+.funnel-bar{height:100%;border-radius:2px;transition:width .6s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:8px}
+.funnel-bar span{font-size:10px;color:rgba(0,0,0,.8);font-weight:700}
 
-    /* ── GENERATOR PANEL ── */
-    .gen-panel{background:var(--s);border:2px solid var(--border);padding:1.8rem;margin-bottom:2.5rem;position:relative}
-    .gen-panel::before{content:'';position:absolute;top:-2px;left:-2px;width:14px;height:14px;border-top:2px solid var(--a);border-left:2px solid var(--a)}
-    .gen-panel::after{content:'';position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-bottom:2px solid var(--a3);border-right:2px solid var(--a3)}
-    .gen-row{display:flex;align-items:flex-end;gap:.9rem;flex-wrap:wrap;margin-bottom:1rem}
-    .gen-field{display:flex;flex-direction:column;gap:.45rem;flex:1;min-width:110px}
-    .gen-lbl{font-family:'Press Start 2P',monospace;font-size:.24rem;color:rgba(255,255,255,.25);letter-spacing:.12em}
-    .gen-in{font-family:'Space Mono',monospace;font-size:.9rem;color:#fff;background:rgba(255,255,255,.05);border:2px solid rgba(240,180,76,.18);padding:.8rem .9rem;outline:none;caret-color:var(--a);transition:border-color .2s;width:100%}
-    .gen-in:focus{border-color:var(--a)}
-    .btn-gen{font-family:'Press Start 2P',monospace;font-size:.35rem;border:none;padding:.85rem 1.3rem;cursor:pointer;letter-spacing:.07em;box-shadow:3px 3px 0 rgba(0,0,0,.4);transition:box-shadow .1s steps(1),transform .1s steps(1);white-space:nowrap;min-height:48px}
-    .btn-gen:hover{box-shadow:1px 1px 0 rgba(0,0,0,.4);transform:translate(2px,2px)}
-    .btn-gen:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:3px 3px 0 rgba(0,0,0,.4)}
-    .btn-primary{background:var(--a);color:#080810}
-    .btn-outline{background:transparent;color:var(--a);border:2px solid rgba(240,180,76,.3)}
-    .btn-outline:hover{background:rgba(240,180,76,.07)}
-    .gen-status{font-family:'Press Start 2P',monospace;font-size:.27rem;letter-spacing:.1em;min-height:1.1rem}
-    .gen-status.ok{color:var(--green)}.gen-status.ok::before{content:'✓ '}
-    .gen-status.err{color:var(--red)}.gen-status.err::before{content:'✕ '}
-    .gen-status.load{color:var(--muted)}.gen-status.load::before{content:'... '}
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:6px;width:min(640px,95vw);max-height:88vh;overflow-y:auto;padding:22px}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.modal-hdr h2{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--accent)}
+.modal-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1}
+.modal-close:hover{color:var(--text)}
+.modal-section{margin-bottom:18px}
+.modal-section h3{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted);margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.field span,.field a{font-size:12px;color:var(--text)}
+.field a{color:var(--accent3);text-decoration:none}
+.field a:hover{text-decoration:underline}
+.field-edit input,.field-edit textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:6px 8px;border-radius:3px;resize:vertical}
+.field-edit input:focus,.field-edit textarea:focus{outline:none;border-color:var(--accent)}
 
-    .out-wrap{margin-top:1.2rem;display:none}
-    .out-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;flex-wrap:wrap;gap:.4rem}
-    .out-title{font-family:'Press Start 2P',monospace;font-size:.26rem;color:var(--muted);letter-spacing:.1em}
-    .out-box{width:100%;min-height:100px;max-height:260px;font-family:'Space Mono',monospace;font-size:.8rem;color:var(--a3);background:rgba(0,0,0,.35);border:1px solid rgba(76,240,208,.15);padding:.9rem;resize:vertical;outline:none;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+/* ── TIMELINE ── */
+.timeline{position:relative;padding-left:24px}
+.timeline::before{content:'';position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:var(--border)}
+.tl-event{position:relative;margin-bottom:14px}
+.tl-event::before{content:'';position:absolute;left:-21px;top:5px;width:10px;height:10px;border-radius:50%;border:2px solid var(--border);background:var(--surface)}
+.tl-event.done::before{border-color:var(--accent3);background:rgba(76,240,208,.2)}
+.tl-event.pending::before{border-color:var(--border)}
+.tl-event-title{font-size:11px;font-weight:700;color:var(--text)}
+.tl-event.pending .tl-event-title{color:var(--muted)}
+.tl-event-time{font-size:10px;color:var(--muted);margin-top:2px}
+.tl-gap{font-size:10px;color:var(--accent);margin:4px 0 4px 0;font-style:italic}
 
-    /* ── ACTIVITY FEED ── */
-    .feed-list{list-style:none;display:flex;flex-direction:column;gap:.3rem;max-height:320px;overflow-y:auto}
-    .feed-item{display:flex;gap:.8rem;align-items:baseline;padding:.55rem .7rem;border-bottom:1px solid rgba(255,255,255,.04)}
-    .feed-time{font-family:'Press Start 2P',monospace;font-size:.22rem;color:rgba(255,255,255,.2);white-space:nowrap;flex-shrink:0}
-    .feed-type{font-family:'Press Start 2P',monospace;font-size:.26rem;flex-shrink:0}
-    .feed-type.scan{color:var(--a3)}
-    .feed-type.redeem{color:var(--a)}
-    .feed-type.booking{color:var(--green)}
-    .feed-type.issued{color:var(--a2)}
-    .feed-type.invalid{color:var(--red)}
-    .feed-detail{font-family:'Space Mono',monospace;font-size:.75rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .feed-empty{font-family:'Press Start 2P',monospace;font-size:.28rem;color:rgba(255,255,255,.15);text-align:center;padding:2rem}
+/* ── VISUAL TIMELINE STRIP ── */
+.tl-strip{display:flex;align-items:center;gap:0;margin:14px 0;flex-wrap:nowrap;overflow-x:auto}
+.tl-node{display:flex;flex-direction:column;align-items:center;min-width:80px}
+.tl-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:9px;transition:.2s}
+.tl-dot.done{border-color:var(--accent3);background:rgba(76,240,208,.15);color:var(--accent3)}
+.tl-dot.skip{border-color:var(--border);color:var(--muted)}
+.tl-node-label{font-size:8px;color:var(--muted);margin-top:6px;text-align:center;max-width:72px;line-height:1.4}
+.tl-node-label.done{color:var(--text)}
+.tl-connector{flex:1;height:2px;background:var(--border);min-width:20px;position:relative}
+.tl-connector.done{background:linear-gradient(90deg,var(--accent3),rgba(76,240,208,.3))}
+.tl-gap-label{font-size:8px;color:var(--accent);position:absolute;top:-14px;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--surface);padding:0 4px}
 
-    /* ── LEAD MODAL ── */
-    .modal-bg{position:fixed;inset:0;z-index:400;background:rgba(4,4,12,.92);display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .2s}
-    .modal-bg.open{opacity:1;pointer-events:auto}
-    .modal{width:100%;max-width:580px;max-height:90dvh;overflow-y:auto;background:#0d0d1a;border:2px solid var(--border);padding:2rem;position:relative}
-    .modal::before{content:'';position:absolute;top:-2px;left:-2px;width:14px;height:14px;border-top:2px solid var(--a);border-left:2px solid var(--a)}
-    .modal-close{position:absolute;top:1rem;right:1rem;font-family:'Press Start 2P',monospace;font-size:.4rem;color:var(--muted);background:none;border:none;cursor:pointer;padding:.3rem}
-    .modal-close:hover{color:#fff}
-    .modal-title{font-family:'Press Start 2P',monospace;font-size:.55rem;color:var(--a);letter-spacing:.1em;margin-bottom:1.8rem}
-    .timeline{list-style:none;display:flex;flex-direction:column;gap:0;margin-bottom:1.8rem}
-    .tl-item{display:flex;gap:1rem;align-items:flex-start;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
-    .tl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:.3rem}
-    .tl-dot.done{background:var(--a3);box-shadow:0 0 6px var(--a3)}
-    .tl-dot.pending{background:rgba(255,255,255,.1)}
-    .tl-event{font-family:'Press Start 2P',monospace;font-size:.28rem;color:rgba(255,255,255,.5);letter-spacing:.08em;flex:1}
-    .tl-event.done{color:#fff}
-    .tl-time{font-family:'Space Mono',monospace;font-size:.72rem;color:var(--muted)}
-    .lead-section{margin-top:1.4rem;padding-top:1.4rem;border-top:1px solid rgba(255,255,255,.06)}
-    .lead-row{display:flex;gap:.8rem;margin-bottom:.7rem;flex-wrap:wrap}
-    .lead-key{font-family:'Press Start 2P',monospace;font-size:.24rem;color:rgba(255,255,255,.25);letter-spacing:.1em;min-width:90px;flex-shrink:0;padding-top:.15rem}
-    .lead-val{font-family:'Space Mono',monospace;font-size:.8rem;color:#fff;word-break:break-all}
+/* ── REVENUE ── */
+.rev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:18px}
+.rev-pkg{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;justify-content:space-between;align-items:center}
+.rev-pkg-name{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted)}
+.rev-pkg-val{font-size:16px;font-weight:700;color:var(--accent)}
+.rev-pkg-count{font-size:10px;color:var(--muted);text-align:right}
 
-    /* ── ISSUE PANEL inside code detail ── */
-    .issue-form{margin-top:1.4rem;padding:1.2rem;background:rgba(240,180,76,.04);border:1px solid rgba(240,180,76,.12)}
-    .issue-form .gen-in{margin-bottom:.7rem}
-    .issue-row{display:flex;gap:.7rem;flex-wrap:wrap}
+/* ── ENGAGEMENT BARS ── */
+.eng-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.eng-label{width:100px;font-size:10px;color:var(--muted);flex-shrink:0}
+.eng-bar-wrap{flex:1;background:rgba(255,255,255,.05);border-radius:2px;height:16px;overflow:hidden}
+.eng-bar{height:100%;border-radius:2px;transition:width .6s ease;display:flex;align-items:center;padding:0 6px}
+.eng-bar span{font-size:10px;font-weight:700}
+.eng-count{width:36px;font-size:10px;color:var(--muted);text-align:right;flex-shrink:0}
 
-    /* ── EXPIRY BADGE ── */
-    .expiry-badge{font-family:'Press Start 2P',monospace;font-size:.22rem;padding:.2rem .5rem;letter-spacing:.06em}
-    .expiry-badge.active{background:rgba(76,240,208,.1);color:var(--a3)}
-    .expiry-badge.soon{background:rgba(240,180,76,.1);color:var(--a)}
-    .expiry-badge.expired{background:rgba(255,77,106,.1);color:var(--red)}
+/* ── ACTIVITY ── */
+.activity-feed{display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto}
+.activity-item{display:flex;gap:12px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:3px;align-items:center}
+.activity-time{font-size:9px;color:var(--muted);white-space:nowrap;min-width:80px}
+.activity-type{font-size:10px;font-weight:700;color:var(--accent3)}
+.activity-detail{font-size:10px;color:var(--muted)}
 
-    @media(max-width:600px){
-      .stats-grid{grid-template-columns:repeat(2,1fr)}
-      .rates-row,.pkg-row{flex-direction:column}
-      .topbar{padding:.8rem}
-      .tab-nav{display:none}
-    }
-    @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
-    :focus-visible{outline:2px solid var(--a);outline-offset:2px}
-  </style>
+/* ── CONFIRM MODAL ── */
+.confirm-modal{background:var(--surface);border:1px solid var(--danger);border-radius:6px;width:min(400px,92vw);padding:22px}
+.confirm-modal h2{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--danger);margin-bottom:12px}
+.confirm-modal p{font-size:11px;color:var(--text);margin-bottom:10px;line-height:1.6}
+.confirm-modal .code-list{font-size:10px;color:var(--accent);margin:8px 0;max-height:120px;overflow-y:auto;line-height:1.8}
+.confirm-btns{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--surface)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){.stat-grid{grid-template-columns:repeat(2,1fr)}.field-grid{grid-template-columns:1fr}.rev-grid{grid-template-columns:1fr 1fr}}
+</style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="loginScreen">
-  <div class="login-card">
-    <div class="px-title">RAOUF px</div>
-    <div class="px-sub">ADMIN DASHBOARD</div>
-    <label class="f-label" for="adminKey">ADMIN KEY</label>
-    <input class="f-input" type="password" id="adminKey" placeholder="Enter your admin key" autocomplete="current-password"/>
-    <button class="btn-login" id="loginBtn">[ ENTER ]</button>
-    <p class="login-err" id="loginErr"></p>
-  </div>
+<!-- TOPBAR -->
+<div class="topbar">
+  <h1>RAOUF px ▸ ADMIN</h1>
+  <input class="key-input" type="password" id="apiKey" placeholder="Admin key…" value=""/>
+  <button class="btn btn-teal" onclick="loadAll()">[ LOAD ]</button>
+  <button class="btn btn-amber" onclick="exportCSV()">[ EXPORT CSV ]</button>
+  <button class="btn btn-danger" onclick="showDeleteTestConfirm()">[ DELETE TEST DATA ]</button>
 </div>
 
-<!-- APP -->
-<div id="app">
-  <div class="topbar">
-    <div class="topbar-left">
-      <div class="logo-txt">RAOUF px <span>/ ADMIN</span></div>
-      <nav class="tab-nav" id="tabNav">
-        <button class="tab-btn active" data-tab="analytics">ANALYTICS</button>
-        <button class="tab-btn" data-tab="codes">CODES</button>
-        <button class="tab-btn" data-tab="leads">LEADS</button>
-        <button class="tab-btn" data-tab="generate">GENERATE</button>
-        <button class="tab-btn" data-tab="activity">ACTIVITY</button>
-      </nav>
-    </div>
-    <div class="topbar-right">
-      <button class="btn-sm accent" id="btnExport">[ EXPORT CSV ]</button>
-      <button class="btn-sm" id="btnRefreshAll">[ REFRESH ]</button>
-      <button class="btn-sm" id="logoutBtn">[ LOGOUT ]</button>
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" data-tab="analytics">ANALYTICS</div>
+  <div class="tab" data-tab="revenue">REVENUE</div>
+  <div class="tab" data-tab="codes">CODES</div>
+  <div class="tab" data-tab="leads">LEADS</div>
+  <div class="tab" data-tab="generate">GENERATE</div>
+  <div class="tab" data-tab="activity">ACTIVITY</div>
+</div>
+
+<!-- ═══════════════════════════════════════ ANALYTICS ══════════════════════ -->
+<div class="content">
+<div class="panel active" id="tab-analytics">
+
+  <div class="section-hdr"><h2>FUNNEL OVERVIEW</h2><div class="sep"></div></div>
+  <div class="stat-grid" id="stat-funnel">
+    <div class="stat amber"><div class="stat-label">Cards Issued</div><div class="stat-value" id="s-issued">—</div></div>
+    <div class="stat teal"><div class="stat-label">QR Scans</div><div class="stat-value" id="s-scans">—</div></div>
+    <div class="stat purple"><div class="stat-label">Unlocked</div><div class="stat-value" id="s-redeemed">—</div></div>
+    <div class="stat green"><div class="stat-label">Bookings</div><div class="stat-value" id="s-bookings">—</div></div>
+    <div class="stat orange"><div class="stat-label">🔥 Hot Leads</div><div class="stat-value" id="s-hot">—</div></div>
+    <div class="stat red"><div class="stat-label">Expired</div><div class="stat-value" id="s-expired">—</div></div>
+  </div>
+
+  <div class="chart-row">
+    <div class="chart-box" style="grid-column:1/-1">
+      <h3>CONVERSION FUNNEL</h3>
+      <div class="funnel" id="funnel-bars"></div>
     </div>
   </div>
 
-  <div class="page">
+  <div class="section-hdr"><h2>CONVERSION RATES</h2><div class="sep"></div></div>
+  <div class="stat-grid">
+    <div class="stat teal"><div class="stat-label">Scan Rate</div><div class="stat-value" id="r-scan">—</div><div class="stat-sub">scans / issued cards</div></div>
+    <div class="stat purple"><div class="stat-label">Unlock Rate</div><div class="stat-value" id="r-unlock">—</div><div class="stat-sub">unlocks / scans</div></div>
+    <div class="stat green"><div class="stat-label">Booking Rate</div><div class="stat-value" id="r-booking">—</div><div class="stat-sub">bookings / unlocks</div></div>
+  </div>
 
-    <!-- ══ ANALYTICS TAB ══ -->
-    <div class="tab-panel active" id="tab-analytics">
-      <div class="stats-grid" id="statsGrid">
-        <div class="stat-card"><span class="stat-num" id="sTotal">—</span><span class="stat-lbl">CODES GENERATED</span></div>
-        <div class="stat-card"><span class="stat-num" id="sIssued">—</span><span class="stat-lbl">CODES ISSUED</span></div>
-        <div class="stat-card"><span class="stat-num teal" id="sScans">—</span><span class="stat-lbl">QR SCANS</span></div>
-        <div class="stat-card"><span class="stat-num teal" id="sEntered">—</span><span class="stat-lbl">CODES ENTERED</span></div>
-        <div class="stat-card"><span class="stat-num orange" id="sBookings">—</span><span class="stat-lbl">BOOKINGS</span></div>
-      </div>
+  <div class="section-hdr"><h2>SESSION ENGAGEMENT</h2><div class="sep"></div></div>
+  <div id="engagement-section">
+    <div class="eng-row"><div class="eng-label">Bounce (0–10s)</div><div class="eng-bar-wrap"><div class="eng-bar" id="eng-bounce" style="background:var(--danger);width:0%"><span id="eng-bounce-pct">0%</span></div></div><div class="eng-count" id="eng-bounce-n">0</div></div>
+    <div class="eng-row"><div class="eng-label">Skim (10–30s)</div><div class="eng-bar-wrap"><div class="eng-bar" id="eng-skim" style="background:var(--warn);width:0%"><span id="eng-skim-pct">0%</span></div></div><div class="eng-count" id="eng-skim-n">0</div></div>
+    <div class="eng-row"><div class="eng-label">Interested (30–120s)</div><div class="eng-bar-wrap"><div class="eng-bar" id="eng-interested" style="background:var(--accent3);width:0%"><span id="eng-interested-pct">0%</span></div></div><div class="eng-count" id="eng-interested-n">0</div></div>
+    <div class="eng-row"><div class="eng-label">Engaged (120s+)</div><div class="eng-bar-wrap"><div class="eng-bar" id="eng-engaged" style="background:var(--accent4);width:0%"><span id="eng-engaged-pct">0%</span></div></div><div class="eng-count" id="eng-engaged-n">0</div></div>
+  </div>
 
-      <span class="sec-label">CONVERSION_RATES</span>
-      <div class="rates-row">
-        <div class="rate-card"><span class="rate-val" id="rScan">—</span><span class="rate-lbl">SCAN RATE (scans / issued)</span></div>
-        <div class="rate-card"><span class="rate-val" id="rUnlock">—</span><span class="rate-lbl">UNLOCK RATE (entered / scans)</span></div>
-        <div class="rate-card"><span class="rate-val" id="rBooking">—</span><span class="rate-lbl">BOOKING RATE (bookings / entered)</span></div>
-      </div>
+  <div class="section-hdr"><h2>PACKAGES</h2><div class="sep"></div></div>
+  <div class="chart-row">
+    <div class="chart-box"><h3>BOOKINGS BY PACKAGE</h3><canvas id="chart-pkg" height="180"></canvas></div>
+    <div class="chart-box"><h3>CARDS BY LOCATION</h3><canvas id="chart-loc" height="180"></canvas></div>
+  </div>
 
-      <span class="sec-label">BOOKINGS_BY_PACKAGE</span>
-      <div class="pkg-row" id="pkgRow">
-        <div class="pkg-card"><span class="pkg-num" id="pkgStarter">0</span><span class="pkg-lbl">STARTER</span></div>
-        <div class="pkg-card"><span class="pkg-num" id="pkgSignature">0</span><span class="pkg-lbl">SIGNATURE</span></div>
-        <div class="pkg-card"><span class="pkg-num" id="pkgStorytelling">0</span><span class="pkg-lbl">STORYTELLING</span></div>
-      </div>
+  <div class="section-hdr"><h2>RECENT LEADS</h2><div class="sep"></div></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>CODE</th><th>NAME</th><th>PACKAGE</th><th>PRICE</th><th>DATE</th><th>SUBMITTED</th></tr></thead>
+    <tbody id="recent-leads-body"></tbody>
+  </table></div>
 
-      <span class="sec-label">RECENT_LEADS</span>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>NAME</th><th>PACKAGE</th><th>CODE</th><th>SUBMITTED</th></tr></thead>
-          <tbody id="recentLeadsBody"></tbody>
-        </table>
-      </div>
+</div><!-- end analytics -->
+
+<!-- ═══════════════════════════════════════ REVENUE ════════════════════════ -->
+<div class="panel" id="tab-revenue">
+
+  <div class="section-hdr"><h2>REVENUE INSIGHTS</h2><div class="sep"></div></div>
+  <div class="stat-grid">
+    <div class="stat green"><div class="stat-label">Total Revenue</div><div class="stat-value" id="rev-total">—</div><div class="stat-sub">AED</div></div>
+    <div class="stat teal"><div class="stat-label">Avg Booking Value</div><div class="stat-value" id="rev-avg">—</div><div class="stat-sub">AED per booking</div></div>
+    <div class="stat amber"><div class="stat-label">Revenue Per Card</div><div class="stat-value" id="rev-per-card">—</div><div class="stat-sub">AED per issued card</div></div>
+    <div class="stat purple"><div class="stat-label">Issued Cards</div><div class="stat-value" id="rev-issued">—</div></div>
+    <div class="stat orange"><div class="stat-label">Bookings</div><div class="stat-value" id="rev-bookings">—</div></div>
+  </div>
+
+  <div class="section-hdr"><h2>REVENUE BY PACKAGE</h2><div class="sep"></div></div>
+  <div class="rev-grid" id="rev-pkg-grid">
+    <div class="rev-pkg"><div><div class="rev-pkg-name">STARTER</div><div class="rev-pkg-count" id="rev-starter-count">0 bookings</div></div><div class="rev-pkg-val" id="rev-starter-rev">0 AED</div></div>
+    <div class="rev-pkg"><div><div class="rev-pkg-name">SIGNATURE</div><div class="rev-pkg-count" id="rev-sig-count">0 bookings</div></div><div class="rev-pkg-val" id="rev-sig-rev">0 AED</div></div>
+    <div class="rev-pkg"><div><div class="rev-pkg-name">STORYTELLING</div><div class="rev-pkg-count" id="rev-story-count">0 bookings</div></div><div class="rev-pkg-val" id="rev-story-rev">0 AED</div></div>
+  </div>
+
+  <div class="section-hdr"><h2>REVENUE CHART</h2><div class="sep"></div></div>
+  <div class="chart-box" style="max-width:480px"><h3>AED BY PACKAGE</h3><canvas id="chart-rev" height="200"></canvas></div>
+
+  <div class="section-hdr" style="margin-top:20px"><h2>FORMULA</h2><div class="sep"></div></div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:14px;font-size:11px;line-height:1.9;color:var(--muted)">
+    <div>Starter → <b style="color:var(--text)">250 AED</b></div>
+    <div>Signature → <b style="color:var(--text)">499 AED</b></div>
+    <div>Storytelling → <b style="color:var(--text)">999 AED</b></div>
+    <div style="margin-top:8px">Revenue Per Card = Total Revenue ÷ Issued Cards</div>
+    <div>Avg Booking Value = Total Revenue ÷ Bookings</div>
+  </div>
+
+</div><!-- end revenue -->
+
+<!-- ═══════════════════════════════════════ CODES ═════════════════════════ -->
+<div class="panel" id="tab-codes">
+  <div class="filter-row">
+    <input type="text" id="code-search" placeholder="Search code / location…" oninput="renderCodes()"/>
+    <select id="code-filter" onchange="renderCodes()">
+      <option value="">All statuses</option>
+      <option value="available">Available</option>
+      <option value="issued">Issued</option>
+      <option value="redeemed">Redeemed</option>
+      <option value="expired">Expired</option>
+    </select>
+    <label><input type="checkbox" id="filter-hot" onchange="renderCodes()"/> 🔥 Hot Leads only</label>
+    <label><input type="checkbox" id="filter-noscan" onchange="renderCodes()"/> No scan yet</label>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>CODE</th><th>STATUS</th><th>LOCATION</th><th>ISSUED</th><th>FIRST SCAN</th><th>REDEEMED</th><th>BOOKING</th><th>SESSION</th><th>EXPIRES</th></tr></thead>
+    <tbody id="codes-body"></tbody>
+  </table></div>
+  <div style="margin-top:8px;font-size:10px;color:var(--muted)" id="codes-count"></div>
+</div><!-- end codes -->
+
+<!-- ═══════════════════════════════════════ LEADS ═════════════════════════ -->
+<div class="panel" id="tab-leads">
+  <div class="filter-row">
+    <input type="text" id="lead-search" placeholder="Search name / email / code…" oninput="renderLeads()"/>
+    <select id="lead-pkg-filter" onchange="renderLeads()">
+      <option value="">All packages</option>
+      <option value="Starter">Starter</option>
+      <option value="Signature">Signature</option>
+      <option value="Storytelling">Storytelling</option>
+    </select>
+    <label><input type="checkbox" id="lead-hot-filter" onchange="renderLeads()"/> 🔥 Hot Leads</label>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>CODE</th><th>STATUS</th><th>NAME</th><th>EMAIL</th><th>WHATSAPP</th><th>PACKAGE</th><th>PRICE</th><th>SESSION DATE</th><th>LOCATION</th><th>SUBMITTED</th></tr></thead>
+    <tbody id="leads-body"></tbody>
+  </table></div>
+</div><!-- end leads -->
+
+<!-- ═══════════════════════════════════════ GENERATE ═══════════════════════ -->
+<div class="panel" id="tab-generate">
+  <div class="section-hdr"><h2>GENERATE CODES</h2><div class="sep"></div></div>
+  <div class="mini-stats" id="gen-mini-stats"></div>
+
+  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:flex-end">
+    <div>
+      <div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em">Count (1–200)</div>
+      <input type="number" id="gen-count" value="10" min="1" max="200" style="width:90px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:12px;padding:6px 10px;border-radius:3px"/>
     </div>
+    <button class="btn btn-amber" onclick="generateBulk()">[ GENERATE ]</button>
+    <button class="btn btn-teal btn-sm" onclick="generateOne()">[ + ONE CODE ]</button>
+  </div>
 
-    <!-- ══ CODES TAB ══ -->
-    <div class="tab-panel" id="tab-codes">
-      <div class="ctrl-row">
-        <input class="search-in" type="text" id="codeSearch" placeholder="Search code, location..."/>
-        <button class="filt-btn active" data-filter="all">ALL</button>
-        <button class="filt-btn" data-filter="available">AVAILABLE</button>
-        <button class="filt-btn" data-filter="issued">ISSUED</button>
-        <button class="filt-btn" data-filter="redeemed">REDEEMED</button>
-        <button class="filt-btn" data-filter="expired">EXPIRED</button>
-      </div>
-      <div class="tbl-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>CODE</th><th>STATUS</th><th>LOCATION</th>
-              <th>CREATED</th><th>ISSUED</th><th>REDEEMED</th><th>EXPIRES</th>
-            </tr>
-          </thead>
-          <tbody id="codesBody"></tbody>
-        </table>
-      </div>
-    </div>
+  <div class="code-output" id="gen-output">// codes will appear here</div>
+  <div class="copy-row">
+    <button class="btn btn-teal btn-sm" onclick="copyAll()">[ COPY ALL ]</button>
+    <button class="btn btn-teal btn-sm" onclick="copyCSV()">[ COPY CSV ]</button>
+    <button class="btn btn-danger btn-sm" onclick="document.getElementById('gen-output').textContent='// codes will appear here';genCodes=[]">[ CLEAR ]</button>
+  </div>
 
-    <!-- ══ LEADS TAB ══ -->
-    <div class="tab-panel" id="tab-leads">
-      <div class="tbl-wrap">
-        <table>
-          <thead>
-            <tr><th>CODE</th><th>NAME</th><th>PACKAGE</th><th>WHATSAPP</th><th>DATE</th><th>LOCATION</th></tr>
-          </thead>
-          <tbody id="leadsBody"></tbody>
-        </table>
-      </div>
-    </div>
+  <div class="section-hdr" style="margin-top:18px"><h2>GENERATED THIS SESSION</h2><div class="sep"></div></div>
+  <div class="tbl-wrap gen-tbl"><table>
+    <thead><tr><th>CODE</th><th>CREATED AT</th></tr></thead>
+    <tbody id="gen-table-body"></tbody>
+  </table></div>
+</div><!-- end generate -->
 
-    <!-- ══ GENERATE TAB ══ -->
-    <div class="tab-panel" id="tab-generate">
-      <div class="gen-panel">
-        <div class="gen-row">
-          <div class="gen-field">
-            <label class="gen-lbl" for="countIn">NUMBER OF CODES</label>
-            <input class="gen-in" type="number" id="countIn" min="1" max="200" value="1"/>
-          </div>
-          <button class="btn-gen btn-primary" id="btnGen1">[ GENERATE 1 ]</button>
-          <button class="btn-gen btn-outline" id="btnGenBulk">[ GENERATE BULK ]</button>
-        </div>
-        <p class="gen-status" id="genStatus"></p>
-        <div class="out-wrap" id="outWrap">
-          <div class="out-head">
-            <span class="out-title" id="outTitle">GENERATED CODES</span>
-            <div style="display:flex;gap:.4rem;flex-wrap:wrap">
-              <button class="btn-sm accent" id="btnCopyAll">[ COPY ALL ]</button>
-              <button class="btn-sm accent" id="btnCopyCsv">[ COPY CSV ]</button>
-              <button class="btn-sm" id="btnClearOut">[ CLEAR ]</button>
-            </div>
-          </div>
-          <textarea class="out-box" id="outBox" readonly></textarea>
-        </div>
-      </div>
+<!-- ═══════════════════════════════════════ ACTIVITY ═══════════════════════ -->
+<div class="panel" id="tab-activity">
+  <div class="section-hdr"><h2>LIVE ACTIVITY FEED</h2><div class="sep"></div>
+    <button class="btn btn-teal btn-sm" onclick="loadActivity()">[ REFRESH ]</button>
+  </div>
+  <div class="activity-feed" id="activity-feed"></div>
+</div><!-- end activity -->
 
-      <!-- All codes mini table in generate tab -->
-      <span class="sec-label">ALL_CODES_QUICK_VIEW</span>
-      <div class="ctrl-row">
-        <input class="search-in" type="text" id="genSearch" placeholder="Search code..."/>
-        <button class="filt-btn active" data-filter="all" data-scope="gen">ALL</button>
-        <button class="filt-btn" data-filter="available" data-scope="gen">AVAILABLE</button>
-        <button class="btn-sm" id="btnRefreshCodes">[ REFRESH ]</button>
-      </div>
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:1.2rem">
-        <div class="stat-card"><span class="stat-num" id="gTotal">—</span><span class="stat-lbl">TOTAL</span></div>
-        <div class="stat-card"><span class="stat-num teal" id="gAvail">—</span><span class="stat-lbl">AVAILABLE</span></div>
-        <div class="stat-card"><span class="stat-num" id="gIssued">—</span><span class="stat-lbl">ISSUED</span></div>
-        <div class="stat-card"><span class="stat-num orange" id="gRedeemed">—</span><span class="stat-lbl">REDEEMED</span></div>
-      </div>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>CODE</th><th>STATUS</th><th>CREATED</th><th>LOCATION</th></tr></thead>
-          <tbody id="genCodesBody"></tbody>
-        </table>
-      </div>
-    </div>
+</div><!-- end content -->
 
-    <!-- ══ ACTIVITY TAB ══ -->
-    <div class="tab-panel" id="tab-activity">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:.5rem">
-        <span class="sec-label" style="margin:0">LIVE_ACTIVITY_FEED</span>
-        <button class="btn-sm accent" id="btnRefreshFeed">[ REFRESH ]</button>
-      </div>
-      <ul class="feed-list" id="feedList">
-        <li class="feed-empty">No activity yet.</li>
-      </ul>
-    </div>
-
-  </div><!-- /.page -->
-</div><!-- /#app -->
-
-<!-- LEAD MODAL -->
-<div class="modal-bg" id="modalBg" role="dialog" aria-modal="true" aria-label="Lead profile">
+<!-- ═══ LEAD MODAL ═══ -->
+<div class="modal-overlay" id="lead-modal">
   <div class="modal">
-    <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
-    <div class="modal-title" id="modalTitle">CODE PROFILE</div>
-    <div id="modalBody"></div>
+    <div class="modal-hdr">
+      <h2 id="modal-code-title">CODE</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <!-- Visual timeline strip -->
+    <div class="modal-section">
+      <h3>JOURNEY TIMELINE</h3>
+      <div class="tl-strip" id="modal-tl-strip"></div>
+    </div>
+
+    <!-- Time gaps -->
+    <div class="modal-section" id="modal-gap-section">
+      <h3>TIME GAPS</h3>
+      <div id="modal-gaps"></div>
+    </div>
+
+    <!-- Detailed event list -->
+    <div class="modal-section">
+      <h3>EVENT LOG</h3>
+      <div class="timeline" id="modal-timeline"></div>
+    </div>
+
+    <!-- Lead profile -->
+    <div class="modal-section" id="modal-lead-section" style="display:none">
+      <h3>LEAD PROFILE</h3>
+      <div class="field-grid" id="modal-lead-fields"></div>
+    </div>
+
+    <!-- Edit panel -->
+    <div class="modal-section">
+      <h3>EDIT</h3>
+      <div class="field-edit" style="display:flex;flex-direction:column;gap:8px">
+        <input id="edit-location" placeholder="Location / handout spot…"/>
+        <textarea id="edit-notes" rows="2" placeholder="Notes…"></textarea>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-amber btn-sm" onclick="saveCodeEdits()">[ SAVE ]</button>
+          <button class="btn btn-teal btn-sm" onclick="markIssued()">[ MARK AS ISSUED ]</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
+<!-- ═══ CONFIRM DELETE MODAL ═══ -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="confirm-modal">
+    <h2>⚠ DELETE TEST DATA</h2>
+    <p>The following codes have notes containing <b style="color:var(--accent)">"test"</b> and will be permanently deleted:</p>
+    <div class="code-list" id="confirm-code-list"></div>
+    <p style="color:var(--muted);font-size:10px">Redeemed and expired codes are <b>never</b> deleted for safety.</p>
+    <div class="confirm-btns">
+      <button class="btn btn-teal btn-sm" onclick="closeConfirm()">[ CANCEL ]</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmDeleteTest()">[ DELETE ]</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-(() => {
-  'use strict';
+// ── CONFIG ──────────────────────────────────────────────────────────────
+const API = 'https://raoufpx-promo-server-production.up.railway.app';
+let allCodes = [];
+let allLeads = [];
+let genCodes = [];
+let chartPkg = null, chartLoc = null, chartRev = null;
+let currentModalCode = null;
 
-  const API      = 'https://raoufpx-promo-server-production.up.railway.app';
-  const KEY_STORE = 'raoufpx_admin_key';
+function key() { return document.getElementById('apiKey').value.trim(); }
+function headers() { return { 'Content-Type':'application/json', 'Authorization':'Bearer '+key() }; }
+function fmtDate(iso) { if (!iso) return '—'; const d=new Date(iso); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
+function fmtShort(iso) { if (!iso) return '—'; const d=new Date(iso); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
+function fmtDuration(secs) { if (!secs && secs!==0) return '—'; if (secs<60) return secs+'s'; return Math.floor(secs/60)+'m '+Math.round(secs%60)+'s'; }
+function timeDiff(a,b){if(!a||!b)return null;const ms=Math.abs(new Date(b)-new Date(a));const mins=Math.round(ms/60000);if(mins<1)return '<1 min';if(mins<60)return mins+' min';const h=Math.floor(mins/60),m=mins%60;return h+'h'+(m?` ${m}m`:'');}
+function isHot(entry) { return entry.redeemedAt && !entry.bookingSubmittedAt && entry.status!=='expired'; }
 
-  let adminKey  = '';
-  let allCodes  = [];
-  let allLeads  = [];
-  let codeFilter = 'all';
-  let codeSearch = '';
-  let genFilter  = 'all';
-  let genSearch  = '';
-
-  // ── Helpers ──
-  const $  = id => document.getElementById(id);
-  const fmt = iso => {
-    if (!iso) return '—';
-    try {
-      return new Date(iso).toLocaleString('en-AE', {
-        month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'
-      });
-    } catch { return iso; }
-  };
-  const fmtExpiry = iso => {
-    if (!iso) return '';
-    const rem = new Date(iso) - Date.now();
-    if (rem <= 0) return '<span class="expiry-badge expired">EXPIRED</span>';
-    const h = Math.floor(rem / 3600000);
-    if (h < 6)  return `<span class="expiry-badge soon">${h}h left</span>`;
-    return `<span class="expiry-badge active">${h}h left</span>`;
-  };
-
-  function authHeaders() {
-    return { 'Authorization': `Bearer ${adminKey}`, 'Content-Type': 'application/json' };
-  }
-
-  // ── Login ──
-  async function tryLogin() {
-    const key = $('adminKey').value.trim();
-    if (!key) return showErr('Enter your admin key.');
-    $('loginBtn').disabled = true;
-    $('loginBtn').textContent = '[ CHECKING... ]';
-    try {
-      const r = await fetch(`${API}/admin/codes`, { headers: { 'Authorization': `Bearer ${key}` } });
-      if (r.status === 403) throw new Error('Invalid admin key.');
-      if (!r.ok) throw new Error('Server error.');
-      const data = await r.json();
-      adminKey = key;
-      sessionStorage.setItem(KEY_STORE, key);
-      $('loginScreen').classList.add('hidden');
-      $('app').classList.add('visible');
-      allCodes = data.codes || [];
-      loadAllData();
-    } catch (e) {
-      showErr(e.message);
-    } finally {
-      $('loginBtn').disabled = false;
-      $('loginBtn').textContent = '[ ENTER ]';
-    }
-  }
-  function showErr(msg) { $('loginErr').textContent = msg; }
-
-  $('loginBtn').addEventListener('click', tryLogin);
-  $('adminKey').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
-
-  const savedKey = sessionStorage.getItem(KEY_STORE);
-  if (savedKey) { $('adminKey').value = savedKey; tryLogin(); }
-
-  $('logoutBtn').addEventListener('click', () => {
-    sessionStorage.removeItem(KEY_STORE);
-    adminKey = '';
-    $('loginErr').textContent = '';
-    $('adminKey').value = '';
-    $('loginScreen').classList.remove('hidden');
-    $('app').classList.remove('visible');
+// ── TABS ────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('tab-'+t.dataset.tab).classList.add('active');
+    if (t.dataset.tab==='activity') loadActivity();
   });
+});
 
-  // ── Tabs ──
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      $('tab-' + btn.dataset.tab).classList.add('active');
-    });
-  });
+// ── LOAD ALL ────────────────────────────────────────────────────────────
+async function loadAll() {
+  if (!key()) { alert('Enter your admin key first.'); return; }
+  await Promise.all([loadAnalytics(), loadCodes(), loadLeads(), loadRevenue()]);
+}
 
-  // ── Load all data ──
-  async function loadAllData() {
-    await Promise.all([loadAnalytics(), loadCodes(), loadLeads(), loadActivity()]);
-  }
+// ── ANALYTICS ───────────────────────────────────────────────────────────
+async function loadAnalytics() {
+  const r = await fetch(`${API}/admin/analytics`, {headers:headers()});
+  if (!r.ok) { alert('Failed to load analytics. Check your key.'); return; }
+  const d = await r.json();
+  const f = d.funnel || {};
+  const rt = d.rates || {};
 
-  // ── Analytics ──
-  async function loadAnalytics() {
-    try {
-      const r    = await fetch(`${API}/admin/analytics`, { headers: authHeaders() });
-      const data = await r.json();
-      const f    = data.funnel || {};
-      const rt   = data.rates  || {};
-      $('sTotal').textContent    = f.codesGenerated  ?? '—';
-      $('sIssued').textContent   = f.codesIssued     ?? '—';
-      $('sScans').textContent    = f.qrScans         ?? '—';
-      $('sEntered').textContent  = f.codesEntered    ?? '—';
-      $('sBookings').textContent = f.bookingsSubmitted ?? '—';
-      $('rScan').textContent    = rt.scanRate    || '—';
-      $('rUnlock').textContent  = rt.unlockRate  || '—';
-      $('rBooking').textContent = rt.bookingRate || '—';
+  document.getElementById('s-issued').textContent   = f.codesIssued    ?? '—';
+  document.getElementById('s-scans').textContent    = f.qrScans        ?? '—';
+  document.getElementById('s-redeemed').textContent = f.codesEntered   ?? '—';
+  document.getElementById('s-bookings').textContent = f.bookingsSubmitted ?? '—';
+  document.getElementById('s-expired').textContent  = allCodes.filter(c=>c.status==='expired').length;
 
-      const pkgs = data.packages || {};
-      $('pkgStarter').textContent     = pkgs['Starter']     || 0;
-      $('pkgSignature').textContent   = pkgs['Signature']   || 0;
-      $('pkgStorytelling').textContent= pkgs['Storytelling']|| 0;
+  // Hot leads count
+  const hotCount = allCodes.filter(isHot).length;
+  document.getElementById('s-hot').textContent = hotCount;
 
-      const recentLeads = data.recentLeads || [];
-      $('recentLeadsBody').innerHTML = recentLeads.length
-        ? recentLeads.map(l => `<tr>
-            <td>${l.clientName || '—'}</td>
-            <td><span class="pill redeemed">${l.selectedPackage || '—'}</span></td>
-            <td class="code-cell" data-code="${l.code}" onclick="openModal('${l.code}')">${l.code}</td>
-            <td>${fmt(l.submittedAt)}</td>
-          </tr>`).join('')
-        : '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:1.5rem">No bookings yet.</td></tr>';
-    } catch (e) { console.warn('analytics error', e); }
-  }
+  document.getElementById('r-scan').textContent    = rt.scanRate    || '—';
+  document.getElementById('r-unlock').textContent  = rt.unlockRate  || '—';
+  document.getElementById('r-booking').textContent = rt.bookingRate || '—';
 
-  // ── Codes ──
-  async function loadCodes() {
-    try {
-      const r    = await fetch(`${API}/admin/codes`, { headers: authHeaders() });
-      const data = await r.json();
-      allCodes   = data.codes || [];
-      $('gTotal').textContent   = data.total    ?? '—';
-      $('gAvail').textContent   = data.available ?? '—';
-      $('gIssued').textContent  = data.issued   ?? '—';
-      $('gRedeemed').textContent= data.redeemed ?? '—';
-      renderCodesTable();
-      renderGenCodesTable();
-    } catch (e) { console.warn('codes error', e); }
-  }
-
-  function filterCodes(codes, filter, search) {
-    let list = codes;
-    if (filter !== 'all') list = list.filter(c => c.status === filter || (filter === 'redeemed' && c.used));
-    if (search) {
-      const q = search.toUpperCase();
-      list = list.filter(c =>
-        c.code.includes(q) ||
-        (c.location || '').toUpperCase().includes(q) ||
-        (c.notes || '').toUpperCase().includes(q)
-      );
-    }
-    return list.sort((a, b) => {
-      const order = { issued:0, redeemed:1, available:2, expired:3 };
-      return (order[a.status]??2) - (order[b.status]??2);
-    });
-  }
-
-  function renderCodesTable() {
-    const list = filterCodes(allCodes, codeFilter, codeSearch);
-    $('codesBody').innerHTML = list.length
-      ? list.map(c => `<tr>
-          <td class="code-cell" onclick="openModal('${c.code}')">${c.code}</td>
-          <td><span class="pill ${c.status}">${(c.status||'available').toUpperCase()}</span></td>
-          <td>${c.location || '—'}</td>
-          <td>${fmt(c.createdAt)}</td>
-          <td>${fmt(c.issuedAt)}</td>
-          <td>${fmt(c.redeemedAt || c.usedAt)}</td>
-          <td>${c.expiresAt ? fmtExpiry(c.expiresAt) : '—'}</td>
-        </tr>`).join('')
-      : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:1.5rem">No codes found.</td></tr>';
-  }
-
-  function renderGenCodesTable() {
-    const list = filterCodes(allCodes, genFilter, genSearch);
-    $('genCodesBody').innerHTML = list.slice(0, 60).map(c => `
-      <tr>
-        <td class="code-cell" onclick="openModal('${c.code}')">${c.code}</td>
-        <td><span class="pill ${c.status}">${(c.status||'available').toUpperCase()}</span></td>
-        <td>${fmt(c.createdAt)}</td>
-        <td>${c.location || '—'}</td>
-      </tr>`).join('');
-  }
-
-  // Code tab filters
-  document.querySelectorAll('[data-filter]:not([data-scope])').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-filter]:not([data-scope])').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      codeFilter = btn.dataset.filter;
-      renderCodesTable();
-    });
-  });
-  $('codeSearch').addEventListener('input', () => { codeSearch = $('codeSearch').value.trim(); renderCodesTable(); });
-
-  // Gen tab filters
-  document.querySelectorAll('[data-scope="gen"]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-scope="gen"]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      genFilter = btn.dataset.filter;
-      renderGenCodesTable();
-    });
-  });
-  $('genSearch').addEventListener('input', () => { genSearch = $('genSearch').value.trim(); renderGenCodesTable(); });
-
-  // ── Leads ──
-  async function loadLeads() {
-    try {
-      const r    = await fetch(`${API}/admin/leads`, { headers: authHeaders() });
-      const data = await r.json();
-      allLeads   = data.leads || [];
-      $('leadsBody').innerHTML = allLeads.length
-        ? allLeads.slice().reverse().map(l => `<tr>
-            <td class="code-cell" onclick="openModal('${l.code}')">${l.code}</td>
-            <td>${l.clientName || '—'}</td>
-            <td><span class="pill redeemed">${l.selectedPackage || '—'}</span></td>
-            <td>${l.whatsapp || '—'}</td>
-            <td>${l.date || '—'}</td>
-            <td>${l.location || '—'}</td>
-          </tr>`).join('')
-        : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:1.5rem">No leads yet.</td></tr>';
-    } catch (e) { console.warn('leads error', e); }
-  }
-
-  // ── Activity feed ──
-  async function loadActivity() {
-    try {
-      const r    = await fetch(`${API}/admin/activity`, { headers: authHeaders() });
-      const data = await r.json();
-      const feed = data.feed || [];
-      const typeClass = t => {
-        if (t.includes('Scan'))    return 'scan';
-        if (t.includes('Redeemed')|| t.includes('Unlock')) return 'redeem';
-        if (t.includes('Booking')) return 'booking';
-        if (t.includes('Issued'))  return 'issued';
-        return 'invalid';
-      };
-      $('feedList').innerHTML = feed.length
-        ? feed.map(e => `<li class="feed-item">
-            <span class="feed-time">${fmt(e.time)}</span>
-            <span class="feed-type ${typeClass(e.type)}">${e.type.toUpperCase()}</span>
-            <span class="feed-detail">${e.detail || ''}</span>
-          </li>`).join('')
-        : '<li class="feed-empty">No activity yet. Activity appears as visitors scan and use codes.</li>';
-    } catch (e) { console.warn('activity error', e); }
-  }
-
-  // ── Refresh buttons ──
-  $('btnRefreshAll').addEventListener('click', loadAllData);
-  $('btnRefreshCodes').addEventListener('click', loadCodes);
-  $('btnRefreshFeed').addEventListener('click', loadActivity);
-
-  // Auto-refresh activity every 30 seconds when activity tab is visible
-  setInterval(() => {
-    if ($('tab-activity').classList.contains('active')) loadActivity();
-  }, 30000);
-
-  // ── Generate ──
-  function setGenLoading(on) { $('btnGen1').disabled = $('btnGenBulk').disabled = on; }
-  function setGenStatus(cls, msg) { $('genStatus').className = 'gen-status ' + cls; $('genStatus').textContent = msg; }
-  function appendOutput(codes) {
-    $('outWrap').style.display = 'block';
-    const existing = $('outBox').value ? $('outBox').value + '\n' : '';
-    $('outBox').value = existing + codes.map(c => c.code || c).join('\n');
-  }
-
-  $('btnGen1').addEventListener('click', async () => {
-    setGenLoading(true); setGenStatus('load', 'Generating...');
-    try {
-      const r    = await fetch(`${API}/admin/generate-code`, { method:'POST', headers: authHeaders() });
-      const data = await r.json();
-      if (!data.success) throw new Error(data.error || 'Failed.');
-      setGenStatus('ok', `Generated: ${data.code}`);
-      $('outTitle').textContent = 'GENERATED CODES';
-      appendOutput([data]);
-      await loadCodes();
-    } catch (e) { setGenStatus('err', e.message); }
-    finally { setGenLoading(false); }
-  });
-
-  $('btnGenBulk').addEventListener('click', async () => {
-    const count = parseInt($('countIn').value, 10);
-    if (!count || count < 1 || count > 200) { setGenStatus('err', 'Enter 1–200.'); return; }
-    setGenLoading(true); setGenStatus('load', `Generating ${count} codes...`);
-    try {
-      const r    = await fetch(`${API}/admin/generate-bulk`, {
-        method:'POST', headers: authHeaders(), body: JSON.stringify({ count })
-      });
-      const data = await r.json();
-      if (!data.success && data.generated === 0) throw new Error(data.error || 'Failed.');
-      setGenStatus('ok', `Generated ${data.generated} codes.`);
-      $('outTitle').textContent = `GENERATED (${data.generated})`;
-      appendOutput(data.codes);
-      await loadCodes();
-    } catch (e) { setGenStatus('err', e.message); }
-    finally { setGenLoading(false); }
-  });
-
-  $('btnCopyAll').addEventListener('click', () => {
-    navigator.clipboard.writeText($('outBox').value).then(() => {
-      $('btnCopyAll').textContent = '[ COPIED! ]';
-      setTimeout(() => $('btnCopyAll').textContent = '[ COPY ALL ]', 2000);
-    });
-  });
-  $('btnCopyCsv').addEventListener('click', () => {
-    const csv = 'code\n' + $('outBox').value.split('\n').filter(Boolean).join('\n');
-    navigator.clipboard.writeText(csv).then(() => {
-      $('btnCopyCsv').textContent = '[ COPIED! ]';
-      setTimeout(() => $('btnCopyCsv').textContent = '[ COPY CSV ]', 2000);
-    });
-  });
-  $('btnClearOut').addEventListener('click', () => {
-    $('outBox').value = '';
-    $('outWrap').style.display = 'none';
-    $('genStatus').className = 'gen-status';
-    $('genStatus').textContent = '';
-  });
-
-  // ── Export CSV ──
-  $('btnExport').addEventListener('click', () => {
-    window.open(`${API}/admin/export?key=${adminKey}`, '_blank');
-  });
-
-  // ── Lead modal ──
-  window.openModal = async function(code) {
-    $('modalTitle').textContent = `CODE: ${code}`;
-    $('modalBody').innerHTML = '<p style="color:var(--muted);font-family:Space Mono,monospace;padding:1rem">Loading...</p>';
-    $('modalBg').classList.add('open');
-    document.body.style.overflow = 'hidden';
-
-    try {
-      const r    = await fetch(`${API}/admin/lead/${code}`, { headers: authHeaders() });
-      const data = await r.json();
-      const c    = data.code || {};
-      const l    = data.lead || null;
-
-      const timeline = [
-        { label: 'CREATED',           time: c.createdAt },
-        { label: 'ISSUED',            time: c.issuedAt },
-        { label: 'FIRST SCAN',        time: c.firstScanAt },
-        { label: 'REDEEMED',          time: c.redeemedAt || c.usedAt },
-        { label: 'BOOKING SUBMITTED', time: c.bookingSubmittedAt },
-      ];
-
-      const tlHTML = timeline.map(t => `
-        <li class="tl-item">
-          <div class="tl-dot ${t.time ? 'done' : 'pending'}"></div>
-          <span class="tl-event ${t.time ? 'done' : ''}">${t.label}</span>
-          <span class="tl-time">${t.time ? fmt(t.time) : '—'}</span>
-        </li>`).join('');
-
-      const locationVal = c.location || '';
-      const notesVal    = (c.notes || '').replace(/"/g, '&quot;');
-      const canIssue    = c.status === 'available';
-
-      let leadHTML = '';
-      if (l) {
-        leadHTML = `
-          <div class="lead-section">
-            <div class="sec-label" style="margin-bottom:.9rem">LEAD_PROFILE</div>
-            ${[
-              ['NAME',     l.clientName],
-              ['EMAIL',    l.email],
-              ['WHATSAPP', l.whatsapp],
-              ['PACKAGE',  l.selectedPackage],
-              ['PRICE',    l.price],
-              ['DATE',     l.date],
-            ].map(([k,v]) => v ? `<div class="lead-row"><span class="lead-key">${k}</span><span class="lead-val">${v}</span></div>` : '').join('')}
-          </div>`;
-      }
-
-      $('modalBody').innerHTML = `
-        <ul class="timeline">${tlHTML}</ul>
-
-        <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1.4rem">
-          <div><span class="pill ${c.status || 'available'}">${(c.status || 'available').toUpperCase()}</span></div>
-          ${c.expiresAt ? fmtExpiry(c.expiresAt) : ''}
+  // Funnel bars
+  const funnelEl = document.getElementById('funnel-bars');
+  const steps = [
+    { label:'Cards Issued',    val:f.codesIssued||0,       color:'var(--accent)' },
+    { label:'QR Scans',        val:f.qrScans||0,            color:'var(--accent3)' },
+    { label:'Unlocked Page',   val:f.codesEntered||0,       color:'var(--accent4)' },
+    { label:'Bookings',        val:f.bookingsSubmitted||0,  color:'var(--success)' },
+  ];
+  const maxVal = Math.max(...steps.map(s=>s.val), 1);
+  funnelEl.innerHTML = steps.map(s=>`
+    <div class="funnel-row">
+      <div class="funnel-label">${s.label}</div>
+      <div class="funnel-bar-wrap">
+        <div class="funnel-bar" style="width:${(s.val/maxVal*100).toFixed(1)}%;background:${s.color}">
+          <span>${s.val}</span>
         </div>
+      </div>
+    </div>`).join('');
 
-        ${leadHTML}
+  // Package chart
+  const pkgs = d.packages || {};
+  const pkgLabels = Object.keys(pkgs);
+  const pkgVals   = pkgLabels.map(k=>pkgs[k]);
+  if (chartPkg) chartPkg.destroy();
+  chartPkg = new Chart(document.getElementById('chart-pkg'), {
+    type:'doughnut',
+    data:{ labels:pkgLabels, datasets:[{ data:pkgVals, backgroundColor:['#f0b44c','#4cf0d0','#c84bff'], borderWidth:0 }] },
+    options:{ plugins:{ legend:{ labels:{ color:'rgba(255,255,255,.7)', font:{family:'Space Mono',size:10} } } }, maintainAspectRatio:true }
+  });
 
-        <div class="issue-form">
-          <div class="sec-label" style="margin-bottom:.9rem">EDIT_CODE_INFO</div>
-          <label class="gen-lbl">LOCATION</label>
-          <input class="gen-in" id="mLocation" value="${locationVal}" placeholder="e.g. Dubai Mall"/>
-          <label class="gen-lbl">NOTES</label>
-          <input class="gen-in" id="mNotes" value="${notesVal}" placeholder="e.g. stylish couple, red jacket"/>
-          <div class="issue-row">
-            <button class="btn-gen btn-outline" onclick="saveCodeMeta('${code}')">[ SAVE NOTES ]</button>
-            ${canIssue ? `<button class="btn-gen btn-primary" onclick="markIssued('${code}')">[ MARK AS ISSUED ]</button>` : ''}
-          </div>
-          <p class="gen-status" id="metaStatus" style="margin-top:.7rem"></p>
-        </div>`;
-    } catch (e) {
-      $('modalBody').innerHTML = `<p style="color:var(--red);font-family:Space Mono,monospace;padding:1rem">Failed to load: ${e.message}</p>`;
+  // Location chart
+  const locs = d.locations || {};
+  const locLabels = Object.keys(locs).slice(0,8);
+  const locVals   = locLabels.map(k=>locs[k]);
+  if (chartLoc) chartLoc.destroy();
+  chartLoc = new Chart(document.getElementById('chart-loc'), {
+    type:'bar',
+    data:{ labels:locLabels, datasets:[{ data:locVals, backgroundColor:'rgba(76,240,208,.6)', borderColor:'var(--accent3)', borderWidth:1 }] },
+    options:{ plugins:{ legend:{display:false} }, scales:{ x:{ticks:{color:'rgba(255,255,255,.5)',font:{size:9}}}, y:{ticks:{color:'rgba(255,255,255,.5)',font:{size:9}},grid:{color:'rgba(255,255,255,.05)'}} }, maintainAspectRatio:true }
+  });
+
+  // Recent leads
+  const leads = d.recentLeads || [];
+  document.getElementById('recent-leads-body').innerHTML = leads.map(l=>`
+    <tr>
+      <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${l.code||'—'}</td>
+      <td>${l.clientName||'—'}</td>
+      <td>${l.selectedPackage||'—'}</td>
+      <td style="color:var(--success)">${l.price?l.price+' AED':'—'}</td>
+      <td>${l.date||'—'}</td>
+      <td style="color:var(--muted)">${fmtShort(l.submittedAt)}</td>
+    </tr>`).join('') || '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:16px">No bookings yet</td></tr>';
+
+  // Engagement
+  renderEngagement();
+}
+
+// ── ENGAGEMENT ──────────────────────────────────────────────────────────
+function renderEngagement() {
+  const withSession = allCodes.filter(c => c.sessionDuration !== null && c.sessionDuration !== undefined);
+  const total = withSession.length || 1;
+  const bounce     = withSession.filter(c=>c.sessionDuration < 10).length;
+  const skim       = withSession.filter(c=>c.sessionDuration>=10  && c.sessionDuration<30).length;
+  const interested = withSession.filter(c=>c.sessionDuration>=30  && c.sessionDuration<120).length;
+  const engaged    = withSession.filter(c=>c.sessionDuration>=120).length;
+  const items = [
+    {id:'bounce',n:bounce},{id:'skim',n:skim},{id:'interested',n:interested},{id:'engaged',n:engaged}
+  ];
+  items.forEach(({id,n})=>{
+    const pct = (n/total*100).toFixed(0)+'%';
+    document.getElementById(`eng-${id}`).style.width = pct;
+    document.getElementById(`eng-${id}-pct`).textContent = pct;
+    document.getElementById(`eng-${id}-n`).textContent = n;
+  });
+}
+
+// ── REVENUE ─────────────────────────────────────────────────────────────
+async function loadRevenue() {
+  const r = await fetch(`${API}/admin/revenue`, {headers:headers()});
+  if (!r.ok) return;
+  const d = await r.json();
+  document.getElementById('rev-total').textContent     = d.totalRevenue?.toLocaleString()    || '0';
+  document.getElementById('rev-avg').textContent       = d.avgBookingValue?.toLocaleString() || '0';
+  document.getElementById('rev-per-card').textContent  = d.revenuePerCard?.toLocaleString()  || '0';
+  document.getElementById('rev-issued').textContent    = d.issuedCards   || '0';
+  document.getElementById('rev-bookings').textContent  = d.bookings      || '0';
+
+  const bp = d.byPackage || {};
+  document.getElementById('rev-starter-count').textContent = (bp.Starter?.count||0)+' bookings';
+  document.getElementById('rev-starter-rev').textContent   = (bp.Starter?.revenue||0).toLocaleString()+' AED';
+  document.getElementById('rev-sig-count').textContent     = (bp.Signature?.count||0)+' bookings';
+  document.getElementById('rev-sig-rev').textContent       = (bp.Signature?.revenue||0).toLocaleString()+' AED';
+  document.getElementById('rev-story-count').textContent   = (bp.Storytelling?.count||0)+' bookings';
+  document.getElementById('rev-story-rev').textContent     = (bp.Storytelling?.revenue||0).toLocaleString()+' AED';
+
+  // Revenue bar chart
+  if (chartRev) chartRev.destroy();
+  chartRev = new Chart(document.getElementById('chart-rev'), {
+    type:'bar',
+    data:{
+      labels:['Starter','Signature','Storytelling'],
+      datasets:[{
+        label:'Revenue (AED)',
+        data:[ bp.Starter?.revenue||0, bp.Signature?.revenue||0, bp.Storytelling?.revenue||0 ],
+        backgroundColor:['rgba(240,180,76,.7)','rgba(76,240,208,.7)','rgba(200,75,255,.7)'],
+        borderColor:['var(--accent)','var(--accent3)','var(--accent4)'],
+        borderWidth:1
+      }]
+    },
+    options:{
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'rgba(255,255,255,.6)',font:{family:'Space Mono',size:9}}},
+        y:{ticks:{color:'rgba(255,255,255,.6)',font:{size:9},callback:v=>v+' AED'},grid:{color:'rgba(255,255,255,.05)'}}
+      },
+      maintainAspectRatio:true
     }
-  };
+  });
+}
 
-  window.saveCodeMeta = async function(code) {
-    const location = $('mLocation').value.trim();
-    const notes    = $('mNotes').value.trim();
-    const st       = $('metaStatus');
-    st.className = 'gen-status load'; st.textContent = 'Saving...';
-    try {
-      const r = await fetch(`${API}/admin/code/${code}`, {
-        method: 'PATCH',
-        headers: authHeaders(),
-        body: JSON.stringify({ location, notes }),
-      });
-      const d = await r.json();
-      if (!d.ok) throw new Error('Failed.');
-      st.className = 'gen-status ok'; st.textContent = 'Saved.';
-      await loadCodes();
-    } catch (e) { st.className = 'gen-status err'; st.textContent = e.message; }
-  };
+// ── CODES ────────────────────────────────────────────────────────────────
+async function loadCodes() {
+  const r = await fetch(`${API}/admin/codes`, {headers:headers()});
+  if (!r.ok) return;
+  const d = await r.json();
+  allCodes = d.codes || [];
+  renderCodes();
+  renderEngagement();
+  document.getElementById('s-expired').textContent = allCodes.filter(c=>c.status==='expired').length;
+  document.getElementById('s-hot').textContent = allCodes.filter(isHot).length;
+  // Update gen mini stats
+  const total = allCodes.length;
+  const av = allCodes.filter(c=>c.status==='available').length;
+  const is = allCodes.filter(c=>c.status==='issued').length;
+  const re = allCodes.filter(c=>c.status==='redeemed').length;
+  document.getElementById('gen-mini-stats').innerHTML =
+    `<span class="mini-stat">Total: <b>${total}</b></span><span class="mini-stat">Available: <b>${av}</b></span><span class="mini-stat">Issued: <b>${is}</b></span><span class="mini-stat">Redeemed: <b>${re}</b></span>`;
+}
 
-  window.markIssued = async function(code) {
-    const location = $('mLocation').value.trim();
-    const notes    = $('mNotes').value.trim();
-    const st       = $('metaStatus');
-    st.className = 'gen-status load'; st.textContent = 'Marking as issued...';
-    try {
-      const r = await fetch(`${API}/admin/code/${code}`, {
-        method: 'PATCH',
-        headers: authHeaders(),
-        body: JSON.stringify({ location, notes, status: 'issued' }),
-      });
-      const d = await r.json();
-      if (!d.ok) throw new Error('Failed.');
-      st.className = 'gen-status ok'; st.textContent = 'Marked as issued.';
-      await loadCodes();
-      // Refresh modal
-      openModal(code);
-    } catch (e) { st.className = 'gen-status err'; st.textContent = e.message; }
-  };
+function renderCodes() {
+  const search   = (document.getElementById('code-search').value||'').toLowerCase();
+  const filter   = document.getElementById('code-filter').value;
+  const hotOnly  = document.getElementById('filter-hot').checked;
+  const noScan   = document.getElementById('filter-noscan').checked;
 
-  $('modalClose').addEventListener('click', closeModal);
-  $('modalBg').addEventListener('click', e => { if (e.target === $('modalBg')) closeModal(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-  function closeModal() {
-    $('modalBg').classList.remove('open');
-    document.body.style.overflow = '';
+  let list = allCodes.filter(c => {
+    if (filter && c.status !== filter) return false;
+    if (hotOnly && !isHot(c)) return false;
+    if (noScan && (c.firstScanAt || c.status==='available')) return false;
+    if (search) {
+      const hay = (c.code+c.location+c.notes).toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const now = new Date();
+  document.getElementById('codes-body').innerHTML = list.map(c => {
+    const expiry = c.expiresAt ? new Date(c.expiresAt) : null;
+    const expired = expiry && expiry < now;
+    const expiryStr = expiry ? (expired ? '<span style="color:var(--danger)">EXPIRED</span>' : fmtShort(c.expiresAt)) : '—';
+    const hot = isHot(c);
+    const sess = fmtDuration(c.sessionDuration);
+    return `<tr style="cursor:pointer" onclick="openModal('${c.code}')">
+      <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${c.code}${hot?'<br><span class="pill pill-hot" style="margin-top:4px">🔥 HOT</span>':''}</td>
+      <td><span class="pill pill-${c.status}">${c.status}</span></td>
+      <td style="color:var(--muted)">${c.location||'—'}</td>
+      <td>${fmtShort(c.issuedAt)}</td>
+      <td>${fmtShort(c.firstScanAt)}</td>
+      <td>${fmtShort(c.redeemedAt)}</td>
+      <td>${c.bookingSubmittedAt ? '<span style="color:var(--success)">✓ '+fmtShort(c.bookingSubmittedAt)+'</span>' : '—'}</td>
+      <td style="color:var(--accent3)">${sess}</td>
+      <td>${expiryStr}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:16px">No codes match filter</td></tr>';
+
+  document.getElementById('codes-count').textContent = `Showing ${list.length} of ${allCodes.length} codes`;
+}
+
+// ── LEADS ────────────────────────────────────────────────────────────────
+async function loadLeads() {
+  const r = await fetch(`${API}/admin/leads`, {headers:headers()});
+  if (!r.ok) return;
+  const d = await r.json();
+  allLeads = d.leads || [];
+  renderLeads();
+}
+
+function renderLeads() {
+  const search  = (document.getElementById('lead-search').value||'').toLowerCase();
+  const pkg     = document.getElementById('lead-pkg-filter').value;
+  const hotOnly = document.getElementById('lead-hot-filter').checked;
+
+  // Build set of hot codes
+  const hotCodes = new Set(allCodes.filter(isHot).map(c=>c.code));
+  // Also include redeemed-but-no-booking from allCodes not yet in leads
+  const hotNonLeads = allCodes.filter(isHot).filter(c => !allLeads.find(l=>l.code===c.code));
+
+  let list = allLeads.filter(l => {
+    if (pkg && l.selectedPackage !== pkg) return false;
+    if (search) {
+      const hay = ((l.clientName||'')+(l.email||'')+(l.code||'')+(l.whatsapp||'')).toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  // If hot filter: show leads + non-lead hot entries
+  let combined = hotOnly
+    ? [...list.filter(l=>hotCodes.has(l.code)), ...hotNonLeads.map(c=>({code:c.code,_hotOnly:true,location:c.location,notes:c.notes,redeemedAt:c.redeemedAt}))]
+    : list;
+
+  document.getElementById('leads-body').innerHTML = combined.map(l => {
+    const isHotLead = hotCodes.has(l.code) || l._hotOnly;
+    const codeEntry = allCodes.find(c=>c.code===l.code)||{};
+    if (l._hotOnly) {
+      return `<tr style="cursor:pointer" onclick="openModal('${l.code}')">
+        <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${l.code}</td>
+        <td><span class="pill pill-hot">🔥 HOT</span></td>
+        <td colspan="7" style="color:var(--muted)">— Redeemed but not booked yet —</td>
+        <td style="color:var(--muted)">${fmtShort(l.redeemedAt)}</td>
+      </tr>`;
+    }
+    return `<tr style="cursor:pointer" onclick="openModal('${l.code}')">
+      <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${l.code||'—'}${isHotLead?'<br><span class="pill pill-hot" style="margin-top:3px">🔥 HOT</span>':''}</td>
+      <td><span class="pill pill-${codeEntry.status||'available'}">${codeEntry.status||'—'}</span></td>
+      <td>${l.clientName||'—'}</td>
+      <td style="color:var(--muted)">${l.email||'—'}</td>
+      <td><a href="https://wa.me/${(l.whatsapp||'').replace(/\D/g,'')}" target="_blank" style="color:var(--accent3)">${l.whatsapp||'—'}</a></td>
+      <td>${l.selectedPackage||'—'}</td>
+      <td style="color:var(--success)">${l.price?l.price+' AED':'—'}</td>
+      <td>${l.date||'—'}</td>
+      <td style="color:var(--muted)">${l.location||'—'}</td>
+      <td style="color:var(--muted)">${fmtShort(l.submittedAt)}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="10" style="color:var(--muted);text-align:center;padding:16px">No leads found</td></tr>';
+}
+
+// ── MODAL ────────────────────────────────────────────────────────────────
+async function openModal(code) {
+  currentModalCode = code;
+  const r = await fetch(`${API}/admin/lead/${code}`, {headers:headers()});
+  if (!r.ok) return;
+  const d = await r.json();
+  const entry = d.code || {};
+  const lead  = d.lead || null;
+
+  document.getElementById('modal-code-title').textContent = code + (isHot(entry) ? '  🔥' : '');
+
+  // ── Visual timeline strip ──
+  const events = [
+    { label:'Created',   ts:entry.createdAt,          icon:'✦' },
+    { label:'Issued',    ts:entry.issuedAt,            icon:'◈' },
+    { label:'Scanned',   ts:entry.firstScanAt,         icon:'◉' },
+    { label:'Redeemed',  ts:entry.redeemedAt,          icon:'★' },
+    { label:'Booked',    ts:entry.bookingSubmittedAt,  icon:'✓' },
+  ];
+  let stripHTML = '';
+  events.forEach((ev, i) => {
+    const done = !!ev.ts;
+    stripHTML += `<div class="tl-node">
+      <div class="tl-dot ${done?'done':'skip'}">${ev.icon}</div>
+      <div class="tl-node-label ${done?'done':''}">${ev.label}${done?'<br><span style="font-size:7px;color:var(--muted)">'+fmtShort(ev.ts)+'</span>':''}</div>
+    </div>`;
+    if (i < events.length-1) {
+      const gap = (done && events[i+1].ts) ? timeDiff(ev.ts, events[i+1].ts) : null;
+      stripHTML += `<div class="tl-connector ${done?'done':''}" style="position:relative">
+        ${gap ? `<span class="tl-gap-label">${gap}</span>` : ''}
+      </div>`;
+    }
+  });
+  document.getElementById('modal-tl-strip').innerHTML = stripHTML;
+
+  // ── Time gaps text ──
+  const gaps = [];
+  if (entry.issuedAt   && entry.firstScanAt)        gaps.push({ from:'Issued',   to:'First Scan', diff:timeDiff(entry.issuedAt,entry.firstScanAt) });
+  if (entry.firstScanAt && entry.redeemedAt)         gaps.push({ from:'Scan',     to:'Redeem',     diff:timeDiff(entry.firstScanAt,entry.redeemedAt) });
+  if (entry.redeemedAt  && entry.bookingSubmittedAt) gaps.push({ from:'Redeem',   to:'Booking',    diff:timeDiff(entry.redeemedAt,entry.bookingSubmittedAt) });
+  if (entry.createdAt   && entry.issuedAt)           gaps.unshift({ from:'Created', to:'Issued',   diff:timeDiff(entry.createdAt,entry.issuedAt) });
+
+  const gapSection = document.getElementById('modal-gap-section');
+  if (gaps.length) {
+    gapSection.style.display='';
+    document.getElementById('modal-gaps').innerHTML = gaps.map(g=>
+      `<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;font-size:11px">
+        <span style="color:var(--muted);min-width:80px">${g.from}</span>
+        <span style="color:var(--border)">→</span>
+        <span style="color:var(--muted);min-width:80px">${g.to}</span>
+        <span style="color:var(--accent);font-weight:700">${g.diff}</span>
+       </div>`).join('');
+  } else {
+    gapSection.style.display='none';
   }
 
-})();
+  // ── Event log (detailed) ──
+  const tlItems = [
+    { label:'Created',   ts:entry.createdAt },
+    { label:'Issued',    ts:entry.issuedAt },
+    { label:'First Scan',ts:entry.firstScanAt },
+    { label:'Redeemed',  ts:entry.redeemedAt },
+    { label:'Expires',   ts:entry.expiresAt },
+    { label:'Booking',   ts:entry.bookingSubmittedAt },
+  ];
+  document.getElementById('modal-timeline').innerHTML = tlItems.map(ev=>`
+    <div class="tl-event ${ev.ts?'done':'pending'}">
+      <div class="tl-event-title">${ev.label}</div>
+      <div class="tl-event-time">${ev.ts ? fmtDate(ev.ts) : 'not yet'}</div>
+    </div>`).join('');
+
+  // Session duration
+  if (entry.sessionDuration !== null && entry.sessionDuration !== undefined) {
+    document.getElementById('modal-timeline').innerHTML += `
+      <div class="tl-event done">
+        <div class="tl-event-title">Session Duration</div>
+        <div class="tl-event-time">${fmtDuration(entry.sessionDuration)}</div>
+      </div>`;
+  }
+
+  // ── Lead profile ──
+  const leadSection = document.getElementById('modal-lead-section');
+  if (lead) {
+    leadSection.style.display='';
+    document.getElementById('modal-lead-fields').innerHTML = `
+      <div class="field"><label>Name</label><span>${lead.clientName||'—'}</span></div>
+      <div class="field"><label>Email</label><a href="mailto:${lead.email}">${lead.email||'—'}</a></div>
+      <div class="field"><label>WhatsApp</label><a href="https://wa.me/${(lead.whatsapp||'').replace(/\D/g,'')}" target="_blank">${lead.whatsapp||'—'}</a></div>
+      <div class="field"><label>Package</label><span>${lead.selectedPackage||'—'}</span></div>
+      <div class="field"><label>Price</label><span style="color:var(--success)">${lead.price?lead.price+' AED':'—'}</span></div>
+      <div class="field"><label>Session Date</label><span>${lead.date||'—'}</span></div>`;
+  } else {
+    leadSection.style.display='none';
+  }
+
+  // Prefill edit
+  document.getElementById('edit-location').value = entry.location || '';
+  document.getElementById('edit-notes').value    = entry.notes    || '';
+
+  document.getElementById('lead-modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('lead-modal').classList.remove('open'); currentModalCode=null; }
+
+document.getElementById('lead-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+async function saveCodeEdits() {
+  if (!currentModalCode) return;
+  const body = { location:document.getElementById('edit-location').value, notes:document.getElementById('edit-notes').value };
+  await fetch(`${API}/admin/code/${currentModalCode}`, { method:'PATCH', headers:headers(), body:JSON.stringify(body) });
+  closeModal(); await loadCodes();
+}
+
+async function markIssued() {
+  if (!currentModalCode) return;
+  const body = { status:'issued', location:document.getElementById('edit-location').value, notes:document.getElementById('edit-notes').value };
+  await fetch(`${API}/admin/code/${currentModalCode}`, { method:'PATCH', headers:headers(), body:JSON.stringify(body) });
+  closeModal(); await loadCodes();
+}
+
+// ── GENERATE ─────────────────────────────────────────────────────────────
+async function generateBulk() {
+  const count = parseInt(document.getElementById('gen-count').value)||10;
+  const r = await fetch(`${API}/admin/generate-bulk`, { method:'POST', headers:headers(), body:JSON.stringify({count}) });
+  const d = await r.json();
+  if (d.codes) {
+    genCodes = [...genCodes, ...d.codes];
+    renderGenOutput();
+    await loadCodes();
+  }
+}
+
+async function generateOne() {
+  const r = await fetch(`${API}/admin/generate-code`, { method:'POST', headers:headers() });
+  const d = await r.json();
+  if (d.code) {
+    genCodes.push({code:d.code,createdAt:d.createdAt});
+    renderGenOutput();
+    await loadCodes();
+  }
+}
+
+function renderGenOutput() {
+  document.getElementById('gen-output').textContent = genCodes.map(c=>c.code).join('\n');
+  document.getElementById('gen-table-body').innerHTML = genCodes.slice().reverse().map(c=>`
+    <tr><td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${c.code}</td><td style="color:var(--muted)">${fmtDate(c.createdAt)}</td></tr>`).join('');
+}
+
+function copyAll() {
+  navigator.clipboard.writeText(genCodes.map(c=>c.code).join('\n'));
+}
+function copyCSV() {
+  const csv = 'code,createdAt\n' + genCodes.map(c=>`${c.code},${c.createdAt}`).join('\n');
+  navigator.clipboard.writeText(csv);
+}
+
+// ── ACTIVITY ─────────────────────────────────────────────────────────────
+async function loadActivity() {
+  const r = await fetch(`${API}/admin/activity`, {headers:headers()});
+  if (!r.ok) return;
+  const d = await r.json();
+  const feed = document.getElementById('activity-feed');
+  feed.innerHTML = (d.feed||[]).map(ev=>`
+    <div class="activity-item">
+      <span class="activity-time">${fmtShort(ev.time)}</span>
+      <span class="activity-type">${ev.type}</span>
+      <span class="activity-detail">${ev.detail||''}</span>
+    </div>`).join('') || '<div style="color:var(--muted);padding:16px">No activity yet</div>';
+}
+
+// ── EXPORT ───────────────────────────────────────────────────────────────
+function exportCSV() {
+  if (!key()) { alert('Enter admin key first.'); return; }
+  window.open(`${API}/admin/export?key=${encodeURIComponent(key())}`, '_blank');
+}
+
+// ── DELETE TEST DATA ─────────────────────────────────────────────────────
+async function showDeleteTestConfirm() {
+  if (!key()) { alert('Enter admin key first.'); return; }
+  // Preview which codes would be deleted
+  const testCodes = allCodes.filter(c => {
+    const notes = (c.notes||'').toLowerCase();
+    if (c.status==='redeemed'||c.status==='expired'||c.used) return false;
+    return notes.includes('test');
+  });
+  const list = document.getElementById('confirm-code-list');
+  if (!testCodes.length) {
+    alert('No test codes found (notes containing "test").'); return;
+  }
+  list.innerHTML = testCodes.map(c=>`<div>${c.code} — <span style="color:var(--muted)">${c.notes}</span></div>`).join('');
+  document.getElementById('confirm-modal').classList.add('open');
+}
+
+function closeConfirm() { document.getElementById('confirm-modal').classList.remove('open'); }
+
+async function confirmDeleteTest() {
+  closeConfirm();
+  const r = await fetch(`${API}/admin/test-data`, { method:'DELETE', headers:headers() });
+  const d = await r.json();
+  await loadCodes();
+  alert(`Deleted ${d.deleted} test code(s).`);
+}
+
+// ── AUTO-REFRESH ACTIVITY ────────────────────────────────────────────────
+setInterval(() => {
+  const activeTab = document.querySelector('.tab.active');
+  if (activeTab?.dataset?.tab === 'activity' && key()) loadActivity();
+}, 30000);
 </script>
 </body>
 </html>
