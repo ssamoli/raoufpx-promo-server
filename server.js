@@ -51,7 +51,7 @@ app.use(cors({
     if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
     cb(new Error(`CORS blocked: ${origin}`));
   },
-  methods: ['GET', 'POST', 'PATCH'],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   credentials: true,
 }));
 
@@ -118,6 +118,7 @@ function makeCodeEntry(code) {
     bookingSubmittedAt: null,
     location: '',
     notes: '',
+    sessionDuration: null,
     // legacy compat fields
     used: false,
     usedAt: null,
@@ -524,6 +525,83 @@ app.get('/admin/export', requireAdmin, (req, res) => {
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename="raoufpx-leads.csv"');
   res.send(csv);
+});
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /track-session — promo page session duration
+// Body: { code, durationSeconds }
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/track-session', (req, res) => {
+  const { code, durationSeconds } = req.body || {};
+  if (code) {
+    const entry = codeStore.get((code||'').toUpperCase());
+    if (entry) {
+      entry.sessionDuration = Math.round(Number(durationSeconds) || 0);
+      codeStore.set(entry.code, entry);
+      saveCodes(codeStore);
+    }
+  }
+  return res.json({ ok: true });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DELETE /admin/test-data — delete codes whose notes contain "test"
+// Safety: only touches codes with status !== 'redeemed' and notes including "test"
+// Returns { deleted: N, codes: [...] }
+// ─────────────────────────────────────────────────────────────────────────────
+app.delete('/admin/test-data', requireAdmin, (req, res) => {
+  const toDelete = [...codeStore.values()].filter(c => {
+    const notes = (c.notes || '').toLowerCase();
+    // Never delete redeemed or expired codes — those are real interactions
+    if (c.status === 'redeemed' || c.status === 'expired' || c.used) return false;
+    return notes.includes('test');
+  });
+
+  const deletedCodes = toDelete.map(c => c.code);
+  deletedCodes.forEach(code => codeStore.delete(code));
+  if (deletedCodes.length > 0) saveCodes(codeStore);
+
+  console.log(`[ADMIN] Deleted ${deletedCodes.length} test codes: ${deletedCodes.join(', ')}`);
+  pushActivity('Test Data Deleted', `${deletedCodes.length} codes removed`);
+  return res.json({ ok: true, deleted: deletedCodes.length, codes: deletedCodes });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /admin/revenue — revenue metrics based on package prices
+// ─────────────────────────────────────────────────────────────────────────────
+const PACKAGE_PRICES = { 'Starter': 250, 'Signature': 499, 'Storytelling': 999 };
+
+app.get('/admin/revenue', requireAdmin, (req, res) => {
+  const codes   = [...codeStore.values()];
+  const issued  = codes.filter(c => c.issuedAt || c.status === 'issued' || c.status === 'redeemed').length;
+
+  let totalRevenue = 0;
+  leadStore.forEach(l => {
+    const price = PACKAGE_PRICES[l.selectedPackage] || 0;
+    totalRevenue += price;
+  });
+
+  const bookings = leadStore.length;
+  const avgBookingValue    = bookings > 0 ? Math.round(totalRevenue / bookings) : 0;
+  const revenuePerCard     = issued   > 0 ? Math.round(totalRevenue / issued)   : 0;
+
+  // Package revenue breakdown
+  const byPackage = {};
+  Object.keys(PACKAGE_PRICES).forEach(p => { byPackage[p] = { count: 0, revenue: 0 }; });
+  leadStore.forEach(l => {
+    const p = l.selectedPackage;
+    if (byPackage[p]) {
+      byPackage[p].count++;
+      byPackage[p].revenue += PACKAGE_PRICES[p];
+    }
+  });
+
+  return res.json({
+    totalRevenue, avgBookingValue, revenuePerCard,
+    issuedCards: issued, bookings,
+    byPackage,
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
