@@ -2,6 +2,11 @@
  * RAOUF px — Street Promo Code Server
  * Run: node server.js
  * Requires: npm install express cors cookie-parser
+ *
+ * DATA FILES:
+ *   codes.json   — code store (schema v2 with status/timeline fields)
+ *   scans.json   — QR scan events (one entry per secret.html visit)
+ *   leads.json   — booking submissions with lead profile data
  */
 
 const express      = require('express');
@@ -14,16 +19,22 @@ const fs           = require('fs');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-// ── Access token store (in-memory) ──
+// ── Token store (in-memory) ──
 const TOKEN_TTL_MS = 48 * 60 * 60 * 1000;
 const tokenStore   = new Map();
-
 setInterval(() => {
   const now = Date.now();
   for (const [t, meta] of tokenStore) {
     if (meta.expiresAt < now) tokenStore.delete(t);
   }
 }, 60 * 60 * 1000);
+
+// ── Real-time activity feed (in-memory ring buffer, last 50 events) ──
+const activityFeed = [];
+function pushActivity(type, detail = '') {
+  activityFeed.unshift({ time: new Date().toISOString(), type, detail });
+  if (activityFeed.length > 50) activityFeed.pop();
+}
 
 app.use(express.json());
 app.use(cookieParser());
@@ -40,20 +51,19 @@ app.use(cors({
     if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
     cb(new Error(`CORS blocked: ${origin}`));
   },
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'PATCH'],
   credentials: true,
 }));
 
 app.use(express.static(path.join(__dirname)));
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ADMIN SECRET
-// Set ADMIN_KEY environment variable in Railway dashboard.
+// ADMIN AUTH
 // ─────────────────────────────────────────────────────────────────────────────
 const ADMIN_KEY = process.env.ADMIN_KEY || 'raoufpx-admin-2024';
 
 function requireAdmin(req, res, next) {
-  const queryKey   = req.query.key;
+  const queryKey  = req.query.key;
   const authHeader = req.headers['authorization'] || '';
   const bearerKey  = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
   if (queryKey === ADMIN_KEY || bearerKey === ADMIN_KEY) return next();
@@ -61,8 +71,25 @@ function requireAdmin(req, res, next) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CODE STORE — persisted to codes.json
-// Schema per entry: { code, used, createdAt, usedAt }
+// JSON FILE HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+function readJSON(file, fallback) {
+  if (fs.existsSync(file)) {
+    try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch {}
+  }
+  return fallback;
+}
+function writeJSON(file, data) {
+  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CODE STORE  (codes.json)
+// Schema v2:
+//   code, status, createdAt, issuedAt, firstScanAt, redeemedAt,
+//   expiresAt, bookingSubmittedAt, location, notes, used, usedAt
+//
+// status: 'available' | 'issued' | 'redeemed' | 'expired'
 // ─────────────────────────────────────────────────────────────────────────────
 const CODES_FILE = path.join(__dirname, 'codes.json');
 
@@ -79,62 +106,146 @@ const MASTER_CODES = [
   'H3C6P8WR','S7N2J4QK','V1F5K9ZD','T6R3M7PX','B2L8H1VQ',
 ];
 
+function makeCodeEntry(code) {
+  return {
+    code,
+    status: 'available',
+    createdAt: new Date().toISOString(),
+    issuedAt: null,
+    firstScanAt: null,
+    redeemedAt: null,
+    expiresAt: null,
+    bookingSubmittedAt: null,
+    location: '',
+    notes: '',
+    // legacy compat fields
+    used: false,
+    usedAt: null,
+  };
+}
+
 function loadCodes() {
-  if (fs.existsSync(CODES_FILE)) {
-    try {
-      const data   = JSON.parse(fs.readFileSync(CODES_FILE, 'utf8'));
-      const stored = new Map(data.map(c => [c.code, c]));
-      MASTER_CODES.forEach(code => {
-        if (!stored.has(code)) {
-          stored.set(code, { code, used: false, createdAt: new Date().toISOString(), usedAt: null });
-        }
-      });
-      return stored;
-    } catch {
-      console.warn('codes.json corrupt — rebuilding.');
+  const data   = readJSON(CODES_FILE, []);
+  const stored = new Map(data.map(c => [c.code, c]));
+  // Migrate old entries that lack status field
+  for (const [code, entry] of stored) {
+    if (!entry.status) {
+      entry.status = entry.used ? 'redeemed' : 'available';
     }
   }
-  return new Map(MASTER_CODES.map(code => [
-    code, { code, used: false, createdAt: new Date().toISOString(), usedAt: null }
-  ]));
+  // Ensure master codes exist
+  MASTER_CODES.forEach(code => {
+    if (!stored.has(code)) stored.set(code, makeCodeEntry(code));
+  });
+  return stored;
 }
 
 function saveCodes(store) {
-  fs.writeFileSync(CODES_FILE, JSON.stringify([...store.values()], null, 2), 'utf8');
+  writeJSON(CODES_FILE, [...store.values()]);
 }
 
 let codeStore = loadCodes();
 saveCodes(codeStore);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CODE GENERATOR HELPERS
-// Format: PX-XXXXXXXX  (8 chars, no O/0 or I/1)
+// SCAN STORE  (scans.json)
+// One entry per secret.html visit.
+// Schema: { scanId, timestamp, deviceType, browser, country }
 // ─────────────────────────────────────────────────────────────────────────────
-const CODE_CHARS  = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const CODE_LENGTH = 8;
+const SCANS_FILE = path.join(__dirname, 'scans.json');
+let scanStore = readJSON(SCANS_FILE, []);
+
+function saveScans() { writeJSON(SCANS_FILE, scanStore); }
+
+function detectDevice(ua = '') {
+  if (/tablet|ipad/i.test(ua))  return 'tablet';
+  if (/mobile|iphone|android/i.test(ua)) return 'mobile';
+  return 'desktop';
+}
+function detectBrowser(ua = '') {
+  if (/edg\//i.test(ua))    return 'Edge';
+  if (/chrome/i.test(ua))   return 'Chrome';
+  if (/safari/i.test(ua))   return 'Safari';
+  if (/firefox/i.test(ua))  return 'Firefox';
+  return 'Other';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LEAD STORE  (leads.json)
+// One entry per booking submission.
+// Schema: { code, clientName, email, whatsapp, selectedPackage,
+//           submittedAt, price, date }
+// ─────────────────────────────────────────────────────────────────────────────
+const LEADS_FILE = path.join(__dirname, 'leads.json');
+let leadStore = readJSON(LEADS_FILE, []);
+function saveLeads() { writeJSON(LEADS_FILE, leadStore); }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CODE GENERATOR  (format: XXX-XXX)
+// ─────────────────────────────────────────────────────────────────────────────
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 function generateCode() {
-  const bytes = crypto.randomBytes(CODE_LENGTH);
-  let result = 'PX-';
-  for (let i = 0; i < CODE_LENGTH; i++) {
-    result += CODE_CHARS[bytes[i] % CODE_CHARS.length];
-  }
-  return result;
+  const rand = (n) => {
+    const bytes = crypto.randomBytes(n);
+    let s = '';
+    for (let i = 0; i < n; i++) s += CODE_CHARS[bytes[i] % CODE_CHARS.length];
+    return s;
+  };
+  return `${rand(3)}-${rand(3)}`;
 }
 
 function generateUniqueCode() {
-  for (let attempt = 0; attempt < 100; attempt++) {
+  for (let i = 0; i < 100; i++) {
     const code = generateCode();
     if (!codeStore.has(code)) return code;
   }
-  throw new Error('Could not generate a unique code after 100 attempts.');
+  throw new Error('Could not generate unique code after 100 attempts.');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// EXISTING ROUTES — UNCHANGED
+// EXPIRY CHECKER — runs every 10 minutes
 // ─────────────────────────────────────────────────────────────────────────────
+setInterval(() => {
+  const now = new Date().toISOString();
+  let changed = false;
+  for (const [, entry] of codeStore) {
+    if (entry.status === 'redeemed' && entry.expiresAt && entry.expiresAt < now) {
+      entry.status = 'expired';
+      changed = true;
+    }
+  }
+  if (changed) saveCodes(codeStore);
+}, 10 * 60 * 1000);
 
-// POST /check-code
+// =============================================================================
+// ── PUBLIC ROUTES ─────────────────────────────────────────────────────────────
+// =============================================================================
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /track-scan
+// Called by secret.html on every page load (QR scan event).
+// Body: {} — no code needed, just the visit.
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/track-scan', (req, res) => {
+  const ua      = req.headers['user-agent'] || '';
+  const scanId  = crypto.randomBytes(8).toString('hex');
+  const scan    = {
+    scanId,
+    timestamp:  new Date().toISOString(),
+    deviceType: detectDevice(ua),
+    browser:    detectBrowser(ua),
+    country:    req.headers['cf-ipcountry'] || req.headers['x-country'] || 'unknown',
+  };
+  scanStore.push(scan);
+  saveScans();
+  pushActivity('QR Scan', `${scan.deviceType} / ${scan.browser}`);
+  return res.json({ ok: true, scanId });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /check-code  — EXISTING ROUTE (extended with timeline fields)
+// ─────────────────────────────────────────────────────────────────────────────
 app.post('/check-code', (req, res) => {
   const raw  = req.body?.code;
   const code = typeof raw === 'string' ? raw.trim().toUpperCase() : '';
@@ -146,110 +257,277 @@ app.post('/check-code', (req, res) => {
   const entry = codeStore.get(code);
 
   if (!entry) {
-    return setTimeout(() => {
-      res.json({ valid: false, message: 'Invalid code.' });
-    }, 300);
+    pushActivity('Invalid Code', code);
+    return setTimeout(() => res.json({ valid: false, message: 'Invalid code.' }), 300);
   }
 
-  if (entry.used) {
+  // Record firstScanAt (code was entered — best proxy for "first scan with this code")
+  if (!entry.firstScanAt) {
+    entry.firstScanAt = new Date().toISOString();
+    codeStore.set(code, entry);
+    saveCodes(codeStore);
+  }
+
+  if (entry.status === 'expired' || (entry.expiresAt && entry.expiresAt < new Date().toISOString())) {
+    entry.status = 'expired';
+    saveCodes(codeStore);
+    pushActivity('Expired Code', code);
+    return res.json({ valid: false, message: 'This offer has expired.' });
+  }
+
+  if (entry.used || entry.status === 'redeemed') {
+    pushActivity('Already Used', code);
     return res.json({ valid: false, message: 'Code already redeemed.' });
   }
 
-  entry.used   = true;
-  entry.usedAt = new Date().toISOString();
+  // ✅ Valid
+  const now       = new Date().toISOString();
+  const expiresAt = new Date(Date.now() + TOKEN_TTL_MS).toISOString();
+
+  entry.used       = true;
+  entry.usedAt     = now;
+  entry.redeemedAt = now;
+  entry.expiresAt  = expiresAt;
+  entry.status     = 'redeemed';
   codeStore.set(code, entry);
   saveCodes(codeStore);
 
-  const token     = crypto.randomBytes(32).toString('hex');
-  const createdAt = Date.now();
-  const expiresAt = createdAt + TOKEN_TTL_MS;
-  tokenStore.set(token, { createdAt, expiresAt });
+  const token    = crypto.randomBytes(32).toString('hex');
+  const expMs    = Date.now() + TOKEN_TTL_MS;
+  tokenStore.set(token, { createdAt: Date.now(), expiresAt: expMs, code });
 
   res.cookie('raoufpx_access', token, {
-    httpOnly: true,
-    sameSite: 'None',
-    secure: true,
-    maxAge: TOKEN_TTL_MS,
+    httpOnly: true, sameSite: 'None', secure: true, maxAge: TOKEN_TTL_MS,
   });
 
-  console.log(`[${entry.usedAt}] Code redeemed: ${code} | Token: ${token.slice(0,8)}...`);
-  return res.json({ valid: true, message: 'Code accepted.', expiresAt });
+  pushActivity('Code Redeemed', code);
+  console.log(`[${now}] Code redeemed: ${code}`);
+  return res.json({ valid: true, message: 'Code accepted.', expiresAt: expMs });
 });
 
-// GET /verify-token
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /verify-token  — EXISTING ROUTE (unchanged)
+// ─────────────────────────────────────────────────────────────────────────────
 app.get('/verify-token', (req, res) => {
   const token = req.cookies?.raoufpx_access;
   if (!token) return res.json({ valid: false });
-
   const meta = tokenStore.get(token);
   if (!meta) return res.json({ valid: false });
-  if (meta.expiresAt < Date.now()) {
-    tokenStore.delete(token);
-    return res.json({ valid: false });
-  }
-
+  if (meta.expiresAt < Date.now()) { tokenStore.delete(token); return res.json({ valid: false }); }
   return res.json({ valid: true, expiresAt: meta.expiresAt });
 });
 
-// GET /admin/codes — view all + stats
-app.get('/admin/codes', requireAdmin, (req, res) => {
-  const all   = [...codeStore.values()];
-  const used  = all.filter(c => c.used).length;
-  const avail = all.length - used;
-  res.json({ total: all.length, used, available: avail, codes: all });
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /track-booking
+// Called by promo.html after successful Formspree submission.
+// Body: { code, clientName, email, whatsapp, selectedPackage, price, date }
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/track-booking', (req, res) => {
+  const { code, clientName, email, whatsapp, selectedPackage, price, date } = req.body || {};
+  const now = new Date().toISOString();
+
+  // Update code timeline
+  if (code) {
+    const entry = codeStore.get(code.toUpperCase());
+    if (entry) {
+      entry.bookingSubmittedAt = now;
+      codeStore.set(entry.code, entry);
+      saveCodes(codeStore);
+    }
+  }
+
+  // Store lead
+  const lead = {
+    code: (code || '').toUpperCase(),
+    clientName:      clientName || '',
+    email:           email      || '',
+    whatsapp:        whatsapp   || '',
+    selectedPackage: selectedPackage || '',
+    price:           price      || '',
+    date:            date       || '',
+    submittedAt:     now,
+  };
+  leadStore.push(lead);
+  saveLeads();
+
+  pushActivity('Booking Submitted', `${selectedPackage || '?'} — ${clientName || 'unknown'}`);
+  console.log(`[${now}] Booking: ${code} | ${clientName} | ${selectedPackage}`);
+  return res.json({ ok: true });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// NEW: POST /admin/generate-code — generate exactly 1 code
-// Auth: ?key=ADMIN_KEY  OR  Authorization: Bearer ADMIN_KEY
-// ─────────────────────────────────────────────────────────────────────────────
+// =============================================================================
+// ── ADMIN ROUTES ──────────────────────────────────────────────────────────────
+// =============================================================================
+
+// GET /admin/codes — full code list with stats
+app.get('/admin/codes', requireAdmin, (req, res) => {
+  const all      = [...codeStore.values()];
+  const total    = all.length;
+  const issued   = all.filter(c => c.status === 'issued').length;
+  const redeemed = all.filter(c => c.status === 'redeemed' || c.used).length;
+  const expired  = all.filter(c => c.status === 'expired').length;
+  const available= all.filter(c => c.status === 'available').length;
+  res.json({ total, available, issued, redeemed, expired, codes: all });
+});
+
+// GET /admin/analytics — funnel metrics
+app.get('/admin/analytics', requireAdmin, (req, res) => {
+  const codes    = [...codeStore.values()];
+  const total    = codes.length;
+  const issued   = codes.filter(c => c.status === 'issued' || c.issuedAt).length;
+  const redeemed = codes.filter(c => c.status === 'redeemed' || c.used).length;
+  const withBooking = codes.filter(c => c.bookingSubmittedAt).length;
+  const scans    = scanStore.length;
+
+  // Package breakdown
+  const packages = {};
+  leadStore.forEach(l => {
+    const p = l.selectedPackage || 'Unknown';
+    packages[p] = (packages[p] || 0) + 1;
+  });
+
+  // Location breakdown
+  const locations = {};
+  codes.forEach(c => {
+    if (c.location) locations[c.location] = (locations[c.location] || 0) + 1;
+  });
+
+  res.json({
+    funnel: {
+      codesGenerated:  total,
+      codesIssued:     issued,
+      qrScans:         scans,
+      codesEntered:    redeemed,
+      bookingsSubmitted: withBooking,
+    },
+    rates: {
+      scanRate:    issued   > 0 ? ((scans    / issued)   * 100).toFixed(1) + '%' : '—',
+      unlockRate:  scans    > 0 ? ((redeemed / scans)    * 100).toFixed(1) + '%' : '—',
+      bookingRate: redeemed > 0 ? ((withBooking / redeemed) * 100).toFixed(1) + '%' : '—',
+    },
+    packages,
+    locations,
+    recentScans:  scanStore.slice(-10).reverse(),
+    recentLeads:  leadStore.slice(-10).reverse(),
+  });
+});
+
+// GET /admin/activity — real-time feed
+app.get('/admin/activity', requireAdmin, (req, res) => {
+  res.json({ feed: activityFeed });
+});
+
+// GET /admin/leads — all lead profiles
+app.get('/admin/leads', requireAdmin, (req, res) => {
+  // Join leads with their code entry for full profile
+  const profiles = leadStore.map(lead => {
+    const entry = codeStore.get(lead.code) || {};
+    return { ...lead, location: entry.location || '', notes: entry.notes || '' };
+  });
+  res.json({ total: profiles.length, leads: profiles });
+});
+
+// GET /admin/lead/:code — single lead profile
+app.get('/admin/lead/:code', requireAdmin, (req, res) => {
+  const code  = req.params.code.toUpperCase();
+  const entry = codeStore.get(code);
+  if (!entry) return res.status(404).json({ error: 'Code not found.' });
+  const lead = leadStore.find(l => l.code === code) || null;
+  res.json({ code: entry, lead });
+});
+
+// PATCH /admin/code/:code — update location, notes, status (issue a code)
+app.patch('/admin/code/:code', requireAdmin, (req, res) => {
+  const code  = req.params.code.toUpperCase();
+  const entry = codeStore.get(code);
+  if (!entry) return res.status(404).json({ error: 'Code not found.' });
+
+  const { location, notes, status } = req.body || {};
+  if (location !== undefined) entry.location = location;
+  if (notes    !== undefined) entry.notes    = notes;
+
+  // Allow marking as issued
+  if (status === 'issued' && entry.status === 'available') {
+    entry.status   = 'issued';
+    entry.issuedAt = new Date().toISOString();
+    pushActivity('Code Issued', `${code} — ${entry.location || 'no location'}`);
+  }
+
+  codeStore.set(code, entry);
+  saveCodes(codeStore);
+  res.json({ ok: true, code: entry });
+});
+
+// POST /admin/generate-code
 app.post('/admin/generate-code', requireAdmin, (req, res) => {
   try {
-    const code      = generateUniqueCode();
-    const createdAt = new Date().toISOString();
-    codeStore.set(code, { code, used: false, createdAt, usedAt: null });
+    const code  = generateUniqueCode();
+    const entry = makeCodeEntry(code);
+    codeStore.set(code, entry);
     saveCodes(codeStore);
     console.log(`[ADMIN] Generated: ${code}`);
-    return res.json({ success: true, code, createdAt });
+    return res.json({ success: true, code, createdAt: entry.createdAt });
   } catch (err) {
-    console.error('[ADMIN] generate-code error:', err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// NEW: POST /admin/generate-bulk — generate N codes at once
-// Body: { "count": 10 }   (clamped 1–200)
-// ─────────────────────────────────────────────────────────────────────────────
+// POST /admin/generate-bulk
 app.post('/admin/generate-bulk', requireAdmin, (req, res) => {
   const raw   = parseInt(req.body?.count, 10);
   const count = isNaN(raw) ? 1 : Math.min(Math.max(raw, 1), 200);
-  const created   = [];
-  const createdAt = new Date().toISOString();
-
+  const created = [];
   try {
     for (let i = 0; i < count; i++) {
-      const code = generateUniqueCode();
-      codeStore.set(code, { code, used: false, createdAt, usedAt: null });
-      created.push({ code, createdAt });
+      const code  = generateUniqueCode();
+      const entry = makeCodeEntry(code);
+      codeStore.set(code, entry);
+      created.push({ code, createdAt: entry.createdAt });
     }
     saveCodes(codeStore);
-    console.log(`[ADMIN] Bulk generated ${created.length} codes`);
     return res.json({ success: true, generated: created.length, codes: created });
   } catch (err) {
     if (created.length > 0) saveCodes(codeStore);
-    console.error('[ADMIN] generate-bulk error:', err.message);
-    return res.status(500).json({
-      success: false, error: err.message,
-      generated: created.length, codes: created,
-    });
+    return res.status(500).json({ success: false, error: err.message, generated: created.length, codes: created });
   }
+});
+
+// GET /admin/export — CSV download of all leads + code data
+app.get('/admin/export', requireAdmin, (req, res) => {
+  const headers = [
+    'code','status','location','notes',
+    'createdAt','issuedAt','firstScanAt','redeemedAt','expiresAt','bookingSubmittedAt',
+    'selectedPackage','clientName','clientEmail','clientPhone',
+  ];
+
+  const rows = [...codeStore.values()].map(entry => {
+    const lead = leadStore.find(l => l.code === entry.code) || {};
+    return [
+      entry.code,
+      entry.status || (entry.used ? 'redeemed' : 'available'),
+      entry.location || '',
+      (entry.notes || '').replace(/,/g, ';'),
+      entry.createdAt   || '',
+      entry.issuedAt    || '',
+      entry.firstScanAt || '',
+      entry.redeemedAt  || entry.usedAt || '',
+      entry.expiresAt   || '',
+      entry.bookingSubmittedAt || '',
+      lead.selectedPackage || '',
+      lead.clientName  || '',
+      lead.email       || '',
+      lead.whatsapp    || '',
+    ].map(v => `"${v}"`).join(',');
+  });
+
+  const csv = [headers.join(','), ...rows].join('\n');
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename="raoufpx-leads.csv"');
+  res.send(csv);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Catch-all
-// /admin/* routes are never redirected — return 404 JSON instead.
-// Everything else (unknown page URLs) redirects to the gate.
 // ─────────────────────────────────────────────────────────────────────────────
 app.get('*', (req, res) => {
   if (req.path.startsWith('/admin/')) {
