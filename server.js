@@ -546,6 +546,24 @@ app.post('/track-session', (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// DELETE /admin/code/:code — delete a single code by code value
+// Safety: never deletes redeemed or expired codes
+// ─────────────────────────────────────────────────────────────────────────────
+app.delete('/admin/code/:code', requireAdmin, (req, res) => {
+  const code  = req.params.code.toUpperCase();
+  const entry = codeStore.get(code);
+  if (!entry) return res.status(404).json({ error: 'Code not found.' });
+  if (entry.status === 'redeemed' || entry.status === 'expired' || entry.used) {
+    return res.status(400).json({ error: 'Cannot delete redeemed or expired codes.' });
+  }
+  codeStore.delete(code);
+  saveCodes(codeStore);
+  pushActivity('Code Deleted', code);
+  console.log(`[ADMIN] Deleted code: ${code}`);
+  return res.json({ ok: true, deleted: code });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // DELETE /admin/test-data — delete codes whose notes contain "test"
 // Safety: only touches codes with status !== 'redeemed' and notes including "test"
 // Returns { deleted: N, codes: [...] }
