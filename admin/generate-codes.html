@@ -477,6 +477,18 @@ canvas{max-width:100%}
   </div>
 </div>
 
+<!-- ═══ GENERAL CONFIRM MODAL ═══ -->
+<div class="modal-overlay" id="gen-confirm-modal">
+  <div class="confirm-modal">
+    <h2 id="gen-confirm-title">⚠ CONFIRM</h2>
+    <p id="gen-confirm-msg" style="color:var(--text);font-size:11px;line-height:1.7"></p>
+    <div class="confirm-btns">
+      <button class="btn btn-teal btn-sm" onclick="genConfirmResolve(false)">[ CANCEL ]</button>
+      <button class="btn btn-danger btn-sm" onclick="genConfirmResolve(true)">[ CONFIRM ]</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────
@@ -1083,7 +1095,6 @@ async function showDeleteTestConfirm() {
   // Preview which codes would be deleted
   const testCodes = allCodes.filter(c => {
     const notes = (c.notes||'').toLowerCase();
-    if (c.status==='redeemed'||c.status==='expired'||c.used) return false;
     return notes.includes('test');
   });
   const list = document.getElementById('confirm-code-list');
