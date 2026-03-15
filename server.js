@@ -51,7 +51,19 @@ app.use(cors({
     if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
     cb(new Error(`CORS blocked: ${origin}`));
   },
-  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
+
+// Explicit OPTIONS preflight handler for all routes
+app.options('*', cors({
+  origin: (origin, cb) => {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    cb(new Error(`CORS blocked: ${origin}`));
+  },
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 }));
 
@@ -546,6 +558,30 @@ app.post('/track-session', (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// POST /admin/delete-codes — mobile-safe bulk delete (array of codes in body)
+// Safety: never deletes redeemed or expired codes
+// Body: { codes: ['ABC-123', 'DEF-456', ...] }
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/admin/delete-codes', requireAdmin, (req, res) => {
+  const codes = (req.body?.codes || []).map(c => String(c).toUpperCase());
+  const deleted = [];
+  const skipped = [];
+  codes.forEach(code => {
+    const entry = codeStore.get(code);
+    if (!entry) { skipped.push(code); return; }
+    if (entry.status === 'redeemed' || entry.status === 'expired' || entry.used) {
+      skipped.push(code); return;
+    }
+    codeStore.delete(code);
+    deleted.push(code);
+  });
+  if (deleted.length > 0) saveCodes(codeStore);
+  deleted.forEach(code => pushActivity('Code Deleted', code));
+  console.log(`[ADMIN] Bulk deleted ${deleted.length} codes`);
+  return res.json({ ok: true, deleted: deleted.length, codes: deleted, skipped });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // DELETE /admin/code/:code — delete a single code by code value
 // Safety: never deletes redeemed or expired codes
 // ─────────────────────────────────────────────────────────────────────────────
@@ -563,6 +599,21 @@ app.delete('/admin/code/:code', requireAdmin, (req, res) => {
   return res.json({ ok: true, deleted: code });
 });
 
+// POST /admin/delete-test — mobile-safe version of DELETE /admin/test-data
+app.post('/admin/delete-test', requireAdmin, (req, res) => {
+  const toDelete = [...codeStore.values()].filter(c => {
+    const notes = (c.notes || '').toLowerCase();
+    if (c.status === 'redeemed' || c.status === 'expired' || c.used) return false;
+    return notes.includes('test');
+  });
+  const deletedCodes = toDelete.map(c => c.code);
+  deletedCodes.forEach(code => codeStore.delete(code));
+  if (deletedCodes.length > 0) saveCodes(codeStore);
+  console.log(`[ADMIN] Deleted ${deletedCodes.length} test codes`);
+  pushActivity('Test Data Deleted', `${deletedCodes.length} codes removed`);
+  return res.json({ ok: true, deleted: deletedCodes.length, codes: deletedCodes });
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // DELETE /admin/test-data — delete codes whose notes contain "test"
 // Safety: only touches codes with status !== 'redeemed' and notes including "test"
@@ -571,8 +622,6 @@ app.delete('/admin/code/:code', requireAdmin, (req, res) => {
 app.delete('/admin/test-data', requireAdmin, (req, res) => {
   const toDelete = [...codeStore.values()].filter(c => {
     const notes = (c.notes || '').toLowerCase();
-    // Never delete redeemed or expired codes — those are real interactions
-    if (c.status === 'redeemed' || c.status === 'expired' || c.used) return false;
     return notes.includes('test');
   });
 
