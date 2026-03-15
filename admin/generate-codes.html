@@ -186,7 +186,12 @@ canvas{max-width:100%}
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--surface)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
-/* ── RESPONSIVE ── */
+/* ── BULK ACTION BAR ── */
+.bulk-bar{display:none;align-items:center;gap:10px;padding:10px 14px;background:rgba(240,180,76,.07);border:1px solid rgba(240,180,76,.2);border-radius:4px;margin-bottom:10px;flex-wrap:wrap}
+.bulk-bar.visible{display:flex}
+.bulk-count{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--accent);min-width:100px}
+.bulk-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:5px 10px;border-radius:3px;width:180px}
+.bulk-input:focus{outline:none;border-color:var(--accent)}
 @media(max-width:600px){.stat-grid{grid-template-columns:repeat(2,1fr)}.field-grid{grid-template-columns:1fr}.rev-grid{grid-template-columns:1fr 1fr}}
 
 /* ── LOGIN GATE ── */
@@ -332,8 +337,24 @@ canvas{max-width:100%}
     <label><input type="checkbox" id="filter-hot" onchange="renderCodes()"/> 🔥 Hot Leads only</label>
     <label><input type="checkbox" id="filter-noscan" onchange="renderCodes()"/> No scan yet</label>
   </div>
+
+  <!-- BULK ACTION BAR -->
+  <div class="bulk-bar" id="bulk-bar">
+    <span class="bulk-count" id="bulk-count">0 selected</span>
+    <input class="bulk-input" type="text" id="bulk-notes" placeholder="Set notes…"/>
+    <input class="bulk-input" type="text" id="bulk-location" placeholder="Set location…"/>
+    <button class="btn btn-teal btn-sm" onclick="bulkSetNotes()">[ SET NOTES ]</button>
+    <button class="btn btn-amber btn-sm" onclick="bulkSetLocation()">[ SET LOCATION ]</button>
+    <button class="btn btn-sm" style="border-color:var(--accent3);color:var(--accent3)" onclick="bulkMarkIssued()">[ MARK ISSUED ]</button>
+    <button class="btn btn-danger btn-sm" onclick="bulkDelete()">[ DELETE ]</button>
+    <button class="btn btn-sm" style="border-color:var(--muted);color:var(--muted)" onclick="clearSelection()">[ CLEAR ]</button>
+  </div>
+
   <div class="tbl-wrap"><table>
-    <thead><tr><th>CODE</th><th>STATUS</th><th>LOCATION</th><th>ISSUED</th><th>FIRST SCAN</th><th>REDEEMED</th><th>BOOKING</th><th>SESSION</th><th>EXPIRES</th></tr></thead>
+    <thead><tr>
+      <th style="width:32px"><input type="checkbox" id="select-all" onchange="toggleSelectAll(this)" style="accent-color:var(--accent);width:14px;height:14px"/></th>
+      <th>CODE</th><th>STATUS</th><th>LOCATION</th><th>NOTES</th><th>ISSUED</th><th>FIRST SCAN</th><th>REDEEMED</th><th>BOOKING</th><th>SESSION</th><th>EXPIRES</th>
+    </tr></thead>
     <tbody id="codes-body"></tbody>
   </table></div>
   <div style="margin-top:8px;font-size:10px;color:var(--muted)" id="codes-count"></div>
@@ -662,6 +683,46 @@ async function loadRevenue() {
   });
 }
 
+// ── SELECTION STATE ──────────────────────────────────────────────────────
+let selectedCodes = new Set();
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulk-bar');
+  const count = document.getElementById('bulk-count');
+  if (selectedCodes.size > 0) {
+    bar.classList.add('visible');
+    count.textContent = selectedCodes.size + ' selected';
+  } else {
+    bar.classList.remove('visible');
+  }
+  // Sync select-all checkbox state
+  const allVisible = [...document.querySelectorAll('.row-check')].map(cb=>cb.value);
+  const allChecked = allVisible.length > 0 && allVisible.every(v => selectedCodes.has(v));
+  const selAll = document.getElementById('select-all');
+  if (selAll) selAll.checked = allChecked;
+}
+
+function toggleSelectAll(cb) {
+  document.querySelectorAll('.row-check').forEach(c => {
+    c.checked = cb.checked;
+    cb.checked ? selectedCodes.add(c.value) : selectedCodes.delete(c.value);
+  });
+  updateBulkBar();
+}
+
+function toggleRow(cb) {
+  cb.checked ? selectedCodes.add(cb.value) : selectedCodes.delete(cb.value);
+  updateBulkBar();
+}
+
+function clearSelection() {
+  selectedCodes.clear();
+  document.querySelectorAll('.row-check').forEach(c => c.checked = false);
+  const sa = document.getElementById('select-all');
+  if (sa) sa.checked = false;
+  updateBulkBar();
+}
+
 // ── CODES ────────────────────────────────────────────────────────────────
 async function loadCodes() {
   const r = await fetch(`${API}/admin/codes`, {headers:headers()});
@@ -672,7 +733,6 @@ async function loadCodes() {
   renderEngagement();
   document.getElementById('s-expired').textContent = allCodes.filter(c=>c.status==='expired').length;
   document.getElementById('s-hot').textContent = allCodes.filter(isHot).length;
-  // Update gen mini stats
   const total = allCodes.length;
   const av = allCodes.filter(c=>c.status==='available').length;
   const is = allCodes.filter(c=>c.status==='issued').length;
@@ -705,10 +765,18 @@ function renderCodes() {
     const expiryStr = expiry ? (expired ? '<span style="color:var(--danger)">EXPIRED</span>' : fmtShort(c.expiresAt)) : '—';
     const hot = isHot(c);
     const sess = fmtDuration(c.sessionDuration);
-    return `<tr style="cursor:pointer" onclick="openModal('${c.code}')">
-      <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${c.code}${hot?'<br><span class="pill pill-hot" style="margin-top:4px">🔥 HOT</span>':''}</td>
+    const checked = selectedCodes.has(c.code) ? 'checked' : '';
+    return `<tr>
+      <td onclick="event.stopPropagation()">
+        <input type="checkbox" class="row-check" value="${c.code}" ${checked}
+          onchange="toggleRow(this)" style="accent-color:var(--accent);width:14px;height:14px"/>
+      </td>
+      <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px;cursor:pointer" onclick="openModal('${c.code}')">
+        ${c.code}${hot?'<br><span class="pill pill-hot" style="margin-top:4px">🔥 HOT</span>':''}
+      </td>
       <td><span class="pill pill-${c.status}">${c.status}</span></td>
       <td style="color:var(--muted)">${c.location||'—'}</td>
+      <td style="color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(c.notes||'').replace(/"/g,'&quot;')}">${c.notes||'—'}</td>
       <td>${fmtShort(c.issuedAt)}</td>
       <td>${fmtShort(c.firstScanAt)}</td>
       <td>${fmtShort(c.redeemedAt)}</td>
@@ -716,9 +784,62 @@ function renderCodes() {
       <td style="color:var(--accent3)">${sess}</td>
       <td>${expiryStr}</td>
     </tr>`;
-  }).join('') || '<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:16px">No codes match filter</td></tr>';
+  }).join('') || '<tr><td colspan="11" style="color:var(--muted);text-align:center;padding:16px">No codes match filter</td></tr>';
 
   document.getElementById('codes-count').textContent = `Showing ${list.length} of ${allCodes.length} codes`;
+  updateBulkBar();
+}
+
+// ── BULK ACTIONS ──────────────────────────────────────────────────────────
+async function bulkPatch(payload) {
+  if (!selectedCodes.size) return;
+  const codes = [...selectedCodes];
+  await Promise.all(codes.map(code =>
+    fetch(`${API}/admin/code/${code}`, { method:'PATCH', headers:headers(), body:JSON.stringify(payload) })
+  ));
+  clearSelection();
+  await loadCodes();
+}
+
+async function bulkSetNotes() {
+  const notes = document.getElementById('bulk-notes').value;
+  if (!notes) { alert('Enter notes text first.'); return; }
+  if (!confirm(`Set notes to "${notes}" on ${selectedCodes.size} code(s)?`)) return;
+  await bulkPatch({ notes });
+  document.getElementById('bulk-notes').value = '';
+}
+
+async function bulkSetLocation() {
+  const location = document.getElementById('bulk-location').value;
+  if (!location) { alert('Enter location text first.'); return; }
+  if (!confirm(`Set location to "${location}" on ${selectedCodes.size} code(s)?`)) return;
+  await bulkPatch({ location });
+  document.getElementById('bulk-location').value = '';
+}
+
+async function bulkMarkIssued() {
+  if (!selectedCodes.size) return;
+  if (!confirm(`Mark ${selectedCodes.size} code(s) as issued?`)) return;
+  await bulkPatch({ status:'issued' });
+}
+
+async function bulkDelete() {
+  if (!selectedCodes.size) return;
+  const codes = [...selectedCodes];
+  const safe = codes.filter(code => {
+    const entry = allCodes.find(c=>c.code===code);
+    return entry && entry.status !== 'redeemed' && entry.status !== 'expired';
+  });
+  const blocked = codes.length - safe.length;
+  if (blocked > 0) alert(`${blocked} code(s) are redeemed or expired and will be skipped.`);
+  if (!safe.length) return;
+  if (!confirm(`Permanently delete ${safe.length} code(s)? This cannot be undone.`)) return;
+  await Promise.all(safe.map(code =>
+    fetch(`${API}/admin/code/${code}`, { method:'DELETE', headers:headers() })
+  ));
+  clearSelection();
+  await loadCodes();
+  alert(`Deleted ${safe.length} code(s).`);
 }
 
 // ── LEADS ────────────────────────────────────────────────────────────────
