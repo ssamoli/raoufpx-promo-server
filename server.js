@@ -131,6 +131,8 @@ function makeCodeEntry(code) {
     location: '',
     notes: '',
     sessionDuration: null,
+    source: 'street',      // 'street' | 'referral'
+    parentCode: null,       // set for referral codes
     // legacy compat fields
     used: false,
     usedAt: null,
@@ -334,24 +336,25 @@ app.get('/verify-token', (req, res) => {
 // POST /track-booking
 // Called by promo.html after successful Formspree submission.
 // Body: { code, clientName, email, whatsapp, selectedPackage, price, date }
+// On success: auto-generates 3 referral codes linked to this booking.
 // ─────────────────────────────────────────────────────────────────────────────
 app.post('/track-booking', (req, res) => {
   const { code, clientName, email, whatsapp, selectedPackage, price, date } = req.body || {};
   const now = new Date().toISOString();
+  const upperCode = (code || '').toUpperCase();
 
   // Update code timeline
-  if (code) {
-    const entry = codeStore.get(code.toUpperCase());
+  if (upperCode) {
+    const entry = codeStore.get(upperCode);
     if (entry) {
       entry.bookingSubmittedAt = now;
       codeStore.set(entry.code, entry);
-      saveCodes(codeStore);
     }
   }
 
   // Store lead
   const lead = {
-    code: (code || '').toUpperCase(),
+    code:            upperCode,
     clientName:      clientName || '',
     email:           email      || '',
     whatsapp:        whatsapp   || '',
@@ -363,8 +366,81 @@ app.post('/track-booking', (req, res) => {
   leadStore.push(lead);
   saveLeads();
 
-  pushActivity('Booking Submitted', `${selectedPackage || '?'} — ${clientName || 'unknown'}`);
-  console.log(`[${now}] Booking: ${code} | ${clientName} | ${selectedPackage}`);
+  // ── Generate 3 referral codes ──────────────────────────────────────────────
+  const referralCodes = [];
+  try {
+    for (let i = 0; i < 3; i++) {
+      const refCode = generateUniqueCode();
+      const entry = {
+        ...makeCodeEntry(refCode),
+        source:     'referral',
+        parentCode: upperCode,
+      };
+      codeStore.set(refCode, entry);
+      referralCodes.push(refCode);
+    }
+  } catch (err) {
+    console.error('[track-booking] Referral generation failed:', err.message);
+  }
+  saveCodes(codeStore);
+
+  pushActivity('Booking Submitted', `${selectedPackage || '?'} — ${clientName || 'unknown'} (+3 referrals)`);
+  console.log(`[${now}] Booking: ${upperCode} | ${clientName} | ${selectedPackage} | referrals: ${referralCodes.join(', ')}`);
+  return res.json({ ok: true, referralCodes });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /capture-hot-lead
+// Called by promo.html exit-intent / time trigger modal.
+// Body: { promoCode, whatsapp, capturedAt, source }
+// Skipped silently if booking already exists for this code.
+// ─────────────────────────────────────────────────────────────────────────────
+function validateUAEPhone(num = '') {
+  // Accepts +971XXXXXXXXX, 971XXXXXXXXX, 05XXXXXXXX, 5XXXXXXXX
+  const cleaned = num.replace(/[\s\-().]/g, '');
+  return /^(\+971|971|0)(5[024568]\d{7})$/.test(cleaned);
+}
+
+app.post('/capture-hot-lead', (req, res) => {
+  const { promoCode, whatsapp, capturedAt, source } = req.body || {};
+  const code = (promoCode || '').toUpperCase();
+
+  if (!code || !whatsapp) return res.status(400).json({ ok: false, error: 'Missing fields.' });
+  if (!validateUAEPhone(whatsapp)) return res.status(400).json({ ok: false, error: 'Invalid UAE number.' });
+
+  const entry = codeStore.get(code);
+  if (!entry) return res.status(404).json({ ok: false, error: 'Code not found.' });
+
+  // Silently ignore if booking already submitted
+  if (entry.bookingSubmittedAt) return res.json({ ok: true, skipped: true });
+
+  // Avoid duplicate hot lead captures for same code
+  const already = leadStore.find(l => l.code === code && l.status === 'hot_lead');
+  if (already) {
+    already.whatsapp   = whatsapp;
+    already.capturedAt = capturedAt || new Date().toISOString();
+    saveLeads();
+    return res.json({ ok: true, updated: true });
+  }
+
+  const hotLead = {
+    code,
+    whatsapp,
+    capturedAt:  capturedAt || new Date().toISOString(),
+    source:      source || 'promo_exit_capture',
+    status:      'hot_lead',
+    clientName:  '',
+    email:       '',
+    selectedPackage: '',
+    price:       '',
+    date:        '',
+    submittedAt: capturedAt || new Date().toISOString(),
+  };
+  leadStore.push(hotLead);
+  saveLeads();
+
+  pushActivity('🔥 Hot Lead Captured', `${code} — ${whatsapp}`);
+  console.log(`[capture-hot-lead] ${code} | ${whatsapp}`);
   return res.json({ ok: true });
 });
 
