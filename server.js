@@ -336,7 +336,7 @@ app.get('/verify-token', (req, res) => {
 // POST /track-booking
 // Called by promo.html after successful Formspree submission.
 // Body: { code, clientName, email, whatsapp, selectedPackage, price, date }
-// On success: auto-generates 3 referral codes linked to this booking.
+// On success: auto-generates 3 referral codes linked to secret.html
 // ─────────────────────────────────────────────────────────────────────────────
 app.post('/track-booking', (req, res) => {
   const { code, clientName, email, whatsapp, selectedPackage, price, date } = req.body || {};
@@ -348,45 +348,62 @@ app.post('/track-booking', (req, res) => {
     const entry = codeStore.get(upperCode);
     if (entry) {
       entry.bookingSubmittedAt = now;
+      // Store referrer WhatsApp on the parent code for traceability
+      if (whatsapp) entry.referrerWhatsapp = whatsapp;
       codeStore.set(entry.code, entry);
     }
   }
 
-  // Store lead
+  // Store lead (includes referrer WhatsApp)
   const lead = {
-    code:            upperCode,
-    clientName:      clientName || '',
-    email:           email      || '',
-    whatsapp:        whatsapp   || '',
-    selectedPackage: selectedPackage || '',
-    price:           price      || '',
-    date:            date       || '',
-    submittedAt:     now,
+    code:              upperCode,
+    clientName:        clientName || '',
+    email:             email      || '',
+    whatsapp:          whatsapp   || '',
+    selectedPackage:   selectedPackage || '',
+    price:             price      || '',
+    date:              date       || '',
+    submittedAt:       now,
+    referralCodes:     [],   // filled below
   };
-  leadStore.push(lead);
-  saveLeads();
 
-  // ── Generate 3 referral codes ──────────────────────────────────────────────
-  const referralCodes = [];
+  // ── Generate 3 referral codes ─────────────────────────────────────────────
+  const referralCodes   = [];
+  const referralLinks   = [];   // secret.html links for each code
+  const referralContacts = [];  // Firebase-ready: { code, whatsapp, name } — filled on referrals.html
+
   try {
     for (let i = 0; i < 3; i++) {
       const refCode = generateUniqueCode();
-      const entry = {
+      const refEntry = {
         ...makeCodeEntry(refCode),
-        source:     'referral',
-        parentCode: upperCode,
+        source:           'referral',
+        parentCode:       upperCode,
+        referralSource:   upperCode,   // explicit attribution field
+        referrerName:     clientName || '',
+        referrerWhatsapp: whatsapp   || '',
       };
-      codeStore.set(refCode, entry);
+      codeStore.set(refCode, refEntry);
       referralCodes.push(refCode);
+      referralLinks.push(`https://raoufpx.com/secret.html?code=${refCode}`);
     }
   } catch (err) {
     console.error('[track-booking] Referral generation failed:', err.message);
   }
+
+  lead.referralCodes = referralCodes;
+  leadStore.push(lead);
+  saveLeads();
   saveCodes(codeStore);
 
   pushActivity('Booking Submitted', `${selectedPackage || '?'} — ${clientName || 'unknown'} (+3 referrals)`);
   console.log(`[${now}] Booking: ${upperCode} | ${clientName} | ${selectedPackage} | referrals: ${referralCodes.join(', ')}`);
-  return res.json({ ok: true, referralCodes });
+
+  return res.json({
+    ok: true,
+    referralCodes,
+    referralLinks,   // https://raoufpx.com/secret.html?code=XXX-XXX
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -442,6 +459,36 @@ app.post('/capture-hot-lead', (req, res) => {
   pushActivity('🔥 Hot Lead Captured', `${code} — ${whatsapp}`);
   console.log(`[capture-hot-lead] ${code} | ${whatsapp}`);
   return res.json({ ok: true });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /save-referral-contacts
+// Called by referrals.html when user fills WhatsApp + name per referral code.
+// Body: { parentCode, contacts: [{ code, whatsapp, name }] }
+// Stores contact info on each referral code entry for Firebase automation.
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/save-referral-contacts', (req, res) => {
+  const { parentCode, contacts } = req.body || {};
+  if (!Array.isArray(contacts) || !contacts.length) {
+    return res.status(400).json({ ok: false, error: 'No contacts provided.' });
+  }
+
+  let saved = 0;
+  contacts.forEach(({ code, whatsapp, name }) => {
+    if (!code || !whatsapp) return;
+    const entry = codeStore.get((code || '').toUpperCase());
+    if (!entry) return;
+    if (whatsapp) entry.friendWhatsapp = whatsapp;
+    if (name)     entry.friendName     = name;
+    entry.messageScheduledAt = new Date().toISOString();
+    codeStore.set(entry.code, entry);
+    saved++;
+    pushActivity('Referral Contact Saved', `${entry.code} → ${whatsapp}`);
+  });
+
+  if (saved > 0) saveCodes(codeStore);
+  console.log(`[save-referral-contacts] ${saved} contacts saved for parent: ${parentCode}`);
+  return res.json({ ok: true, saved });
 });
 
 // =============================================================================
