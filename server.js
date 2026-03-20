@@ -71,7 +71,21 @@ allowedHeaders: [‘Content-Type’, ‘Authorization’],
 credentials: true,
 }));
 
+// Block /uploads from being served statically — files only served via /client/download
+app.use(’/uploads’, (req, res) => res.status(403).json({ error: ‘Forbidden.’ }));
+
 app.use(express.static(path.join(__dirname)));
+
+// Multer error handler (must be defined after routes that use multer)
+app.use((err, req, res, next) => {
+if (err && err.code === ‘LIMIT_FILE_SIZE’) {
+return res.status(413).json({ ok: false, error: ‘File too large. Max 2GB.’ });
+}
+if (err && err.message && err.message.includes(‘ZIP’)) {
+return res.status(400).json({ ok: false, error: err.message });
+}
+next(err);
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ADMIN AUTH
