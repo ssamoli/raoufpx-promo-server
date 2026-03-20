@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -17,24 +18,24 @@
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;font-size:13px}
 
 /* ── TOPBAR ── */
-.topbar{display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap}
-.topbar h1{font-family:'Press Start 2P',monospace;font-size:11px;color:var(--accent);letter-spacing:.05em;margin-right:auto}
-.key-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:6px 10px;border-radius:3px;width:220px}
-.key-input:focus{outline:none;border-color:var(--accent)}
-.btn{font-family:'Space Mono',monospace;font-size:11px;padding:6px 14px;border:1px solid;border-radius:3px;cursor:pointer;transition:.15s}
-.btn-amber{background:transparent;border-color:var(--accent);color:var(--accent)}
-.btn-amber:hover{background:var(--accent);color:#000}
-.btn-teal{background:transparent;border-color:var(--accent3);color:var(--accent3)}
-.btn-teal:hover{background:var(--accent3);color:#000}
-.btn-danger{background:transparent;border-color:var(--danger);color:var(--danger)}
-.btn-danger:hover{background:var(--danger);color:#fff}
+.topbar{display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(–surface);border-bottom:1px solid var(–border);flex-wrap:wrap}
+.topbar h1{font-family:‘Press Start 2P’,monospace;font-size:11px;color:var(–accent);letter-spacing:.05em;margin-right:auto}
+.key-input{background:var(–surface2);border:1px solid var(–border);color:var(–text);font-family:‘Space Mono’,monospace;font-size:11px;padding:6px 10px;border-radius:3px;width:220px}
+.key-input:focus{outline:none;border-color:var(–accent)}
+.btn{font-family:‘Space Mono’,monospace;font-size:11px;padding:6px 14px;border:1px solid;border-radius:3px;cursor:pointer;transition:.15s}
+.btn-amber{background:transparent;border-color:var(–accent);color:var(–accent)}
+.btn-amber:hover{background:var(–accent);color:#000}
+.btn-teal{background:transparent;border-color:var(–accent3);color:var(–accent3)}
+.btn-teal:hover{background:var(–accent3);color:#000}
+.btn-danger{background:transparent;border-color:var(–danger);color:var(–danger)}
+.btn-danger:hover{background:var(–danger);color:#fff}
 .btn-sm{padding:4px 10px;font-size:10px}
 
 /* ── TABS ── */
-.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 20px;background:var(--surface);overflow-x:auto}
-.tab{padding:12px 18px;font-family:'Press Start 2P',monospace;font-size:9px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:.15s}
-.tab:hover{color:var(--text)}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(–border);padding:0 20px;background:var(–surface);overflow-x:auto}
+.tab{padding:12px 18px;font-family:‘Press Start 2P’,monospace;font-size:9px;color:var(–muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:.15s}
+.tab:hover{color:var(–text)}
+.tab.active{color:var(–accent);border-bottom-color:var(–accent)}
 
 /* ── CONTENT ── */
 .content{padding:20px;overflow-y:auto}
@@ -43,70 +44,70 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Space 
 
 /* ── STAT CARDS ── */
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:18px}
-.stat{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:14px;position:relative;overflow:hidden}
-.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
-.stat.amber::before{background:var(--accent)}
-.stat.teal::before{background:var(--accent3)}
-.stat.orange::before{background:var(--accent2)}
-.stat.purple::before{background:var(--accent4)}
-.stat.green::before{background:var(--success)}
-.stat.red::before{background:var(--danger)}
-.stat-label{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;font-family:'Press Start 2P',monospace}
-.stat-value{font-size:22px;font-weight:700;color:var(--text)}
-.stat-sub{font-size:10px;color:var(--muted);margin-top:4px}
+.stat{background:var(–surface);border:1px solid var(–border);border-radius:4px;padding:14px;position:relative;overflow:hidden}
+.stat::before{content:’’;position:absolute;top:0;left:0;right:0;height:2px}
+.stat.amber::before{background:var(–accent)}
+.stat.teal::before{background:var(–accent3)}
+.stat.orange::before{background:var(–accent2)}
+.stat.purple::before{background:var(–accent4)}
+.stat.green::before{background:var(–success)}
+.stat.red::before{background:var(–danger)}
+.stat-label{font-size:8px;color:var(–muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;font-family:‘Press Start 2P’,monospace}
+.stat-value{font-size:22px;font-weight:700;color:var(–text)}
+.stat-sub{font-size:10px;color:var(–muted);margin-top:4px}
 
 /* ── SECTION HEADER ── */
-.section-hdr{display:flex;align-items:center;gap:10px;margin:20px 0 10px;border-bottom:1px solid var(--border);padding-bottom:8px}
-.section-hdr h2{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--accent);letter-spacing:.05em}
+.section-hdr{display:flex;align-items:center;gap:10px;margin:20px 0 10px;border-bottom:1px solid var(–border);padding-bottom:8px}
+.section-hdr h2{font-family:‘Press Start 2P’,monospace;font-size:9px;color:var(–accent);letter-spacing:.05em}
 .section-hdr .sep{flex:1}
 
 /* ── TABLES ── */
-.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:4px}
+.tbl-wrap{overflow-x:auto;border:1px solid var(–border);border-radius:4px}
 table{width:100%;border-collapse:collapse}
-thead th{background:var(--surface2);color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.08em;padding:8px 12px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--border)}
-tbody tr{border-bottom:1px solid var(--border);transition:.1s}
+thead th{background:var(–surface2);color:var(–muted);font-size:9px;text-transform:uppercase;letter-spacing:.08em;padding:8px 12px;text-align:left;white-space:nowrap;border-bottom:1px solid var(–border)}
+tbody tr{border-bottom:1px solid var(–border);transition:.1s}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:rgba(255,255,255,.03)}
 td{padding:8px 12px;font-size:11px;vertical-align:middle}
 
 /* ── PILLS ── */
-.pill{display:inline-block;padding:2px 8px;border-radius:2px;font-size:9px;font-family:'Press Start 2P',monospace;letter-spacing:.04em}
-.pill-available{background:rgba(240,180,76,.12);color:var(--accent);border:1px solid rgba(240,180,76,.3)}
-.pill-issued{background:rgba(76,240,208,.12);color:var(--accent3);border:1px solid rgba(76,240,208,.3)}
-.pill-redeemed{background:rgba(200,75,255,.12);color:var(--accent4);border:1px solid rgba(200,75,255,.3)}
-.pill-expired{background:rgba(255,76,76,.12);color:var(--danger);border:1px solid rgba(255,76,76,.3)}
-.pill-hot{background:rgba(255,126,62,.18);color:var(--accent2);border:1px solid rgba(255,126,62,.4);animation:pulse-hot 2s infinite}
+.pill{display:inline-block;padding:2px 8px;border-radius:2px;font-size:9px;font-family:‘Press Start 2P’,monospace;letter-spacing:.04em}
+.pill-available{background:rgba(240,180,76,.12);color:var(–accent);border:1px solid rgba(240,180,76,.3)}
+.pill-issued{background:rgba(76,240,208,.12);color:var(–accent3);border:1px solid rgba(76,240,208,.3)}
+.pill-redeemed{background:rgba(200,75,255,.12);color:var(–accent4);border:1px solid rgba(200,75,255,.3)}
+.pill-expired{background:rgba(255,76,76,.12);color:var(–danger);border:1px solid rgba(255,76,76,.3)}
+.pill-hot{background:rgba(255,126,62,.18);color:var(–accent2);border:1px solid rgba(255,126,62,.4);animation:pulse-hot 2s infinite}
 @keyframes pulse-hot{0%,100%{opacity:1}50%{opacity:.6}}
 
 /* ── FILTERS ROW ── */
 .filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
-.filter-row input,.filter-row select{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:6px 10px;border-radius:3px}
-.filter-row input:focus,.filter-row select:focus{outline:none;border-color:var(--accent)}
-.filter-row select option{background:var(--surface2)}
-.filter-row label{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer}
-.filter-row input[type=checkbox]{width:14px;height:14px;accent-color:var(--accent2)}
+.filter-row input,.filter-row select{background:var(–surface);border:1px solid var(–border);color:var(–text);font-family:‘Space Mono’,monospace;font-size:11px;padding:6px 10px;border-radius:3px}
+.filter-row input:focus,.filter-row select:focus{outline:none;border-color:var(–accent)}
+.filter-row select option{background:var(–surface2)}
+.filter-row label{font-size:11px;color:var(–muted);display:flex;align-items:center;gap:6px;cursor:pointer}
+.filter-row input[type=checkbox]{width:14px;height:14px;accent-color:var(–accent2)}
 
 /* ── CODE OUTPUT BOX ── */
-.code-output{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:12px;font-family:'Space Mono',monospace;font-size:12px;max-height:220px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;color:var(--accent3);line-height:1.7}
+.code-output{background:var(–surface2);border:1px solid var(–border);border-radius:4px;padding:12px;font-family:‘Space Mono’,monospace;font-size:12px;max-height:220px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;color:var(–accent3);line-height:1.7}
 .copy-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
 
 /* ── MINI STATS ── */
 .mini-stats{display:flex;gap:16px;margin:10px 0;flex-wrap:wrap}
-.mini-stat{font-size:10px;color:var(--muted)}.mini-stat b{color:var(--accent)}
+.mini-stat{font-size:10px;color:var(–muted)}.mini-stat b{color:var(–accent)}
 
 /* ── GEN QUICK TABLE ── */
 .gen-tbl{max-height:280px;overflow-y:auto}
 
 /* ── CHARTS ── */
 .chart-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:18px}
-.chart-box{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:14px}
-.chart-box h3{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted);margin-bottom:12px;letter-spacing:.06em}
+.chart-box{background:var(–surface);border:1px solid var(–border);border-radius:4px;padding:14px}
+.chart-box h3{font-family:‘Press Start 2P’,monospace;font-size:8px;color:var(–muted);margin-bottom:12px;letter-spacing:.06em}
 canvas{max-width:100%}
 
 /* ── FUNNEL BAR ── */
 .funnel{display:flex;flex-direction:column;gap:8px}
 .funnel-row{display:flex;align-items:center;gap:10px}
-.funnel-label{width:130px;font-size:10px;color:var(--muted);flex-shrink:0}
+.funnel-label{width:130px;font-size:10px;color:var(–muted);flex-shrink:0}
 .funnel-bar-wrap{flex:1;background:rgba(255,255,255,.05);border-radius:2px;height:18px;overflow:hidden}
 .funnel-bar{height:100%;border-radius:2px;transition:width .6s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:8px}
 .funnel-bar span{font-size:10px;color:rgba(0,0,0,.8);font-weight:700}
@@ -114,101 +115,103 @@ canvas{max-width:100%}
 /* ── MODAL ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:6px;width:min(640px,95vw);max-height:88vh;overflow-y:auto;padding:22px}
+.modal{background:var(–surface);border:1px solid var(–border);border-radius:6px;width:min(640px,95vw);max-height:88vh;overflow-y:auto;padding:22px}
 .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
-.modal-hdr h2{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--accent)}
-.modal-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1}
-.modal-close:hover{color:var(--text)}
+.modal-hdr h2{font-family:‘Press Start 2P’,monospace;font-size:10px;color:var(–accent)}
+.modal-close{background:none;border:none;color:var(–muted);font-size:18px;cursor:pointer;line-height:1}
+.modal-close:hover{color:var(–text)}
 .modal-section{margin-bottom:18px}
-.modal-section h3{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted);margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase}
+.modal-section h3{font-family:‘Press Start 2P’,monospace;font-size:8px;color:var(–muted);margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase}
 .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .field{display:flex;flex-direction:column;gap:4px}
-.field label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
-.field span,.field a{font-size:12px;color:var(--text)}
-.field a{color:var(--accent3);text-decoration:none}
+.field label{font-size:9px;color:var(–muted);text-transform:uppercase;letter-spacing:.07em}
+.field span,.field a{font-size:12px;color:var(–text)}
+.field a{color:var(–accent3);text-decoration:none}
 .field a:hover{text-decoration:underline}
-.field-edit input,.field-edit textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:6px 8px;border-radius:3px;resize:vertical}
-.field-edit input:focus,.field-edit textarea:focus{outline:none;border-color:var(--accent)}
+.field-edit input,.field-edit textarea{width:100%;background:var(–surface2);border:1px solid var(–border);color:var(–text);font-family:‘Space Mono’,monospace;font-size:11px;padding:6px 8px;border-radius:3px;resize:vertical}
+.field-edit input:focus,.field-edit textarea:focus{outline:none;border-color:var(–accent)}
 
 /* ── TIMELINE ── */
 .timeline{position:relative;padding-left:24px}
-.timeline::before{content:'';position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:var(--border)}
+.timeline::before{content:’’;position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:var(–border)}
 .tl-event{position:relative;margin-bottom:14px}
-.tl-event::before{content:'';position:absolute;left:-21px;top:5px;width:10px;height:10px;border-radius:50%;border:2px solid var(--border);background:var(--surface)}
-.tl-event.done::before{border-color:var(--accent3);background:rgba(76,240,208,.2)}
-.tl-event.pending::before{border-color:var(--border)}
-.tl-event-title{font-size:11px;font-weight:700;color:var(--text)}
-.tl-event.pending .tl-event-title{color:var(--muted)}
-.tl-event-time{font-size:10px;color:var(--muted);margin-top:2px}
-.tl-gap{font-size:10px;color:var(--accent);margin:4px 0 4px 0;font-style:italic}
+.tl-event::before{content:’’;position:absolute;left:-21px;top:5px;width:10px;height:10px;border-radius:50%;border:2px solid var(–border);background:var(–surface)}
+.tl-event.done::before{border-color:var(–accent3);background:rgba(76,240,208,.2)}
+.tl-event.pending::before{border-color:var(–border)}
+.tl-event-title{font-size:11px;font-weight:700;color:var(–text)}
+.tl-event.pending .tl-event-title{color:var(–muted)}
+.tl-event-time{font-size:10px;color:var(–muted);margin-top:2px}
+.tl-gap{font-size:10px;color:var(–accent);margin:4px 0 4px 0;font-style:italic}
 
 /* ── VISUAL TIMELINE STRIP ── */
 .tl-strip{display:flex;align-items:center;gap:0;margin:14px 0;flex-wrap:nowrap;overflow-x:auto}
 .tl-node{display:flex;flex-direction:column;align-items:center;min-width:80px}
-.tl-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:9px;transition:.2s}
-.tl-dot.done{border-color:var(--accent3);background:rgba(76,240,208,.15);color:var(--accent3)}
-.tl-dot.skip{border-color:var(--border);color:var(--muted)}
-.tl-node-label{font-size:8px;color:var(--muted);margin-top:6px;text-align:center;max-width:72px;line-height:1.4}
-.tl-node-label.done{color:var(--text)}
-.tl-connector{flex:1;height:2px;background:var(--border);min-width:20px;position:relative}
-.tl-connector.done{background:linear-gradient(90deg,var(--accent3),rgba(76,240,208,.3))}
-.tl-gap-label{font-size:8px;color:var(--accent);position:absolute;top:-14px;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--surface);padding:0 4px}
+.tl-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(–border);background:var(–surface2);display:flex;align-items:center;justify-content:center;font-size:9px;transition:.2s}
+.tl-dot.done{border-color:var(–accent3);background:rgba(76,240,208,.15);color:var(–accent3)}
+.tl-dot.skip{border-color:var(–border);color:var(–muted)}
+.tl-node-label{font-size:8px;color:var(–muted);margin-top:6px;text-align:center;max-width:72px;line-height:1.4}
+.tl-node-label.done{color:var(–text)}
+.tl-connector{flex:1;height:2px;background:var(–border);min-width:20px;position:relative}
+.tl-connector.done{background:linear-gradient(90deg,var(–accent3),rgba(76,240,208,.3))}
+.tl-gap-label{font-size:8px;color:var(–accent);position:absolute;top:-14px;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(–surface);padding:0 4px}
 
 /* ── REVENUE ── */
 .rev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:18px}
-.rev-pkg{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:14px;display:flex;justify-content:space-between;align-items:center}
-.rev-pkg-name{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted)}
-.rev-pkg-val{font-size:16px;font-weight:700;color:var(--accent)}
-.rev-pkg-count{font-size:10px;color:var(--muted);text-align:right}
+.rev-pkg{background:var(–surface);border:1px solid var(–border);border-radius:4px;padding:14px;display:flex;justify-content:space-between;align-items:center}
+.rev-pkg-name{font-family:‘Press Start 2P’,monospace;font-size:8px;color:var(–muted)}
+.rev-pkg-val{font-size:16px;font-weight:700;color:var(–accent)}
+.rev-pkg-count{font-size:10px;color:var(–muted);text-align:right}
 
 /* ── ENGAGEMENT BARS ── */
 .eng-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.eng-label{width:100px;font-size:10px;color:var(--muted);flex-shrink:0}
+.eng-label{width:100px;font-size:10px;color:var(–muted);flex-shrink:0}
 .eng-bar-wrap{flex:1;background:rgba(255,255,255,.05);border-radius:2px;height:16px;overflow:hidden}
 .eng-bar{height:100%;border-radius:2px;transition:width .6s ease;display:flex;align-items:center;padding:0 6px}
 .eng-bar span{font-size:10px;font-weight:700}
-.eng-count{width:36px;font-size:10px;color:var(--muted);text-align:right;flex-shrink:0}
+.eng-count{width:36px;font-size:10px;color:var(–muted);text-align:right;flex-shrink:0}
 
 /* ── ACTIVITY ── */
 .activity-feed{display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto}
-.activity-item{display:flex;gap:12px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:3px;align-items:center}
-.activity-time{font-size:9px;color:var(--muted);white-space:nowrap;min-width:80px}
-.activity-type{font-size:10px;font-weight:700;color:var(--accent3)}
-.activity-detail{font-size:10px;color:var(--muted)}
+.activity-item{display:flex;gap:12px;padding:8px 12px;background:var(–surface);border:1px solid var(–border);border-radius:3px;align-items:center}
+.activity-time{font-size:9px;color:var(–muted);white-space:nowrap;min-width:80px}
+.activity-type{font-size:10px;font-weight:700;color:var(–accent3)}
+.activity-detail{font-size:10px;color:var(–muted)}
 
 /* ── CONFIRM MODAL ── */
-.confirm-modal{background:var(--surface);border:1px solid var(--danger);border-radius:6px;width:min(400px,92vw);padding:22px}
-.confirm-modal h2{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--danger);margin-bottom:12px}
-.confirm-modal p{font-size:11px;color:var(--text);margin-bottom:10px;line-height:1.6}
-.confirm-modal .code-list{font-size:10px;color:var(--accent);margin:8px 0;max-height:120px;overflow-y:auto;line-height:1.8}
+.confirm-modal{background:var(–surface);border:1px solid var(–danger);border-radius:6px;width:min(400px,92vw);padding:22px}
+.confirm-modal h2{font-family:‘Press Start 2P’,monospace;font-size:9px;color:var(–danger);margin-bottom:12px}
+.confirm-modal p{font-size:11px;color:var(–text);margin-bottom:10px;line-height:1.6}
+.confirm-modal .code-list{font-size:10px;color:var(–accent);margin:8px 0;max-height:120px;overflow-y:auto;line-height:1.8}
 .confirm-btns{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
 
 /* ── SCROLLBAR ── */
-::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--surface)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(–surface)}::-webkit-scrollbar-thumb{background:var(–border);border-radius:2px}
 
 /* ── BULK ACTION BAR ── */
 .bulk-bar{display:none;align-items:center;gap:10px;padding:10px 14px;background:rgba(240,180,76,.07);border:1px solid rgba(240,180,76,.2);border-radius:4px;margin-bottom:10px;flex-wrap:wrap}
 .bulk-bar.visible{display:flex}
-.bulk-count{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--accent);min-width:100px}
-.bulk-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:5px 10px;border-radius:3px;width:180px}
-.bulk-input:focus{outline:none;border-color:var(--accent)}
+.bulk-count{font-family:‘Press Start 2P’,monospace;font-size:9px;color:var(–accent);min-width:100px}
+.bulk-input{background:var(–surface2);border:1px solid var(–border);color:var(–text);font-family:‘Space Mono’,monospace;font-size:11px;padding:5px 10px;border-radius:3px;width:180px}
+.bulk-input:focus{outline:none;border-color:var(–accent)}
 @media(max-width:600px){.stat-grid{grid-template-columns:repeat(2,1fr)}.field-grid{grid-template-columns:1fr}.rev-grid{grid-template-columns:1fr 1fr}}
 
 /* ── LOGIN GATE ── */
-#login-gate{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column}
-.login-box{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:36px 32px;width:min(360px,90vw);display:flex;flex-direction:column;align-items:center;gap:18px}
-.login-logo{font-family:'Press Start 2P',monospace;font-size:12px;color:var(--accent);letter-spacing:.08em;text-align:center;line-height:1.8}
-.login-sub{font-size:10px;color:var(--muted);text-align:center;letter-spacing:.05em}
-.login-input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:13px;padding:10px 14px;border-radius:3px;text-align:center;letter-spacing:.1em}
-.login-input:focus{outline:none;border-color:var(--accent)}
-.login-btn{width:100%;font-family:'Press Start 2P',monospace;font-size:10px;padding:12px;background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:3px;cursor:pointer;transition:.15s;letter-spacing:.06em}
-.login-btn:hover{background:var(--accent);color:#000}
-.login-error{font-size:10px;color:var(--danger);text-align:center;min-height:16px;letter-spacing:.04em}
+#login-gate{position:fixed;inset:0;background:var(–bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.login-box{background:var(–surface);border:1px solid var(–border);border-radius:6px;padding:36px 32px;width:min(360px,90vw);display:flex;flex-direction:column;align-items:center;gap:18px}
+.login-logo{font-family:‘Press Start 2P’,monospace;font-size:12px;color:var(–accent);letter-spacing:.08em;text-align:center;line-height:1.8}
+.login-sub{font-size:10px;color:var(–muted);text-align:center;letter-spacing:.05em}
+.login-input{width:100%;background:var(–surface2);border:1px solid var(–border);color:var(–text);font-family:‘Space Mono’,monospace;font-size:13px;padding:10px 14px;border-radius:3px;text-align:center;letter-spacing:.1em}
+.login-input:focus{outline:none;border-color:var(–accent)}
+.login-btn{width:100%;font-family:‘Press Start 2P’,monospace;font-size:10px;padding:12px;background:transparent;border:1px solid var(–accent);color:var(–accent);border-radius:3px;cursor:pointer;transition:.15s;letter-spacing:.06em}
+.login-btn:hover{background:var(–accent);color:#000}
+.login-error{font-size:10px;color:var(–danger);text-align:center;min-height:16px;letter-spacing:.04em}
 </style>
+
 </head>
 <body>
 
 <!-- LOGIN GATE -->
+
 <div id="login-gate">
   <div class="login-box">
     <div class="login-logo">RAOUF px<br/>▸ ADMIN</div>
@@ -221,6 +224,7 @@ canvas{max-width:100%}
 </div>
 
 <!-- TOPBAR -->
+
 <div class="topbar">
   <h1>RAOUF px ▸ ADMIN</h1>
   <span id="topbar-key-display" style="font-size:10px;color:var(--muted)"></span>
@@ -231,16 +235,19 @@ canvas{max-width:100%}
 </div>
 
 <!-- TABS -->
+
 <div class="tabs">
   <div class="tab active" data-tab="analytics">ANALYTICS</div>
   <div class="tab" data-tab="revenue">REVENUE</div>
   <div class="tab" data-tab="codes">CODES</div>
   <div class="tab" data-tab="leads">LEADS</div>
+  <div class="tab" data-tab="sessions">SESSIONS</div>
   <div class="tab" data-tab="generate">GENERATE</div>
   <div class="tab" data-tab="activity">ACTIVITY</div>
 </div>
 
 <!-- ═══════════════════════════════════════ ANALYTICS ══════════════════════ -->
+
 <div class="content">
 <div class="panel active" id="tab-analytics">
 
@@ -291,6 +298,7 @@ canvas{max-width:100%}
 </div><!-- end analytics -->
 
 <!-- ═══════════════════════════════════════ REVENUE ════════════════════════ -->
+
 <div class="panel" id="tab-revenue">
 
   <div class="section-hdr"><h2>REVENUE INSIGHTS</h2><div class="sep"></div></div>
@@ -324,6 +332,7 @@ canvas{max-width:100%}
 </div><!-- end revenue -->
 
 <!-- ═══════════════════════════════════════ CODES ═════════════════════════ -->
+
 <div class="panel" id="tab-codes">
   <div class="filter-row">
     <input type="text" id="code-search" placeholder="Search code / location…" oninput="renderCodes()"/>
@@ -336,9 +345,11 @@ canvas{max-width:100%}
     </select>
     <label><input type="checkbox" id="filter-hot" onchange="renderCodes()"/> 🔥 Hot Leads only</label>
     <label><input type="checkbox" id="filter-noscan" onchange="renderCodes()"/> No scan yet</label>
+    <label><input type="checkbox" id="filter-referral" onchange="renderCodes()"/> Referrals only</label>
   </div>
 
   <!-- BULK ACTION BAR -->
+
   <div class="bulk-bar" id="bulk-bar">
     <span class="bulk-count" id="bulk-count">0 selected</span>
     <input class="bulk-input" type="text" id="bulk-notes" placeholder="Set notes…"/>
@@ -353,7 +364,7 @@ canvas{max-width:100%}
   <div class="tbl-wrap"><table>
     <thead><tr>
       <th style="width:32px"><input type="checkbox" id="select-all" onchange="toggleSelectAll(this)" style="accent-color:var(--accent);width:14px;height:14px"/></th>
-      <th>CODE</th><th>STATUS</th><th>LOCATION</th><th>NOTES</th><th>ISSUED</th><th>FIRST SCAN</th><th>REDEEMED</th><th>BOOKING</th><th>SESSION</th><th>EXPIRES</th>
+      <th>CODE</th><th>STATUS</th><th>SOURCE</th><th>LOCATION</th><th>NOTES</th><th>ISSUED</th><th>FIRST SCAN</th><th>REDEEMED</th><th>BOOKING</th><th>SESSION</th><th>EXPIRES</th>
     </tr></thead>
     <tbody id="codes-body"></tbody>
   </table></div>
@@ -361,6 +372,7 @@ canvas{max-width:100%}
 </div><!-- end codes -->
 
 <!-- ═══════════════════════════════════════ LEADS ═════════════════════════ -->
+
 <div class="panel" id="tab-leads">
   <div class="filter-row">
     <input type="text" id="lead-search" placeholder="Search name / email / code…" oninput="renderLeads()"/>
@@ -379,6 +391,7 @@ canvas{max-width:100%}
 </div><!-- end leads -->
 
 <!-- ═══════════════════════════════════════ GENERATE ═══════════════════════ -->
+
 <div class="panel" id="tab-generate">
   <div class="section-hdr"><h2>GENERATE CODES</h2><div class="sep"></div></div>
   <div class="mini-stats" id="gen-mini-stats"></div>
@@ -406,7 +419,119 @@ canvas{max-width:100%}
   </table></div>
 </div><!-- end generate -->
 
+<!-- ═══════════════════════════════════════ SESSIONS ═══════════════════════ -->
+
+<div class="panel" id="tab-sessions">
+  <div class="section-hdr"><h2>CLIENT SESSIONS</h2><div class="sep"></div>
+    <button class="btn btn-teal btn-sm" onclick="loadSessions()">[ REFRESH ]</button>
+  </div>
+
+  <!-- Upload / manage panel -->
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px;margin-bottom:18px">
+    <div class="section-hdr" style="margin:0 0 12px"><h2>MANAGE SESSION</h2><div class="sep"></div></div>
+
+```
+<!-- Code selector -->
+<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:flex-end">
+  <div style="flex:1;min-width:160px">
+    <div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em">Code</div>
+    <input id="sess-code" class="key-input" type="text" placeholder="e.g. K7M-4Q9" style="width:100%"/>
+  </div>
+  <div style="flex:1;min-width:140px">
+    <div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em">Client Name</div>
+    <input id="sess-name" class="key-input" type="text" placeholder="Sarah Al..." style="width:100%"/>
+  </div>
+  <div style="flex:1;min-width:140px">
+    <div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em">Session Date</div>
+    <input id="sess-date" class="key-input" type="datetime-local" style="width:100%"/>
+  </div>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:flex-end">
+  <div style="flex:1;min-width:160px">
+    <div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em">Status</div>
+    <select id="sess-status" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:6px 10px;border-radius:3px">
+      <option value="">— select —</option>
+      <option value="requested">requested</option>
+      <option value="confirmed">confirmed</option>
+      <option value="scheduled">scheduled</option>
+      <option value="completed">completed</option>
+      <option value="editing">editing</option>
+      <option value="ready">ready</option>
+    </select>
+  </div>
+  <div style="flex:1;min-width:120px">
+    <div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em">Max Downloads</div>
+    <input id="sess-maxdl" class="key-input" type="number" value="2" min="0" max="99" style="width:100%"/>
+  </div>
+  <div style="flex:1;min-width:160px">
+    <div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em">Gallery Expires</div>
+    <input id="sess-expires" class="key-input" type="datetime-local" style="width:100%"/>
+  </div>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+  <button class="btn btn-amber" onclick="saveSession()">[ SAVE METADATA ]</button>
+</div>
+<div id="sess-meta-status" style="font-size:10px;margin-top:8px;min-height:16px"></div>
+```
+
+  </div>
+
+  <!-- Upload ZIP -->
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px;margin-bottom:18px">
+    <div class="section-hdr" style="margin:0 0 12px"><h2>UPLOAD SESSION ZIP</h2><div class="sep"></div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+      <div style="flex:1;min-width:160px">
+        <div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em">Code</div>
+        <input id="upload-code" class="key-input" type="text" placeholder="e.g. K7M-4Q9" style="width:100%"/>
+      </div>
+      <div style="flex:2;min-width:200px">
+        <div style="font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em">ZIP File</div>
+        <input id="upload-file" type="file" accept=".zip,application/zip,application/x-zip-compressed"
+          style="font-family:'Space Mono',monospace;font-size:11px;color:var(--text);width:100%"/>
+      </div>
+      <button class="btn btn-teal" onclick="uploadSession()" id="upload-btn">[ UPLOAD ]</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteSessionFile()">[ DELETE FILE ]</button>
+    </div>
+    <div style="margin-top:8px">
+      <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:3px;height:6px;overflow:hidden">
+        <div id="upload-progress" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent3),var(--accent));transition:width .2s"></div>
+      </div>
+    </div>
+    <div id="upload-status" style="font-size:10px;margin-top:8px;min-height:16px"></div>
+  </div>
+
+  <!-- Sessions table -->
+
+  <div class="section-hdr"><h2>ALL SESSIONS</h2><div class="sep"></div></div>
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+    <input type="text" id="sess-search" placeholder="Search code / name…" oninput="renderSessions()"
+      style="background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:6px 10px;border-radius:3px;flex:1;min-width:160px"/>
+    <select id="sess-filter" onchange="renderSessions()"
+      style="background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:6px 10px;border-radius:3px">
+      <option value="">All statuses</option>
+      <option value="requested">requested</option>
+      <option value="confirmed">confirmed</option>
+      <option value="scheduled">scheduled</option>
+      <option value="completed">completed</option>
+      <option value="editing">editing</option>
+      <option value="ready">ready</option>
+    </select>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>CODE</th><th>CLIENT</th><th>SESSION STATUS</th><th>SESSION DATE</th>
+        <th>FILE</th><th>DOWNLOADS</th><th>CLIENT LINK</th>
+      </tr></thead>
+      <tbody id="sessions-body"></tbody>
+    </table>
+  </div>
+</div><!-- end sessions -->
+
 <!-- ═══════════════════════════════════════ ACTIVITY ═══════════════════════ -->
+
 <div class="panel" id="tab-activity">
   <div class="section-hdr"><h2>LIVE ACTIVITY FEED</h2><div class="sep"></div>
     <button class="btn btn-teal btn-sm" onclick="loadActivity()">[ REFRESH ]</button>
@@ -417,6 +542,7 @@ canvas{max-width:100%}
 </div><!-- end content -->
 
 <!-- ═══ LEAD MODAL ═══ -->
+
 <div class="modal-overlay" id="lead-modal">
   <div class="modal">
     <div class="modal-hdr">
@@ -424,46 +550,50 @@ canvas{max-width:100%}
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
 
-    <!-- Visual timeline strip -->
-    <div class="modal-section">
-      <h3>JOURNEY TIMELINE</h3>
-      <div class="tl-strip" id="modal-tl-strip"></div>
-    </div>
+```
+<!-- Visual timeline strip -->
+<div class="modal-section">
+  <h3>JOURNEY TIMELINE</h3>
+  <div class="tl-strip" id="modal-tl-strip"></div>
+</div>
 
-    <!-- Time gaps -->
-    <div class="modal-section" id="modal-gap-section">
-      <h3>TIME GAPS</h3>
-      <div id="modal-gaps"></div>
-    </div>
+<!-- Time gaps -->
+<div class="modal-section" id="modal-gap-section">
+  <h3>TIME GAPS</h3>
+  <div id="modal-gaps"></div>
+</div>
 
-    <!-- Detailed event list -->
-    <div class="modal-section">
-      <h3>EVENT LOG</h3>
-      <div class="timeline" id="modal-timeline"></div>
-    </div>
+<!-- Detailed event list -->
+<div class="modal-section">
+  <h3>EVENT LOG</h3>
+  <div class="timeline" id="modal-timeline"></div>
+</div>
 
-    <!-- Lead profile -->
-    <div class="modal-section" id="modal-lead-section" style="display:none">
-      <h3>LEAD PROFILE</h3>
-      <div class="field-grid" id="modal-lead-fields"></div>
-    </div>
+<!-- Lead profile -->
+<div class="modal-section" id="modal-lead-section" style="display:none">
+  <h3>LEAD PROFILE</h3>
+  <div class="field-grid" id="modal-lead-fields"></div>
+</div>
 
-    <!-- Edit panel -->
-    <div class="modal-section">
-      <h3>EDIT</h3>
-      <div class="field-edit" style="display:flex;flex-direction:column;gap:8px">
-        <input id="edit-location" placeholder="Location / handout spot…"/>
-        <textarea id="edit-notes" rows="2" placeholder="Notes…"></textarea>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-amber btn-sm" onclick="saveCodeEdits()">[ SAVE ]</button>
-          <button class="btn btn-teal btn-sm" onclick="markIssued()">[ MARK AS ISSUED ]</button>
-        </div>
-      </div>
+<!-- Edit panel -->
+<div class="modal-section">
+  <h3>EDIT</h3>
+  <div class="field-edit" style="display:flex;flex-direction:column;gap:8px">
+    <input id="edit-location" placeholder="Location / handout spot…"/>
+    <textarea id="edit-notes" rows="2" placeholder="Notes…"></textarea>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-amber btn-sm" onclick="saveCodeEdits()">[ SAVE ]</button>
+      <button class="btn btn-teal btn-sm" onclick="markIssued()">[ MARK AS ISSUED ]</button>
     </div>
+  </div>
+</div>
+```
+
   </div>
 </div>
 
 <!-- ═══ CONFIRM DELETE MODAL ═══ -->
+
 <div class="modal-overlay" id="confirm-modal">
   <div class="confirm-modal">
     <h2>⚠ DELETE TEST DATA</h2>
@@ -478,6 +608,7 @@ canvas{max-width:100%}
 </div>
 
 <!-- ═══ GENERAL CONFIRM MODAL ═══ -->
+
 <div class="modal-overlay" id="gen-confirm-modal">
   <div class="confirm-modal">
     <h2 id="gen-confirm-title">⚠ CONFIRM</h2>
@@ -490,6 +621,7 @@ canvas{max-width:100%}
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────
 const API = 'https://raoufpx-promo-server-production.up.railway.app';
@@ -545,6 +677,7 @@ document.querySelectorAll('.tab').forEach(t => {
     t.classList.add('active');
     document.getElementById('tab-'+t.dataset.tab).classList.add('active');
     if (t.dataset.tab==='activity') loadActivity();
+    if (t.dataset.tab==='sessions') loadSessions();
   });
 });
 
@@ -1120,6 +1253,234 @@ setInterval(() => {
   const activeTab = document.querySelector('.tab.active');
   if (activeTab?.dataset?.tab === 'activity' && key()) loadActivity();
 }, 30000);
+
+// ══════════════════════════════════════════════════════════════════════════
+// SESSIONS TAB
+// ══════════════════════════════════════════════════════════════════════════
+
+// ── Load sessions (uses allCodes already loaded) ──────────────────────────
+function loadSessions() {
+  loadCodes().then(() => renderSessions());
+}
+
+function renderSessions() {
+  const search = (document.getElementById('sess-search').value || '').toLowerCase();
+  const filter = document.getElementById('sess-filter').value;
+
+  // Only show codes that have a sessionStatus set
+  let list = allCodes.filter(c => {
+    if (filter && c.sessionStatus !== filter) return false;
+    if (search) {
+      const hay = ((c.code||'') + (c.clientName||'') + (c.sessionStatus||'')).toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true; // show all codes so admin can set session status on any
+  });
+
+  const CLIENT_SITE = 'https://raoufpx.com';
+
+  document.getElementById('sessions-body').innerHTML = list.map(c => {
+    const statusColor = {
+      requested:'var(--muted)', confirmed:'var(--accent)', scheduled:'var(--accent)',
+      completed:'var(--accent3)', editing:'var(--accent4)', ready:'var(--success)'
+    }[c.sessionStatus] || 'var(--muted)';
+
+    const hasFile     = !!c.galleryFile;
+    const maxDl       = c.maxDownloads !== undefined ? c.maxDownloads : 2;
+    const curDl       = c.downloadCount || 0;
+    const dlDisplay   = maxDl === 0 ? `${curDl}/∞` : `${curDl}/${maxDl}`;
+    const clientLink  = `${CLIENT_SITE}/client.html?code=${encodeURIComponent(c.code)}`;
+
+    return `<tr>
+      <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px;cursor:pointer"
+          onclick="prefillSession('${c.code}')">${c.code}</td>
+      <td>${c.clientName || '<span style="color:var(--muted)">—</span>'}</td>
+      <td><span style="color:${statusColor};font-size:10px">${c.sessionStatus || '—'}</span></td>
+      <td style="color:var(--muted);font-size:10px">${c.sessionDate ? fmtShort(c.sessionDate) : '—'}</td>
+      <td style="text-align:center">${hasFile
+        ? '<span style="color:var(--success)">✓ ZIP</span>'
+        : '<span style="color:var(--muted)">—</span>'}</td>
+      <td style="color:var(--muted);font-size:10px">${c.sessionStatus ? dlDisplay : '—'}</td>
+      <td>${c.sessionStatus
+        ? `<button class="btn btn-sm btn-teal" onclick="copyToClipboard('${clientLink}')" title="${clientLink}">[ COPY LINK ]</button>`
+        : '<span style="color:var(--muted)">—</span>'}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:16px">No sessions found</td></tr>';
+}
+
+function prefillSession(code) {
+  document.getElementById('sess-code').value = code;
+  document.getElementById('upload-code').value = code;
+  const entry = allCodes.find(c => c.code === code);
+  if (entry) {
+    document.getElementById('sess-name').value   = entry.clientName   || '';
+    document.getElementById('sess-status').value = entry.sessionStatus || '';
+    document.getElementById('sess-maxdl').value  = entry.maxDownloads !== undefined ? entry.maxDownloads : 2;
+    if (entry.sessionDate) {
+      // Convert ISO string to datetime-local format (YYYY-MM-DDTHH:MM)
+      try {
+        const d = new Date(entry.sessionDate);
+        if (!isNaN(d)) {
+          const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+            .toISOString().slice(0,16);
+          document.getElementById('sess-date').value = local;
+        }
+      } catch {}
+    } else {
+      document.getElementById('sess-date').value = '';
+    }
+    if (entry.galleryExpiresAt) {
+      try {
+        const d = new Date(entry.galleryExpiresAt);
+        if (!isNaN(d)) {
+          const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+            .toISOString().slice(0,16);
+          document.getElementById('sess-expires').value = local;
+        }
+      } catch {}
+    } else {
+      document.getElementById('sess-expires').value = '';
+    }
+  }
+  // Scroll to form
+  document.getElementById('sess-code').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+// ── Save session metadata ──────────────────────────────────────────────────
+async function saveSession() {
+  const code = document.getElementById('sess-code').value.trim().toUpperCase();
+  const statusEl = document.getElementById('sess-meta-status');
+
+  if (!code) { statusEl.style.color='var(--danger)'; statusEl.textContent='Enter a code first.'; return; }
+
+  const body = {};
+  const name    = document.getElementById('sess-name').value.trim();
+  const status  = document.getElementById('sess-status').value;
+  const dateVal = document.getElementById('sess-date').value;
+  const maxdl   = document.getElementById('sess-maxdl').value;
+  const expires = document.getElementById('sess-expires').value;
+
+  if (name)    body.clientName    = name;
+  if (status)  body.sessionStatus = status;
+  if (dateVal) body.sessionDate   = new Date(dateVal).toISOString();
+  if (maxdl !== '') body.maxDownloads = parseInt(maxdl, 10);
+  if (expires) body.galleryExpiresAt = new Date(expires).toISOString();
+
+  statusEl.style.color = 'var(--muted)';
+  statusEl.textContent = 'Saving…';
+
+  try {
+    const r = await fetch(`${API}/admin/session/${code}`, {
+      method: 'PATCH', headers: headers(), body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (!r.ok) { statusEl.style.color='var(--danger)'; statusEl.textContent=d.error||'Error.'; return; }
+    statusEl.style.color = 'var(--success)';
+    statusEl.textContent = '✓ Saved.';
+    await loadCodes();
+    renderSessions();
+  } catch(e) {
+    statusEl.style.color='var(--danger)'; statusEl.textContent='Network error.';
+  }
+}
+
+// ── Upload ZIP ─────────────────────────────────────────────────────────────
+async function uploadSession() {
+  const code    = document.getElementById('upload-code').value.trim().toUpperCase();
+  const fileEl  = document.getElementById('upload-file');
+  const statusEl = document.getElementById('upload-status');
+  const progressEl = document.getElementById('upload-progress');
+  const btn     = document.getElementById('upload-btn');
+
+  if (!code) { statusEl.style.color='var(--danger)'; statusEl.textContent='Enter a code first.'; return; }
+  if (!fileEl.files || !fileEl.files[0]) { statusEl.style.color='var(--danger)'; statusEl.textContent='Select a ZIP file.'; return; }
+
+  const file = fileEl.files[0];
+  if (!file.name.toLowerCase().endsWith('.zip')) {
+    statusEl.style.color='var(--danger)'; statusEl.textContent='Only .zip files allowed.'; return;
+  }
+
+  const form = new FormData();
+  form.append('code', code);
+  form.append('file', file);
+
+  btn.disabled = true;
+  btn.textContent = '[ UPLOADING… ]';
+  progressEl.style.width = '0%';
+  statusEl.style.color = 'var(--muted)';
+  statusEl.textContent = `Uploading ${(file.size/1024/1024).toFixed(1)} MB…`;
+
+  try {
+    // Use XMLHttpRequest for upload progress
+    await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${API}/admin/upload-session`);
+      xhr.setRequestHeader('Authorization', 'Bearer ' + key());
+
+      xhr.upload.onprogress = e => {
+        if (e.lengthComputable) {
+          progressEl.style.width = (e.loaded / e.total * 100).toFixed(0) + '%';
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) resolve(JSON.parse(xhr.responseText));
+        else reject(new Error(xhr.responseText));
+      };
+      xhr.onerror = () => reject(new Error('Network error'));
+      xhr.send(form);
+    });
+
+    progressEl.style.width = '100%';
+    statusEl.style.color = 'var(--success)';
+    statusEl.textContent = '✓ Uploaded. Status set to ready.';
+    fileEl.value = '';
+    await loadCodes();
+    renderSessions();
+  } catch(e) {
+    progressEl.style.width = '0%';
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'Upload failed: ' + (e.message || 'Unknown error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '[ UPLOAD ]';
+  }
+}
+
+// ── Delete file ────────────────────────────────────────────────────────────
+async function deleteSessionFile() {
+  const code = document.getElementById('upload-code').value.trim().toUpperCase();
+  const statusEl = document.getElementById('upload-status');
+  if (!code) { statusEl.style.color='var(--danger)'; statusEl.textContent='Enter a code first.'; return; }
+  if (!confirm(`Delete the uploaded file for ${code}? This cannot be undone.`)) return;
+
+  try {
+    const r = await fetch(`${API}/admin/session-file/${code}`, { method:'DELETE', headers:headers() });
+    const d = await r.json();
+    if (!r.ok) { statusEl.style.color='var(--danger)'; statusEl.textContent=d.error||'Error.'; return; }
+    statusEl.style.color='var(--success)'; statusEl.textContent='✓ File deleted.';
+    await loadCodes();
+    renderSessions();
+  } catch(e) {
+    statusEl.style.color='var(--danger)'; statusEl.textContent='Network error.';
+  }
+}
+
+// ── Copy to clipboard ──────────────────────────────────────────────────────
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    // Brief flash on button — find the button with this link
+    const btns = document.querySelectorAll('#sessions-body button');
+    btns.forEach(b => {
+      if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(text)) {
+        const orig = b.textContent;
+        b.textContent = '[ COPIED! ]';
+        setTimeout(() => { b.textContent = orig; }, 1800);
+      }
+    });
+  });
+}
 </script>
+
 </body>
 </html>
