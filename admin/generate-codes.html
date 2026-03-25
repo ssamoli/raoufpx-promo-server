@@ -62,7 +62,9 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   background:var(--surface);
   border-bottom:1px solid var(--border);
   overflow-x:auto;flex-shrink:0;
+  scrollbar-width:none;
 }
+#tabbar::-webkit-scrollbar{display:none}
 .tab{
   padding:10px 18px;
   font-family:'Press Start 2P',monospace;font-size:8px;
@@ -101,6 +103,26 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .card-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:24px}
 .pcard{background:var(--surface2);border:1px solid var(--border);padding:18px;position:relative}
 .pcard h3{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted);margin-bottom:14px}
+
+.funnel{display:flex;flex-direction:column;gap:10px}
+.frow{display:flex;align-items:center;gap:12px}
+.flabel{width:140px;font-family:'Press Start 2P',monospace;font-size:7px;color:var(--muted)}
+.ftrack{flex:1;background:rgba(255,255,255,.04);height:20px;overflow:hidden}
+.fbar{height:100%;display:flex;align-items:center;justify-content:flex-end;padding-right:8px}
+.fbar span{font-family:'Press Start 2P',monospace;font-size:8px;color:rgba(0,0,0,.8)}
+.fval{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted);min-width:32px;text-align:right}
+
+.rate-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
+.rcard{background:var(--surface2);border:1px solid var(--border);padding:14px;text-align:center}
+.rcard-lbl{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--dim);display:block;margin-bottom:8px}
+.rcard-val{font-family:'Press Start 2P',monospace;font-size:14px;color:var(--accent)}
+
+.erow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.elabel{width:160px;font-size:10px;color:var(--muted)}
+.etrack{flex:1;background:rgba(255,255,255,.04);height:14px;overflow:hidden}
+.ebar{height:100%;display:flex;align-items:center;padding:0 8px}
+.ebar span{font-size:9px;font-weight:700;color:rgba(0,0,0,.8)}
+.ecount{width:32px;font-size:10px;color:var(--muted);text-align:right}
 
 .tw{overflow-x:auto;border:1px solid var(--border);background:var(--surface2)}
 table{width:100%;border-collapse:collapse}
@@ -159,6 +181,38 @@ td{padding:9px 12px;font-size:11px}
   white-space:pre-wrap;
 }
 
+.spanel{
+  background:var(--surface2);border:1px solid var(--border);
+  padding:18px;margin-bottom:16px;
+}
+.sform-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.sfield{display:flex;flex-direction:column;gap:5px;flex:1;min-width:140px}
+.sfield label{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--dim)}
+.sfield input,.sfield select{
+  background:var(--surface3);border:1px solid var(--border);
+  color:var(--text);font-family:'Space Mono',monospace;font-size:11px;
+  padding:6px 10px;
+}
+
+.activity-feed{display:flex;flex-direction:column;gap:6px;max-height:500px;overflow-y:auto}
+.aitem{
+  display:grid;grid-template-columns:80px 160px 1fr;gap:12px;
+  padding:8px 14px;background:var(--surface2);border:1px solid var(--border);
+  align-items:center;
+}
+.atime{font-size:9px;color:var(--dim)}
+.atype{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--accent3)}
+.adetail{font-size:10px;color:var(--muted)}
+
+.pkg-blocks{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:20px}
+.pkg-block{
+  background:var(--surface2);border:1px solid var(--border);
+  padding:16px;
+}
+.pkg-name{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted)}
+.pkg-rev{font-size:22px;font-weight:700;color:var(--text)}
+.pkg-count{font-size:10px;color:var(--dim)}
+
 /* LOGIN GATE */
 #login-gate{
   position:fixed;inset:0;background:var(--bg);z-index:9999;
@@ -188,19 +242,6 @@ td{padding:9px 12px;font-size:11px}
 }
 .l-btn:hover{background:var(--accent);color:#000}
 .l-err{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--danger);text-align:center;min-height:18px}
-
-.spanel{
-  background:var(--surface2);border:1px solid var(--border);
-  padding:18px;margin-bottom:16px;
-}
-.sform-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-.sfield{display:flex;flex-direction:column;gap:5px;flex:1;min-width:140px}
-.sfield label{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--dim)}
-.sfield input,.sfield select{
-  background:var(--surface3);border:1px solid var(--border);
-  color:var(--text);font-family:'Space Mono',monospace;font-size:11px;
-  padding:6px 10px;
-}
 </style>
 </head>
 <body>
@@ -210,8 +251,7 @@ td{padding:9px 12px;font-size:11px}
   <div class="lbox">
     <div class="l-logo">RAOUF px</div>
     <div class="l-sub">ADMIN TERMINAL</div>
-    <div class="l-input" style="background:transparent;border:none;padding:0;font-size:10px">enter admin key</div>
-    <input class="l-input" type="password" id="login-key" placeholder="" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <input class="l-input" type="password" id="login-key" placeholder="enter admin key" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
     <button class="l-btn" onclick="doLogin()">AUTHENTICATE</button>
     <div class="l-err" id="login-error"></div>
   </div>
@@ -228,8 +268,13 @@ td{padding:9px 12px;font-size:11px}
 
   <div id="tabbar">
     <div class="tab active" data-tab="analytics">ANALYTICS</div>
+    <div class="tab" data-tab="revenue">REVENUE</div>
     <div class="tab" data-tab="codes">CODES</div>
+    <div class="tab" data-tab="leads">LEADS</div>
+    <div class="tab" data-tab="invites">INVITES</div>
+    <div class="tab" data-tab="sessions">SESSIONS</div>
     <div class="tab" data-tab="generate">GENERATE</div>
+    <div class="tab" data-tab="activity">ACTIVITY</div>
   </div>
 
   <div id="content-area">
@@ -241,26 +286,114 @@ td{padding:9px 12px;font-size:11px}
         <div class="sc teal"><span class="sc-lbl">QR Scans</span><div class="sc-val" id="s-scans">-</div></div>
         <div class="sc purple"><span class="sc-lbl">Unlocked</span><div class="sc-val" id="s-redeemed">-</div></div>
         <div class="sc green"><span class="sc-lbl">Bookings</span><div class="sc-val" id="s-bookings">-</div></div>
+        <div class="sc orange"><span class="sc-lbl">Hot Leads</span><div class="sc-val" id="s-hot">-</div></div>
+        <div class="sc red"><span class="sc-lbl">Expired</span><div class="sc-val" id="s-expired">-</div></div>
+      </div>
+
+      <div class="sh"><h2>CONVERSION RATES</h2><div class="sh-line"></div></div>
+      <div class="rate-row">
+        <div class="rcard"><span class="rcard-lbl">Scan Rate</span><div class="rcard-val" id="r-scan">-</div></div>
+        <div class="rcard"><span class="rcard-lbl">Unlock Rate</span><div class="rcard-val" id="r-unlock">-</div></div>
+        <div class="rcard"><span class="rcard-lbl">Booking Rate</span><div class="rcard-val" id="r-booking">-</div></div>
+      </div>
+
+      <div class="sh"><h2>RECENT BOOKINGS</h2><div class="sh-line"></div></div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Code</th><th>Name</th><th>Package</th><th>Price</th><th>Date</th><th>Submitted</th></tr></thead>
+          <tbody id="recent-leads-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REVENUE -->
+    <div class="panel" id="tab-revenue">
+      <div class="sh"><h2>REVENUE OVERVIEW</h2><div class="sh-line"></div></div>
+      <div class="sg">
+        <div class="sc green"><span class="sc-lbl">Total Revenue</span><div class="sc-val" id="rev-total">-</div><div class="sc-sub">AED</div></div>
+        <div class="sc teal"><span class="sc-lbl">Avg Booking Value</span><div class="sc-val" id="rev-avg">-</div><div class="sc-sub">AED</div></div>
+        <div class="sc amber"><span class="sc-lbl">Revenue Per Card</span><div class="sc-val" id="rev-per-card">-</div><div class="sc-sub">AED</div></div>
+      </div>
+      <div class="sh"><h2>PACKAGE BREAKDOWN</h2><div class="sh-line"></div></div>
+      <div class="pkg-blocks">
+        <div class="pkg-block"><div class="pkg-name">STARTER</div><div class="pkg-rev" id="rev-starter-rev">0 AED</div><div class="pkg-count" id="rev-starter-count">0 bookings</div></div>
+        <div class="pkg-block"><div class="pkg-name">SIGNATURE</div><div class="pkg-rev" id="rev-sig-rev">0 AED</div><div class="pkg-count" id="rev-sig-count">0 bookings</div></div>
+        <div class="pkg-block"><div class="pkg-name">STORYTELLING</div><div class="pkg-rev" id="rev-story-rev">0 AED</div><div class="pkg-count" id="rev-story-count">0 bookings</div></div>
       </div>
     </div>
 
     <!-- CODES -->
     <div class="panel" id="tab-codes">
       <div class="fr">
-        <input type="text" id="code-search" placeholder="Search code" oninput="renderCodes()" style="flex:1"/>
+        <input type="text" id="code-search" placeholder="Search code / location" oninput="renderCodes()" style="flex:1"/>
         <select id="code-filter" onchange="renderCodes()">
           <option value="">All statuses</option>
           <option value="available">Available</option>
           <option value="issued">Issued</option>
           <option value="redeemed">Redeemed</option>
+          <option value="expired">Expired</option>
+        </select>
+        <label><input type="checkbox" id="filter-hot" onchange="renderCodes()"/> Hot Leads only</label>
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Code</th><th>Status</th><th>Source</th><th>Location</th><th>Notes</th><th>Issued</th><th>Redeemed</th><th>Booking</th></tr></thead>
+          <tbody id="codes-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LEADS -->
+    <div class="panel" id="tab-leads">
+      <div class="fr">
+        <input type="text" id="lead-search" placeholder="Search name / email / code" oninput="renderLeads()" style="flex:1"/>
+        <select id="lead-pkg-filter" onchange="renderLeads()">
+          <option value="">All packages</option>
+          <option value="Starter">Starter</option>
+          <option value="Signature">Signature</option>
+          <option value="Storytelling">Storytelling</option>
         </select>
       </div>
       <div class="tw">
         <table>
-          <thead>
-            <th>Code</th><th>Status</th><th>Location</th><th>Notes</th><th>Created</th>
-          </thead>
-          <tbody id="codes-body"></tbody>
+          <thead><tr><th>Code</th><th>Name</th><th>Email</th><th>WhatsApp</th><th>Package</th><th>Price</th><th>Submitted</th></tr></thead>
+          <tbody id="leads-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- INVITES -->
+    <div class="panel" id="tab-invites">
+      <div class="sh"><h2>INVITE NETWORK</h2><div class="sh-line"></div></div>
+      <div class="sg">
+        <div class="sc teal"><span class="sc-lbl">Total Invites Sent</span><div class="sc-val" id="inv-total">-</div></div>
+        <div class="sc amber"><span class="sc-lbl">L1 Conversion</span><div class="sc-val" id="inv-l1-rate">-</div></div>
+        <div class="sc purple"><span class="sc-lbl">L2 Conversion</span><div class="sc-val" id="inv-l2-rate">-</div></div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Code</th><th>Client</th><th>Invites Sent</th><th>L1 Booked</th><th>L2 Booked</th><th>Reward Pts</th></tr></thead>
+          <tbody id="top-referrers-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SESSIONS -->
+    <div class="panel" id="tab-sessions">
+      <div class="sh"><h2>SESSION MANAGEMENT</h2><div class="sh-line"></div></div>
+      <div class="spanel">
+        <div class="sform-row">
+          <div class="sfield"><label>Code</label><input id="sess-code" type="text" placeholder="e.g. K7M-4Q9"/></div>
+          <div class="sfield"><label>Client Name</label><input id="sess-name" type="text"/></div>
+          <div class="sfield"><label>Status</label><select id="sess-status"><option value="">select</option><option value="requested">requested</option><option value="confirmed">confirmed</option><option value="scheduled">scheduled</option><option value="completed">completed</option><option value="ready">ready</option></select></div>
+        </div>
+        <button class="btn btn-amber btn-sm" onclick="saveSession()">SAVE</button>
+        <div id="sess-meta-status" style="margin-top:8px;font-size:10px"></div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Code</th><th>Client</th><th>Status</th><th>Session Date</th><th>File</th><th>Downloads</th></tr></thead>
+          <tbody id="sessions-body"></tbody>
         </table>
       </div>
     </div>
@@ -269,15 +402,18 @@ td{padding:9px 12px;font-size:11px}
     <div class="panel" id="tab-generate">
       <div class="sh"><h2>GENERATE CODES</h2><div class="sh-line"></div></div>
       <div class="spanel" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
-        <div class="sfield" style="min-width:120px">
-          <label>Quantity</label>
-          <input id="gen-count" type="number" value="10" min="1" max="200"/>
-        </div>
+        <div class="sfield" style="min-width:120px"><label>Quantity</label><input id="gen-count" type="number" value="10" min="1" max="200"/></div>
         <button class="btn btn-amber" onclick="generateBulk()">GENERATE BULK</button>
         <button class="btn btn-teal btn-sm" onclick="generateOne()">+ ONE CODE</button>
       </div>
       <div class="sh" style="margin-top:16px"><h2>OUTPUT</h2><div class="sh-line"></div></div>
       <div class="code-box" id="gen-output"></div>
+    </div>
+
+    <!-- ACTIVITY -->
+    <div class="panel" id="tab-activity">
+      <div class="sh"><h2>LIVE ACTIVITY FEED</h2><div class="sh-line"></div><button class="btn btn-teal btn-sm" onclick="loadActivity()">REFRESH</button></div>
+      <div class="activity-feed" id="activity-feed"></div>
     </div>
   </div>
 </div>
@@ -286,6 +422,7 @@ td{padding:9px 12px;font-size:11px}
 <script>
 const API = 'https://raoufpx-promo-server-production.up.railway.app';
 let allCodes = [];
+let allLeads = [];
 let genCodes = [];
 let _adminKey = '';
 
@@ -299,45 +436,26 @@ async function doLogin() {
   errEl.textContent = '';
   if (!input) { errEl.textContent = 'Enter your admin key.'; return; }
 
-  errEl.textContent = 'Connecting...';
-  errEl.style.color = 'var(--muted)';
-
   try {
-    // Test the key
-    const r = await fetch(`${API}/admin/activity`, {
-      headers: { 'Authorization': 'Bearer '+input }
-    });
-
-    if (!r.ok) {
-      errEl.style.color = 'var(--danger)';
-      errEl.textContent = r.status === 403 ? 'Invalid key.' : 'Server error';
-      return;
-    }
-    
+    const r = await fetch(`${API}/admin/activity`, { headers: { 'Authorization': 'Bearer '+input } });
+    if (!r.ok) { errEl.textContent = 'Invalid key.'; return; }
     _adminKey = input;
     document.getElementById('login-gate').style.display = 'none';
     document.getElementById('shell').style.display = 'grid';
     document.getElementById('topbar-key-display').textContent = 'authenticated';
     await loadAll();
-  } catch(e) {
-    errEl.style.color = 'var(--danger)';
-    errEl.textContent = 'Cannot reach server.';
-  }
+  } catch(e) { errEl.textContent = 'Cannot reach server.'; }
 }
 
 function doLogout() {
   _adminKey = '';
   document.getElementById('login-key').value = '';
-  document.getElementById('login-error').textContent = '';
   document.getElementById('login-gate').style.display = 'flex';
   document.getElementById('shell').style.display = 'none';
 }
 
-function fmtShort(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  return d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
-}
+function fmtShort(iso) { if (!iso) return ''; return new Date(iso).toLocaleString(); }
+function isHot(entry) { return entry.redeemedAt && !entry.bookingSubmittedAt && entry.status !== 'expired'; }
 
 // TABS
 document.querySelectorAll('.tab').forEach(t => {
@@ -346,90 +464,227 @@ document.querySelectorAll('.tab').forEach(t => {
     document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
     t.classList.add('active');
     document.getElementById('tab-'+t.dataset.tab).classList.add('active');
+    if (t.dataset.tab === 'activity') loadActivity();
+    if (t.dataset.tab === 'sessions') loadSessions();
+    if (t.dataset.tab === 'invites') loadInvites();
   });
 });
 
 async function loadAll() {
-  await Promise.all([loadAnalytics(), loadCodes()]);
+  await Promise.all([loadAnalytics(), loadCodes(), loadLeads(), loadRevenue()]);
 }
 
 async function loadAnalytics() {
   try {
     const r = await fetch(`${API}/admin/analytics`, { headers: headers() });
-    if (!r.ok) throw new Error('Analytics failed');
+    if (!r.ok) return;
     const d = await r.json();
     const f = d.funnel || {};
+    const rt = d.rates || {};
     
     document.getElementById('s-issued').textContent = f.codesIssued || '0';
     document.getElementById('s-scans').textContent = f.qrScans || '0';
     document.getElementById('s-redeemed').textContent = f.codesEntered || '0';
     document.getElementById('s-bookings').textContent = f.bookingsSubmitted || '0';
-  } catch(e) {
-    console.error('Analytics error:', e);
-  }
+    document.getElementById('s-hot').textContent = allCodes.filter(isHot).length;
+    document.getElementById('s-expired').textContent = allCodes.filter(c => c.status === 'expired').length;
+    document.getElementById('r-scan').textContent = rt.scanRate || '0%';
+    document.getElementById('r-unlock').textContent = rt.unlockRate || '0%';
+    document.getElementById('r-booking').textContent = rt.bookingRate || '0%';
+    
+    const leads = d.recentLeads || [];
+    document.getElementById('recent-leads-body').innerHTML = leads.slice(0,10).map(l => `
+      <tr><td style="color:var(--accent)">${l.code||''}</td><td>${l.clientName||''}</td><td>${l.selectedPackage||''}</td>
+      <td style="color:var(--success)">${l.price?l.price+' AED':''}</td><td>${l.date||''}</td><td style="color:var(--dim)">${fmtShort(l.submittedAt)}</td></tr>
+    `).join('') || '<tr><td colspan="6">No bookings yet</td></tr>';
+  } catch(e) { console.error(e); }
+}
+
+async function loadRevenue() {
+  try {
+    const r = await fetch(`${API}/admin/revenue`, { headers: headers() });
+    if (!r.ok) return;
+    const d = await r.json();
+    document.getElementById('rev-total').textContent = d.totalRevenue?.toLocaleString() || '0';
+    document.getElementById('rev-avg').textContent = d.avgBookingValue?.toLocaleString() || '0';
+    document.getElementById('rev-per-card').textContent = d.revenuePerCard?.toLocaleString() || '0';
+    
+    const bp = d.byPackage || {};
+    document.getElementById('rev-starter-count').textContent = (bp.Starter?.count||0)+' bookings';
+    document.getElementById('rev-starter-rev').textContent = (bp.Starter?.revenue||0).toLocaleString()+' AED';
+    document.getElementById('rev-sig-count').textContent = (bp.Signature?.count||0)+' bookings';
+    document.getElementById('rev-sig-rev').textContent = (bp.Signature?.revenue||0).toLocaleString()+' AED';
+    document.getElementById('rev-story-count').textContent = (bp.Storytelling?.count||0)+' bookings';
+    document.getElementById('rev-story-rev').textContent = (bp.Storytelling?.revenue||0).toLocaleString()+' AED';
+  } catch(e) { console.error(e); }
 }
 
 async function loadCodes() {
   try {
     const r = await fetch(`${API}/admin/codes`, { headers: headers() });
-    if (!r.ok) throw new Error('Codes failed');
+    if (!r.ok) return;
     const d = await r.json();
     allCodes = d.codes || [];
     renderCodes();
-  } catch(e) {
-    console.error('Codes error:', e);
-  }
+  } catch(e) { console.error(e); }
 }
 
 function renderCodes() {
-  const search = (document.getElementById('code-search').value || '').toLowerCase();
+  const search = (document.getElementById('code-search').value||'').toLowerCase();
   const filter = document.getElementById('code-filter').value;
+  const hotOnly = document.getElementById('filter-hot')?.checked;
   
   let list = allCodes.filter(c => {
     if (filter && c.status !== filter) return false;
-    if (search && !c.code.toLowerCase().includes(search)) return false;
+    if (hotOnly && !isHot(c)) return false;
+    if (search && !(c.code+c.location+c.notes).toLowerCase().includes(search)) return false;
     return true;
   });
   
-  document.getElementById('codes-body').innerHTML = list.slice(0, 100).map(c => `
+  document.getElementById('codes-body').innerHTML = list.slice(0,200).map(c => `
+    <tr>
+      <td style="color:var(--accent)">${c.code}${isHot(c)?' 🔥':''}${c.source==='referral'?' 📧':''}</td>
+      <td><span class="pill pill-${c.status}">${c.status}</span></td>
+      <td>${c.source === 'referral' ? 'REF' : 'STR'}</td>
+      <td>${c.location || '-'}</td>
+      <td style="max-width:150px;overflow:hidden">${c.notes || '-'}</td>
+      <td>${fmtShort(c.issuedAt)}</td>
+      <td>${fmtShort(c.redeemedAt)}</td>
+      <td>${c.bookingSubmittedAt ? '✓' : ''}</td>
+       </tr>
+  `).join('') || '}<td colspan="8">No codes found</td></tr>';
+}
+
+async function loadLeads() {
+  try {
+    const r = await fetch(`${API}/admin/leads`, { headers: headers() });
+    if (!r.ok) return;
+    const d = await r.json();
+    allLeads = d.leads || [];
+    renderLeads();
+  } catch(e) { console.error(e); }
+}
+
+function renderLeads() {
+  const search = (document.getElementById('lead-search').value||'').toLowerCase();
+  const pkg = document.getElementById('lead-pkg-filter').value;
+  
+  let list = allLeads.filter(l => {
+    if (pkg && l.selectedPackage !== pkg) return false;
+    if (search && !(l.clientName+l.email+l.code).toLowerCase().includes(search)) return false;
+    return true;
+  });
+  
+  document.getElementById('leads-body').innerHTML = list.slice(0,100).map(l => `
+    <tr>
+      <td style="color:var(--accent)">${l.code||''}</td>
+      <td>${l.clientName||''}</td>
+      <td>${l.email||''}</td>
+      <td>${l.whatsapp||''}</td>
+      <td>${l.selectedPackage||''}</td>
+      <td style="color:var(--success)">${l.price?l.price+' AED':''}</td>
+      <td>${fmtShort(l.submittedAt)}</td>
+     </tr>
+  `).join('') || '}<td colspan="7">No leads found</td></tr>';
+}
+
+async function loadInvites() {
+  try {
+    const r = await fetch(`${API}/admin/invite-summary`, { headers: headers() });
+    if (!r.ok) return;
+    const d = await r.json();
+    document.getElementById('inv-total').textContent = d.totalInvitesSent || 0;
+    document.getElementById('inv-l1-rate').textContent = (d.l1BookingRate || 0) + '%';
+    document.getElementById('inv-l2-rate').textContent = (d.l2BookingRate || 0) + '%';
+    
+    const tbody = document.getElementById('top-referrers-body');
+    const refs = d.topReferrers || [];
+    tbody.innerHTML = refs.map(r => `
+      <tr><td style="color:var(--accent)">${r.code}</td><td>${r.clientName||'-'}</td>
+      <td>${r.sent}</td><td style="color:var(--success)">${r.l1Booked}</td>
+      <td style="color:var(--accent4)">${r.l2Booked}</td><td style="color:var(--accent)">${(r.rewardPoints||0).toFixed(1)}</td>
+     </tr>`).join('') || '}<td colspan="6">No referrals yet</td></tr>';
+  } catch(e) { console.error(e); }
+}
+
+async function loadSessions() {
+  await loadCodes();
+  const search = (document.getElementById('sess-search')?.value||'').toLowerCase();
+  const filter = document.getElementById('sess-filter')?.value;
+  
+  let list = allCodes.filter(c => {
+    if (filter && c.sessionStatus !== filter) return false;
+    if (search && !(c.code+c.clientName).toLowerCase().includes(search)) return false;
+    return true;
+  });
+  
+  document.getElementById('sessions-body').innerHTML = list.slice(0,100).map(c => `
     <tr>
       <td style="color:var(--accent)">${c.code}</td>
-      <td><span class="pill pill-${c.status}">${c.status}</span></td>
-      <td>${c.location || '-'}</td>
-      <td>${c.notes || '-'}</td>
-      <td>${fmtShort(c.createdAt)}</td>
-    </tr>
-  `).join('') || '<tr><td colspan="5">No codes found</td></tr>';
+      <td>${c.clientName||'-'}</td>
+      <td>${c.sessionStatus ? `<span class="pill pill-${c.sessionStatus}">${c.sessionStatus}</span>` : '-'}</td>
+      <td>${c.sessionDate ? fmtShort(c.sessionDate) : '-'}</td>
+      <td>${c.galleryFile ? '✓' : '-'}</td>
+      <td>${c.downloadCount||0}/${c.maxDownloads||2}</td>
+     </tr>
+  `).join('') || '}<td colspan="6">No sessions found</td></tr>';
+}
+
+async function saveSession() {
+  const code = document.getElementById('sess-code').value.trim().toUpperCase();
+  const statusEl = document.getElementById('sess-meta-status');
+  if (!code) { statusEl.textContent = 'Enter code'; return; }
+  const body = {};
+  const name = document.getElementById('sess-name').value.trim();
+  const status = document.getElementById('sess-status').value;
+  if (name) body.clientName = name;
+  if (status) body.sessionStatus = status;
+  
+  try {
+    const r = await fetch(`${API}/admin/session/${code}`, { method: 'PATCH', headers: headers(), body: JSON.stringify(body) });
+    if (!r.ok) throw new Error();
+    statusEl.style.color = 'var(--success)'; statusEl.textContent = 'Saved.';
+    await loadSessions();
+  } catch(e) { statusEl.style.color = 'var(--danger)'; statusEl.textContent = 'Error.'; }
 }
 
 async function generateBulk() {
   const count = parseInt(document.getElementById('gen-count').value) || 10;
-  const r = await fetch(`${API}/admin/generate-bulk`, { 
-    method: 'POST', 
-    headers: headers(), 
-    body: JSON.stringify({ count }) 
-  });
+  const r = await fetch(`${API}/admin/generate-bulk`, { method: 'POST', headers: headers(), body: JSON.stringify({ count }) });
   const d = await r.json();
-  if (d.codes) {
-    genCodes = [...genCodes, ...d.codes];
-    document.getElementById('gen-output').textContent = genCodes.map(c => c.code).join('\n');
-    await loadCodes();
-  }
+  if (d.codes) { genCodes = [...genCodes, ...d.codes]; document.getElementById('gen-output').textContent = genCodes.map(c => c.code).join('\n'); await loadCodes(); }
 }
 
 async function generateOne() {
   const r = await fetch(`${API}/admin/generate-code`, { method: 'POST', headers: headers() });
   const d = await r.json();
-  if (d.code) {
-    genCodes.push({ code: d.code, createdAt: d.createdAt });
-    document.getElementById('gen-output').textContent = genCodes.map(c => c.code).join('\n');
-    await loadCodes();
-  }
+  if (d.code) { genCodes.push({ code: d.code, createdAt: d.createdAt }); document.getElementById('gen-output').textContent = genCodes.map(c => c.code).join('\n'); await loadCodes(); }
 }
 
-function exportCSV() {
-  window.open(`${API}/admin/export?key=${encodeURIComponent(key())}`, '_blank');
+async function loadActivity() {
+  try {
+    const r = await fetch(`${API}/admin/activity`, { headers: headers() });
+    if (!r.ok) return;
+    const d = await r.json();
+    document.getElementById('activity-feed').innerHTML = (d.feed||[]).map(ev => `
+      <div class="aitem"><span class="atime">${fmtShort(ev.time)}</span><span class="atype">${ev.type}</span><span class="adetail">${ev.detail||''}</span></div>
+    `).join('') || '<div>No activity yet</div>';
+  } catch(e) { console.error(e); }
 }
+
+function exportCSV() { window.open(`${API}/admin/export?key=${encodeURIComponent(key())}`, '_blank'); }
+
+// Load initial data after login
+window.loadAll = loadAll;
+window.renderCodes = renderCodes;
+window.renderLeads = renderLeads;
+window.loadSessions = loadSessions;
+window.loadInvites = loadInvites;
+window.loadActivity = loadActivity;
+window.saveSession = saveSession;
+window.generateBulk = generateBulk;
+window.generateOne = generateOne;
+window.exportCSV = exportCSV;
 </script>
 </body>
 </html>
