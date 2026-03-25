@@ -523,10 +523,10 @@ td{padding:9px 12px;font-size:11px;vertical-align:middle}
     </div>
 
     <div class="sh"><h2>RECENT BOOKINGS</h2><div class="sh-line"></div></div>
-    <div class="tw"><table>
-      <thead><tr><th>Code</th><th>Name</th><th>Package</th><th>Price</th><th>Date</th><th>Submitted</th></tr></thead>
+    <div class="tw">\x3ctable>
+      <thead><tr><th>Code</th><th>Name</th><th>Package</th><th>Price</th><th>Date</th><th>Submitted</th> </thead>
       <tbody id="recent-leads-body"></tbody>
-    </table></div>
+     </table</div>
 
   </div><!-- /analytics -->
 
@@ -605,13 +605,13 @@ td{padding:9px 12px;font-size:11px;vertical-align:middle}
       <button class="btn btn-sm" style="border-color:var(--border);color:var(--muted)" onclick="clearSelection()">CLEAR</button>
     </div>
 
-    <div class="tw"><table>
-      <thead><tr>
+    <div class="tw">\x3ctable>
+      <thead>
         <th style="width:32px"><input type="checkbox" id="select-all" onchange="toggleSelectAll(this)" style="accent-color:var(--accent);width:13px;height:13px"/></th>
         <th>Code</th><th>Status</th><th>Source</th><th>Location</th><th>Notes</th><th>Issued</th><th>First Scan</th><th>Redeemed</th><th>Booking</th><th>Session</th><th>Expires</th>
-      </tr></thead>
+       </thead>
       <tbody id="codes-body"></tbody>
-    </table></div>
+     </table</div>
     <div style="margin-top:8px;font-size:9px;color:var(--dim);font-family:'Press Start 2P',monospace;letter-spacing:.04em" id="codes-count"></div>
 
   </div><!-- /codes -->
@@ -630,12 +630,12 @@ td{padding:9px 12px;font-size:11px;vertical-align:middle}
       <label><input type="checkbox" id="lead-hot-filter" onchange="renderLeads()"/> Hot Leads only</label>
     </div>
 
-    <div class="tw"><table>
-      <thead><tr>
+    <div class="tw">\x3ctable>
+      <thead>
         <th>Code</th><th>Status</th><th>Name</th><th>Email</th><th>WhatsApp</th><th>Package</th><th>Price</th><th>Date</th><th>Location</th><th>Submitted</th>
-      </tr></thead>
+       </thead>
       <tbody id="leads-body"></tbody>
-    </table></div>
+     </table</div>
 
   </div><!-- /leads -->
 
@@ -701,12 +701,12 @@ td{padding:9px 12px;font-size:11px;vertical-align:middle}
         <option value="ready">ready</option>
       </select>
     </div>
-    <div class="tw"><table>
-      <thead><tr>
+    <div class="tw">\x3ctable>
+      <thead>
         <th>Code</th><th>Client</th><th>Session Status</th><th>Session Date</th><th>File</th><th>Downloads</th><th>Client Link</th>
-      </tr></thead>
+       </thead>
       <tbody id="sessions-body"></tbody>
-    </table></div>
+     </table</div>
 
   </div><!-- /sessions -->
 
@@ -733,10 +733,10 @@ td{padding:9px 12px;font-size:11px;vertical-align:middle}
     </div>
 
     <div class="sh" style="margin-top:20px"><h2>GENERATED THIS SESSION</h2><div class="sh-line"></div></div>
-    <div class="tw gen-tbl"><table>
-      <thead><tr><th>Code</th><th>Created</th></tr></thead>
+    <div class="tw gen-tbl">\x3ctable>
+      <thead> <th>Code</th><th>Created</th> </thead>
       <tbody id="gen-table-body"></tbody>
-    </table></div>
+     </table</div>
 
   </div><!-- /generate -->
 
@@ -766,12 +766,12 @@ td{padding:9px 12px;font-size:11px;vertical-align:middle}
     <div class="sh" style="margin-top:4px"><h2>TOP REFERRERS</h2><div class="sh-line"></div></div>
     <div class="tw" style="margin-bottom:24px">
       <table>
-        <thead><tr>
+        <thead>
           <th>Code</th><th>Client</th><th>Invites Sent</th>
           <th>L1 Booked</th><th>L2 Booked</th><th>Reward Pts</th><th>Actions</th>
-        </tr></thead>
+         </thead>
         <tbody id="top-referrers-body"></tbody>
-      </table>
+       </table>
     </div>
 
     <!-- Tree lookup -->
@@ -902,12 +902,15 @@ let _adminKey = '';
 function key() { return _adminKey; }
 function headers() { return { 'Content-Type':'application/json', 'Authorization':'Bearer '+key() }; }
 
-//  LOGIN 
+//  LOGIN - FIXED VERSION
 async function doLogin() {
   const input = document.getElementById('login-key').value.trim();
   const errEl = document.getElementById('login-error');
   errEl.textContent = '';
-  if (!input) { errEl.textContent = 'Enter your admin key.'; return; }
+  if (!input) { 
+    errEl.textContent = 'Enter your admin key.'; 
+    return; 
+  }
 
   errEl.style.color = 'var(--muted)';
   errEl.textContent = 'Connecting...';
@@ -1057,14 +1060,14 @@ async function loadAnalytics() {
   // Recent leads
   const leads = d.recentLeads || [];
   document.getElementById('recent-leads-body').innerHTML = leads.map(l=>`
-    <tr>
+     <tr>
       <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${l.code||''}</td>
       <td>${l.clientName||''}</td>
       <td>${l.selectedPackage||''}</td>
       <td style="color:var(--success)">${l.price?l.price+' AED':''}</td>
       <td>${l.date||''}</td>
       <td style="color:var(--dim)">${fmtShort(l.submittedAt)}</td>
-    </tr>`).join('') || '<tr><td colspan="6" style="color:var(--dim);text-align:center;padding:16px;font-family:Space Mono,monospace">No bookings yet</td></tr>';
+     </tr>`).join('') || '<tr><td colspan="6" style="color:var(--dim);text-align:center;padding:16px;font-family:Space Mono,monospace">No bookings yet</td></tr>';
 
   renderEngagement();
 }
@@ -1182,7 +1185,8 @@ function renderCodes() {
     const hot = isHot(c);
     const checked = selectedCodes.has(c.code) ? 'checked' : '';
     const src = c.source === 'referral' ? '<span style="color:var(--accent4);font-size:9px">REF</span>' : '<span style="color:var(--dim);font-size:9px">STR</span>';
-    return `<tr>
+    return `
+      <tr>
       <td onclick="event.stopPropagation()">
         <input type="checkbox" class="row-check" value="${c.code}" ${checked} onchange="toggleRow(this)" style="accent-color:var(--accent);width:13px;height:13px"/>
       </td>
@@ -1200,7 +1204,7 @@ function renderCodes() {
       <td>${c.bookingSubmittedAt ? '<span style="color:var(--success);font-size:10px">YES '+fmtShort(c.bookingSubmittedAt)+'</span>' : ''}</td>
       <td style="color:var(--accent3)">${fmtDuration(c.sessionDuration)}</td>
       <td>${expiryStr}</td>
-    </tr>`;
+      </tr>`;
   }).join('') || '<tr><td colspan="12" style="color:var(--dim);text-align:center;padding:20px;font-family:Space Mono,monospace">No codes match filter</td></tr>';
 
   document.getElementById('codes-count').textContent = `showing ${list.length} of ${allCodes.length}`;
@@ -1271,9 +1275,9 @@ function renderLeads() {
       return `<tr style="cursor:pointer" onclick="openModal('${l.code}')">
         <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${l.code}</td>
         <td><span class="pill pill-hot">HOT</span></td>
-        <td colspan="7" style="color:var(--dim)">Redeemed  not booked yet</td>
+        <td colspan="7" style="color:var(--dim)">Redeemed - not booked yet</td>
         <td style="color:var(--dim)">${fmtShort(l.redeemedAt)}</td>
-      </tr>`;
+       </tr>`;
     }
     return `<tr style="cursor:pointer" onclick="openModal('${l.code}')">
       <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${l.code||''}${isHotLead?'<br><span class="pill pill-hot" style="margin-top:3px">HOT</span>':''}</td>
@@ -1286,7 +1290,7 @@ function renderLeads() {
       <td>${l.date||''}</td>
       <td style="color:var(--dim)">${l.location||''}</td>
       <td style="color:var(--dim)">${fmtShort(l.submittedAt)}</td>
-    </tr>`;
+     </tr>`;
   }).join('') || '<tr><td colspan="10" style="color:var(--dim);text-align:center;padding:20px;font-family:Space Mono,monospace">No leads found</td></tr>';
 }
 
@@ -1405,7 +1409,7 @@ async function generateOne() {
 function renderGenOutput() {
   document.getElementById('gen-output').textContent = genCodes.map(c=>c.code).join('\n');
   document.getElementById('gen-table-body').innerHTML = genCodes.slice().reverse().map(c=>`
-    <tr><td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${c.code}</td><td style="color:var(--dim)">${fmtDate(c.createdAt)}</td></tr>`).join('');
+      <tr><td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${c.code}</td><td style="color:var(--dim)">${fmtDate(c.createdAt)}</td></tr>`).join('');
 }
 function copyAll() { navigator.clipboard.writeText(genCodes.map(c=>c.code).join('\n')); }
 function copyCSV() { navigator.clipboard.writeText('code,createdAt\n'+genCodes.map(c=>`${c.code},${c.createdAt}`).join('\n')); }
@@ -1491,15 +1495,16 @@ function renderSessions() {
     const dlDisplay = maxDl===0 ? `${curDl}/inf` : `${curDl}/${maxDl}`;
     const clientLink = `${CLIENT_SITE}/client.html?code=${encodeURIComponent(c.code)}`;
     const spill = c.sessionStatus ? `<span class="spill spill-${c.sessionStatus}">${c.sessionStatus}</span>` : '';
-    return `<tr>
+    return `
+      <tr>
       <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px;cursor:pointer" onclick="prefillSession('${c.code}')">${c.code}</td>
-      <td>${c.clientName||'<span style="color:var(--dim)"></span>'}</td>
+      <td>${c.clientName||'<span style="color:var(--dim)">-</span>'}</td>
       <td>${spill}</td>
       <td style="color:var(--dim);font-size:10px">${c.sessionDate ? fmtShort(c.sessionDate) : ''}</td>
-      <td style="text-align:center">${hasFile?'<span style="color:var(--success)">ZIP</span>':'<span style="color:var(--dim)"></span>'}</td>
+      <td style="text-align:center">${hasFile?'<span style="color:var(--success)">ZIP</span>':'<span style="color:var(--dim)">-</span>'}</td>
       <td style="color:var(--muted);font-size:10px">${c.sessionStatus ? dlDisplay : ''}</td>
-      <td>${c.sessionStatus?`<button class="btn btn-sm btn-teal" onclick="copyToClipboard('${clientLink}')">COPY LINK</button>`:'<span style="color:var(--dim)"></span>'}</td>
-    </tr>`;
+      <td>${c.sessionStatus?`<button class="btn btn-sm btn-teal" onclick="copyToClipboard('${clientLink}')">COPY LINK</button>`:'<span style="color:var(--dim)">-</span>'}</td>
+      </tr>`;
   }).join('') || '<tr><td colspan="7" style="color:var(--dim);text-align:center;padding:20px;font-family:Space Mono,monospace">No sessions found</td></tr>';
 }
 
@@ -1586,6 +1591,7 @@ function copyToClipboard(text) {
       }
     });
   });
+}
 // ============================================================
 // INVITES TAB
 // ============================================================
@@ -1618,7 +1624,7 @@ async function loadInvites() {
         <td>
           <button class="btn btn-sm btn-teal" onclick="quickLoadTree('${r.code}')">VIEW TREE</button>
         </td>
-      </tr>`).join('')
+       </tr>`).join('')
     : '<tr><td colspan="7" style="color:var(--dim);text-align:center;padding:16px">No referrals yet</td></tr>';
 
   } catch(e) { console.error('[loadInvites]', e); }
@@ -1721,6 +1727,7 @@ async function saveRewards() {
     status.style.color = 'var(--success)'; status.textContent = 'Saved. Points: ' + (d.rewardPoints||0).toFixed(1);
     loadTree(); // refresh tree
   } catch(e) { status.style.color='var(--danger)'; status.textContent='Network error.'; }
+}
 </script>
 </body>
 </html>
