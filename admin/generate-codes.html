@@ -13,14 +13,19 @@
   --danger:#ff4c4c;--success:#4cf0a0;--warn:#f0d44c;
   --text:rgba(255,255,255,.88);--muted:rgba(255,255,255,.42);--dim:rgba(255,255,255,.18);
   --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --glow-a:rgba(240,180,76,.12);--glow-t:rgba(76,240,208,.1);--glow-p:rgba(200,75,255,.1);
 }
 
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;font-size:13px;overflow:hidden}
 
+/*  SCANLINES  */
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:9000;opacity:.5}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(240,180,76,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(240,180,76,.015) 1px,transparent 1px);background-size:32px 32px;pointer-events:none;z-index:0}
 
+/*  LAYOUT SHELL  */
 #shell{display:grid;grid-template-rows:auto auto 1fr;height:100vh;position:relative;z-index:1}
 
+/*  TOPBAR  */
 #topbar{
   display:flex;align-items:center;gap:10px;
   padding:0 20px;height:52px;
@@ -57,6 +62,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .tb-btn.ghost{border-color:var(--border);color:var(--muted)}
 .tb-btn.ghost:hover{border-color:var(--border2);color:var(--text)}
 
+/*  TAB BAR  */
 #tabbar{
   display:flex;gap:0;
   background:var(--surface);
@@ -71,74 +77,104 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
   color:var(--dim);cursor:pointer;
   border-bottom:2px solid transparent;
   white-space:nowrap;transition:all .15s;
+  position:relative;letter-spacing:.04em;
 }
 .tab:hover{color:var(--muted)}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab.active::after{
+  content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  opacity:.5;
+}
 
+/*  CONTENT AREA  */
 #content-area{overflow-y:auto;padding:24px}
 .panel{display:none}
 .panel.active{display:block}
 
+/*  SECTION HEADER  */
 .sh{display:flex;align-items:center;gap:12px;margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
 .sh h2{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--accent3);letter-spacing:.08em}
 .sh-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(76,240,208,.2),transparent)}
+.sh-badge{font-family:'Press Start 2P',monospace;font-size:7px;padding:3px 8px;background:rgba(76,240,208,.08);color:var(--accent3);border:1px solid rgba(76,240,208,.2)}
 
+/*  STAT GRID  */
 .sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:24px}
 .sc{
   background:var(--surface2);
   border:1px solid var(--border);
   border-top:2px solid;
-  padding:16px 14px;
+  padding:16px 14px;position:relative;overflow:hidden;
+  transition:border-color .2s,transform .15s;cursor:default;
 }
+.sc:hover{transform:translateY(-1px)}
 .sc.amber{border-top-color:var(--accent)}
 .sc.teal{border-top-color:var(--accent3)}
 .sc.orange{border-top-color:var(--accent2)}
 .sc.purple{border-top-color:var(--accent4)}
 .sc.green{border-top-color:var(--success)}
 .sc.red{border-top-color:var(--danger)}
-.sc-lbl{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--muted);margin-bottom:10px;display:block}
-.sc-val{font-size:28px;font-weight:700;line-height:1;color:var(--text)}
+.sc::after{content:'';position:absolute;top:0;right:0;width:40px;height:40px;border-radius:50%;filter:blur(20px);opacity:.2}
+.sc.amber::after{background:var(--accent)}
+.sc.teal::after{background:var(--accent3)}
+.sc.orange::after{background:var(--accent2)}
+.sc.purple::after{background:var(--accent4)}
+.sc.green::after{background:var(--success)}
+.sc.red::after{background:var(--danger)}
+.sc-lbl{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--muted);letter-spacing:.08em;margin-bottom:10px;display:block}
+.sc-val{font-size:28px;font-weight:700;line-height:1;letter-spacing:-.02em;color:var(--text)}
 .sc-sub{font-size:9px;color:var(--dim);margin-top:6px}
 
+/*  PIXEL CARDS ROW  */
 .card-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:24px}
 .pcard{background:var(--surface2);border:1px solid var(--border);padding:18px;position:relative}
-.pcard h3{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted);margin-bottom:14px}
+.pcard::before{content:'';position:absolute;top:-1px;left:-1px;width:16px;height:16px;border-top:2px solid var(--accent);border-left:2px solid var(--accent)}
+.pcard::after{content:'';position:absolute;bottom:-1px;right:-1px;width:16px;height:16px;border-bottom:2px solid var(--accent3);border-right:2px solid var(--accent3)}
+.pcard h3{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted);letter-spacing:.07em;margin-bottom:14px;text-transform:uppercase}
+canvas{max-width:100%}
 
+/*  FUNNEL  */
 .funnel{display:flex;flex-direction:column;gap:10px}
 .frow{display:flex;align-items:center;gap:12px}
-.flabel{width:140px;font-family:'Press Start 2P',monospace;font-size:7px;color:var(--muted)}
-.ftrack{flex:1;background:rgba(255,255,255,.04);height:20px;overflow:hidden}
-.fbar{height:100%;display:flex;align-items:center;justify-content:flex-end;padding-right:8px}
+.flabel{width:140px;font-family:'Press Start 2P',monospace;font-size:7px;color:var(--muted);flex-shrink:0;letter-spacing:.04em}
+.ftrack{flex:1;background:rgba(255,255,255,.04);height:20px;overflow:hidden;position:relative}
+.fbar{height:100%;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;transition:width .8s cubic-bezier(.4,0,.2,1);position:relative}
 .fbar span{font-family:'Press Start 2P',monospace;font-size:8px;color:rgba(0,0,0,.8)}
-.fval{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted);min-width:32px;text-align:right}
+.fval{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted);min-width:32px;text-align:right;flex-shrink:0}
 
+/*  RATE CARDS  */
 .rate-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
 .rcard{background:var(--surface2);border:1px solid var(--border);padding:14px;text-align:center}
-.rcard-lbl{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--dim);display:block;margin-bottom:8px}
+.rcard-lbl{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--dim);letter-spacing:.06em;margin-bottom:8px;display:block}
 .rcard-val{font-family:'Press Start 2P',monospace;font-size:14px;color:var(--accent)}
 
+/*  ENGAGEMENT  */
 .erow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.elabel{width:160px;font-size:10px;color:var(--muted)}
+.elabel{width:160px;font-size:10px;color:var(--muted);flex-shrink:0}
 .etrack{flex:1;background:rgba(255,255,255,.04);height:14px;overflow:hidden}
-.ebar{height:100%;display:flex;align-items:center;padding:0 8px}
+.ebar{height:100%;display:flex;align-items:center;padding:0 8px;transition:width .8s ease}
 .ebar span{font-size:9px;font-weight:700;color:rgba(0,0,0,.8)}
-.ecount{width:32px;font-size:10px;color:var(--muted);text-align:right}
+.ecount{width:32px;font-size:10px;color:var(--muted);text-align:right;flex-shrink:0}
 
+/*  TABLES  */
 .tw{overflow-x:auto;border:1px solid var(--border);background:var(--surface2)}
 table{width:100%;border-collapse:collapse}
 thead th{
   background:var(--surface3);color:var(--dim);
-  font-family:'Press Start 2P',monospace;font-size:7px;
-  padding:10px 12px;text-align:left;
-  border-bottom:1px solid var(--border);
+  font-family:'Press Start 2P',monospace;font-size:7px;text-transform:uppercase;
+  letter-spacing:.07em;padding:10px 12px;text-align:left;
+  white-space:nowrap;border-bottom:1px solid var(--border);
 }
-tbody tr{border-bottom:1px solid var(--border)}
-td{padding:9px 12px;font-size:11px}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.025)}
+td{padding:9px 12px;font-size:11px;vertical-align:middle}
 
+/*  STATUS PILLS  */
 .pill{
   display:inline-flex;align-items:center;gap:4px;
   padding:2px 8px;font-family:'Press Start 2P',monospace;
-  font-size:7px;
+  font-size:7px;letter-spacing:.03em;
 }
 .pill::before{content:'';width:5px;height:5px;border-radius:50%}
 .pill-available{background:rgba(240,180,76,.08);color:var(--accent);border:1px solid rgba(240,180,76,.2)}
@@ -152,68 +188,190 @@ td{padding:9px 12px;font-size:11px}
 .pill-hot{
   background:rgba(255,126,62,.12);color:var(--accent2);
   border:1px solid rgba(255,126,62,.3);
+  animation:hot-pulse 2s ease-in-out infinite;
 }
+.pill-hot::before{background:var(--accent2)}
+@keyframes hot-pulse{0%,100%{opacity:1;box-shadow:none}50%{opacity:.75;box-shadow:0 0 8px rgba(255,126,62,.3)}}
 
+/*  SESSION STATUS PILLS  */
+.spill{display:inline-block;padding:2px 8px;font-family:'Press Start 2P',monospace;font-size:7px;letter-spacing:.03em;border:1px solid}
+.spill-requested{color:var(--muted);border-color:var(--border)}
+.spill-confirmed{color:var(--accent);border-color:rgba(240,180,76,.3);background:rgba(240,180,76,.06)}
+.spill-scheduled{color:var(--accent);border-color:rgba(240,180,76,.3);background:rgba(240,180,76,.06)}
+.spill-completed{color:var(--accent3);border-color:rgba(76,240,208,.3);background:rgba(76,240,208,.06)}
+.spill-editing{color:var(--accent4);border-color:rgba(200,75,255,.3);background:rgba(200,75,255,.08);animation:edit-blink 2s steps(1) infinite}
+.spill-ready{color:var(--success);border-color:rgba(76,240,160,.3);background:rgba(76,240,160,.08)}
+@keyframes edit-blink{0%,49%{opacity:1}50%,100%{opacity:.6}}
+
+/*  FILTER ROW  */
 .fr{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
 .fr input,.fr select{
   background:var(--surface2);border:1px solid var(--border);
   color:var(--text);font-family:'Space Mono',monospace;font-size:11px;
   padding:6px 10px;
 }
+.fr input:focus,.fr select:focus{outline:none;border-color:rgba(240,180,76,.4)}
+.fr select option{background:var(--surface2)}
+.fr label{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer}
+.fr input[type=checkbox]{width:13px;height:13px;accent-color:var(--accent2)}
 
+/*  BULK BAR  */
+.bulk-bar{
+  display:none;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:10px 14px;margin-bottom:12px;
+  background:linear-gradient(135deg,rgba(240,180,76,.06),rgba(76,240,208,.04));
+  border:1px solid rgba(240,180,76,.2);
+}
+.bulk-bar.visible{display:flex}
+.bulk-count{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--accent);min-width:100px}
+.bulk-input{
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  font-family:'Space Mono',monospace;font-size:11px;padding:5px 10px;width:160px;
+}
+.bulk-input:focus{outline:none;border-color:var(--accent)}
+
+/*  ACTION BUTTONS  */
 .btn{
   font-family:'Space Mono',monospace;font-size:11px;
   padding:6px 14px;border:1px solid;cursor:pointer;
-  background:transparent;
+  background:transparent;transition:all .15s;
 }
 .btn-amber{border-color:rgba(240,180,76,.4);color:var(--accent)}
-.btn-amber:hover{background:rgba(240,180,76,.12)}
+.btn-amber:hover{background:rgba(240,180,76,.12);border-color:var(--accent)}
 .btn-teal{border-color:rgba(76,240,208,.35);color:var(--accent3)}
-.btn-teal:hover{background:rgba(76,240,208,.1)}
+.btn-teal:hover{background:rgba(76,240,208,.1);border-color:var(--accent3)}
 .btn-danger{border-color:rgba(255,76,76,.35);color:var(--danger)}
+.btn-danger:hover{background:rgba(255,76,76,.1);border-color:var(--danger)}
+.btn-purple{border-color:rgba(200,75,255,.35);color:var(--accent4)}
+.btn-purple:hover{background:rgba(200,75,255,.1);border-color:var(--accent4)}
 .btn-sm{padding:4px 10px;font-size:10px}
+.key-input{
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);font-family:'Space Mono',monospace;font-size:11px;
+  padding:6px 10px;
+}
+.key-input:focus{outline:none;border-color:rgba(240,180,76,.4)}
 
+/*  CODE OUTPUT BOX  */
 .code-box{
   background:var(--surface3);border:1px solid var(--border);
   padding:14px;font-family:'Space Mono',monospace;font-size:12px;
   max-height:200px;overflow-y:auto;
-  color:var(--accent3);
-  white-space:pre-wrap;
+  color:var(--accent3);line-height:1.8;
+  white-space:pre-wrap;word-break:break-all;
 }
+.code-box::-webkit-scrollbar{width:3px}
+.code-box::-webkit-scrollbar-thumb{background:var(--border2)}
 
-.spanel{
+/*  MINI STATS  */
+.mini-stats{display:flex;gap:18px;margin:10px 0;flex-wrap:wrap}
+.mini-stat{font-size:10px;color:var(--muted)}.mini-stat b{color:var(--accent)}
+
+/*  REVENUE PACKAGES  */
+.pkg-blocks{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:20px}
+.pkg-block{
   background:var(--surface2);border:1px solid var(--border);
-  padding:18px;margin-bottom:16px;
+  padding:16px;display:flex;flex-direction:column;gap:8px;
+  position:relative;overflow:hidden;
 }
-.sform-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-.sfield{display:flex;flex-direction:column;gap:5px;flex:1;min-width:140px}
-.sfield label{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--dim)}
-.sfield input,.sfield select{
-  background:var(--surface3);border:1px solid var(--border);
-  color:var(--text);font-family:'Space Mono',monospace;font-size:11px;
-  padding:6px 10px;
-}
+.pkg-block::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.pkg-starter::after{background:var(--accent)}
+.pkg-sig::after{background:var(--accent3)}
+.pkg-story::after{background:var(--accent4)}
+.pkg-name{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted);letter-spacing:.05em}
+.pkg-rev{font-size:22px;font-weight:700;color:var(--text)}
+.pkg-count{font-size:10px;color:var(--dim)}
 
+/*  ACTIVITY FEED  */
 .activity-feed{display:flex;flex-direction:column;gap:6px;max-height:500px;overflow-y:auto}
+.activity-feed::-webkit-scrollbar{width:3px}
+.activity-feed::-webkit-scrollbar-thumb{background:var(--border2)}
 .aitem{
   display:grid;grid-template-columns:80px 160px 1fr;gap:12px;
   padding:8px 14px;background:var(--surface2);border:1px solid var(--border);
-  align-items:center;
+  align-items:center;border-left:2px solid var(--border);
+  transition:border-color .15s;
 }
+.aitem:hover{border-left-color:var(--accent3)}
 .atime{font-size:9px;color:var(--dim)}
 .atype{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--accent3)}
 .adetail{font-size:10px;color:var(--muted)}
 
-.pkg-blocks{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:20px}
-.pkg-block{
-  background:var(--surface2);border:1px solid var(--border);
-  padding:16px;
+/*  MODAL  */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.85);z-index:9998;
+  align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
 }
-.pkg-name{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted)}
-.pkg-rev{font-size:22px;font-weight:700;color:var(--text)}
-.pkg-count{font-size:10px;color:var(--dim)}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface);border:1px solid rgba(240,180,76,.15);
+  width:min(640px,96vw);max-height:90vh;overflow-y:auto;
+  padding:24px;position:relative;
+}
+.modal::before{content:'';position:absolute;top:-1px;left:-1px;width:18px;height:18px;border-top:2px solid var(--accent);border-left:2px solid var(--accent)}
+.modal::after{content:'';position:absolute;bottom:-1px;right:-1px;width:18px;height:18px;border-bottom:2px solid var(--accent3);border-right:2px solid var(--accent3)}
+.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.mhdr h2{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--accent);letter-spacing:.05em}
+.mclose{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:4px}
+.mclose:hover{color:var(--text)}
+.msec{margin-bottom:20px}
+.msec h3{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
 
-/* LOGIN GATE */
+/*  TIMELINE STRIP  */
+.tl-strip{display:flex;align-items:center;gap:0;margin:14px 0;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
+.tl-strip::-webkit-scrollbar{height:3px}
+.tl-strip::-webkit-scrollbar-thumb{background:var(--border2)}
+.tl-node{display:flex;flex-direction:column;align-items:center;min-width:80px}
+.tl-dot{
+  width:28px;height:28px;border:2px solid var(--border);
+  background:var(--surface3);display:flex;align-items:center;
+  justify-content:center;font-size:9px;transition:all .2s;
+}
+.tl-dot.done{border-color:var(--accent3);background:rgba(76,240,208,.12);color:var(--accent3)}
+.tl-dot.skip{color:var(--dim)}
+.tl-node-label{font-size:7px;color:var(--dim);margin-top:6px;text-align:center;max-width:72px;line-height:1.5}
+.tl-node-label.done{color:var(--text)}
+.tl-connector{flex:1;height:2px;background:var(--border);min-width:20px;position:relative}
+.tl-connector.done{background:linear-gradient(90deg,var(--accent3),rgba(76,240,208,.2))}
+.tl-gap-label{font-size:7px;color:var(--accent);position:absolute;top:-12px;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--surface);padding:0 3px}
+
+/*  TIMELINE LIST  */
+.tl-list{position:relative;padding-left:22px}
+.tl-list::before{content:'';position:absolute;left:6px;top:6px;bottom:6px;width:1px;background:var(--border)}
+.tl-ev{position:relative;margin-bottom:12px}
+.tl-ev::before{content:'';position:absolute;left:-19px;top:4px;width:8px;height:8px;border:1px solid var(--border);background:var(--surface);transition:.15s}
+.tl-ev.done::before{border-color:var(--accent3);background:rgba(76,240,208,.15)}
+.tl-ev-title{font-size:11px;font-weight:700;color:var(--text)}
+.tl-ev.pending .tl-ev-title{color:var(--muted)}
+.tl-ev-time{font-size:10px;color:var(--dim);margin-top:2px}
+
+/*  FIELD GRID  */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fld{display:flex;flex-direction:column;gap:3px}
+.fld label{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--dim);letter-spacing:.07em;text-transform:uppercase}
+.fld span,.fld a{font-size:11px;color:var(--text)}
+.fld a{color:var(--accent3);text-decoration:none}
+.fld a:hover{text-decoration:underline}
+.fedit input,.fedit textarea{
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);font-family:'Space Mono',monospace;font-size:11px;
+  padding:6px 8px;resize:vertical;
+}
+.fedit input:focus,.fedit textarea:focus{outline:none;border-color:rgba(240,180,76,.4)}
+
+/*  CONFIRM MODALS  */
+.cmodal{
+  background:var(--surface);border:1px solid rgba(255,76,76,.25);
+  width:min(400px,92vw);padding:24px;position:relative;
+}
+.cmodal h2{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--danger);margin-bottom:12px}
+.cmodal p{font-size:11px;color:var(--text);margin-bottom:10px;line-height:1.7}
+.cmodal .code-list{font-size:10px;color:var(--accent);margin:8px 0;max-height:120px;overflow-y:auto;line-height:1.9}
+.confirm-btns{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+
+/*  LOGIN GATE  */
 #login-gate{
   position:fixed;inset:0;background:var(--bg);z-index:9999;
   display:flex;align-items:center;justify-content:center;
@@ -226,22 +384,65 @@ td{padding:9px 12px;font-size:11px}
   border:1px solid rgba(240,180,76,.15);
   position:relative;
 }
-.l-logo{font-family:'Press Start 2P',monospace;font-size:13px;color:var(--accent);text-align:center}
-.l-sub{font-size:8px;color:var(--dim);font-family:'Press Start 2P',monospace}
+.lbox::before{content:'';position:absolute;top:-1px;left:-1px;width:20px;height:20px;border-top:2px solid var(--accent);border-left:2px solid var(--accent)}
+.lbox::after{content:'';position:absolute;bottom:-1px;right:-1px;width:20px;height:20px;border-bottom:2px solid var(--accent3);border-right:2px solid var(--accent3)}
+.l-logo{font-family:'Press Start 2P',monospace;font-size:13px;color:var(--accent);letter-spacing:.08em;text-align:center;line-height:2}
+.l-sub{font-size:8px;color:var(--dim);text-align:center;letter-spacing:.12em;font-family:'Press Start 2P',monospace}
+.l-divider{width:40px;height:2px;background:linear-gradient(90deg,transparent,var(--accent3),transparent)}
 .l-input{
   width:100%;background:var(--surface2);
   border:1px solid var(--border);
   color:var(--text);font-family:'Press Start 2P',monospace;font-size:12px;
-  padding:12px 16px;text-align:center;
+  padding:12px 16px;text-align:center;letter-spacing:.15em;
 }
+.l-input:focus{outline:none;border-color:rgba(240,180,76,.5);box-shadow:0 0 0 1px rgba(240,180,76,.15)}
 .l-btn{
   width:100%;font-family:'Press Start 2P',monospace;font-size:9px;
   padding:13px;background:transparent;
   border:1px solid rgba(240,180,76,.4);color:var(--accent);
-  cursor:pointer;
+  cursor:pointer;transition:all .15s;letter-spacing:.08em;
 }
 .l-btn:hover{background:var(--accent);color:#000}
-.l-err{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--danger);text-align:center;min-height:18px}
+.l-err{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--danger);text-align:center;min-height:18px;letter-spacing:.04em}
+
+/*  SESSIONS FORM PANELS  */
+.spanel{
+  background:var(--surface2);border:1px solid var(--border);
+  padding:18px;margin-bottom:16px;position:relative;
+}
+.spanel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(240,180,76,.15),transparent)}
+.spanel-title{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--muted);letter-spacing:.07em;margin-bottom:14px;display:block}
+.sform-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.sfield{display:flex;flex-direction:column;gap:5px;flex:1;min-width:140px}
+.sfield label{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--dim);letter-spacing:.07em;text-transform:uppercase}
+.sfield input,.sfield select{
+  background:var(--surface3);border:1px solid var(--border);
+  color:var(--text);font-family:'Space Mono',monospace;font-size:11px;
+  padding:6px 10px;
+}
+.sfield input:focus,.sfield select:focus{outline:none;border-color:rgba(240,180,76,.4)}
+.sfield select option{background:var(--surface2)}
+.prog-track{
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  height:4px;margin-top:10px;overflow:hidden;
+}
+.prog-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent3),var(--accent));transition:width .2s}
+.sfstatus{font-size:10px;margin-top:8px;min-height:16px;font-family:'Space Mono',monospace}
+
+/*  SCROLLBAR  */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1)}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.2)}
+
+@media(max-width:600px){
+  .sg{grid-template-columns:repeat(2,1fr)}
+  .fgrid{grid-template-columns:1fr}
+  .rate-row{grid-template-columns:1fr}
+  .pkg-blocks{grid-template-columns:1fr}
+  .aitem{grid-template-columns:60px 1fr}
+  .atype{grid-column:1/-1;order:-1}
+}
 </style>
 </head>
 <body>
@@ -251,21 +452,25 @@ td{padding:9px 12px;font-size:11px}
   <div class="lbox">
     <div class="l-logo">RAOUF px</div>
     <div class="l-sub">ADMIN TERMINAL</div>
-    <input class="l-input" type="password" id="login-key" placeholder="enter admin key" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
-    <button class="l-btn" onclick="doLogin()">AUTHENTICATE</button>
+    <div class="l-divider"></div>
+    <input class="l-input" type="password" id="login-key" placeholder="" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button class="l-btn" onclick="doLogin()">[ AUTHENTICATE ]</button>
     <div class="l-err" id="login-error"></div>
   </div>
 </div>
 
-<div id="shell" style="display:none">
+<div id="shell">
+  <!-- TOPBAR -->
   <div id="topbar">
-    <div class="tb-logo">RAOUF px / ADMIN</div>
+    <div class="tb-logo">RAOUF px &nbsp;/&nbsp; ADMIN</div>
     <span class="tb-status" id="topbar-key-display"></span>
     <button class="tb-btn teal" onclick="loadAll()">REFRESH</button>
     <button class="tb-btn amber" onclick="exportCSV()">EXPORT CSV</button>
+    <button class="tb-btn danger" onclick="showDeleteTestConfirm()">DELETE TEST</button>
     <button class="tb-btn ghost" onclick="doLogout()">LOGOUT</button>
   </div>
 
+  <!-- TABS -->
   <div id="tabbar">
     <div class="tab active" data-tab="analytics">ANALYTICS</div>
     <div class="tab" data-tab="revenue">REVENUE</div>
@@ -277,414 +482,1247 @@ td{padding:9px 12px;font-size:11px}
     <div class="tab" data-tab="activity">ACTIVITY</div>
   </div>
 
+  <!-- CONTENT -->
   <div id="content-area">
-    <!-- ANALYTICS -->
-    <div class="panel active" id="tab-analytics">
-      <div class="sh"><h2>FUNNEL OVERVIEW</h2><div class="sh-line"></div></div>
-      <div class="sg">
-        <div class="sc amber"><span class="sc-lbl">Cards Issued</span><div class="sc-val" id="s-issued">-</div></div>
-        <div class="sc teal"><span class="sc-lbl">QR Scans</span><div class="sc-val" id="s-scans">-</div></div>
-        <div class="sc purple"><span class="sc-lbl">Unlocked</span><div class="sc-val" id="s-redeemed">-</div></div>
-        <div class="sc green"><span class="sc-lbl">Bookings</span><div class="sc-val" id="s-bookings">-</div></div>
-        <div class="sc orange"><span class="sc-lbl">Hot Leads</span><div class="sc-val" id="s-hot">-</div></div>
-        <div class="sc red"><span class="sc-lbl">Expired</span><div class="sc-val" id="s-expired">-</div></div>
-      </div>
 
-      <div class="sh"><h2>CONVERSION RATES</h2><div class="sh-line"></div></div>
-      <div class="rate-row">
-        <div class="rcard"><span class="rcard-lbl">Scan Rate</span><div class="rcard-val" id="r-scan">-</div></div>
-        <div class="rcard"><span class="rcard-lbl">Unlock Rate</span><div class="rcard-val" id="r-unlock">-</div></div>
-        <div class="rcard"><span class="rcard-lbl">Booking Rate</span><div class="rcard-val" id="r-booking">-</div></div>
-      </div>
+  <!--  ANALYTICS  -->
+  <div class="panel active" id="tab-analytics">
 
-      <div class="sh"><h2>RECENT BOOKINGS</h2><div class="sh-line"></div></div>
-      <div class="tw">
-        <table>
-          <thead><tr><th>Code</th><th>Name</th><th>Package</th><th>Price</th><th>Date</th><th>Submitted</th></tr></thead>
-          <tbody id="recent-leads-body"></tbody>
-        </table>
+    <div class="sh"><h2>FUNNEL OVERVIEW</h2><div class="sh-line"></div></div>
+    <div class="sg">
+      <div class="sc amber"><span class="sc-lbl">Cards Issued</span><div class="sc-val" id="s-issued"></div></div>
+      <div class="sc teal"><span class="sc-lbl">QR Scans</span><div class="sc-val" id="s-scans"></div></div>
+      <div class="sc purple"><span class="sc-lbl">Unlocked</span><div class="sc-val" id="s-redeemed"></div></div>
+      <div class="sc green"><span class="sc-lbl">Bookings</span><div class="sc-val" id="s-bookings"></div></div>
+      <div class="sc orange"><span class="sc-lbl">Hot Leads</span><div class="sc-val" id="s-hot"></div></div>
+      <div class="sc red"><span class="sc-lbl">Expired</span><div class="sc-val" id="s-expired"></div></div>
+    </div>
+
+    <div class="sh"><h2>CONVERSION FUNNEL</h2><div class="sh-line"></div></div>
+    <div class="pcard" style="margin-bottom:24px"><div class="funnel" id="funnel-bars"></div></div>
+
+    <div class="sh"><h2>CONVERSION RATES</h2><div class="sh-line"></div></div>
+    <div class="rate-row" style="margin-bottom:24px">
+      <div class="rcard"><span class="rcard-lbl">Scan Rate</span><div class="rcard-val" id="r-scan"></div></div>
+      <div class="rcard"><span class="rcard-lbl">Unlock Rate</span><div class="rcard-val" id="r-unlock"></div></div>
+      <div class="rcard"><span class="rcard-lbl">Booking Rate</span><div class="rcard-val" id="r-booking"></div></div>
+    </div>
+
+    <div class="sh"><h2>SESSION ENGAGEMENT</h2><div class="sh-line"></div></div>
+    <div id="engagement-section" style="margin-bottom:24px">
+      <div class="erow"><div class="elabel">Bounce (010s)</div><div class="etrack"><div class="ebar" id="eng-bounce" style="background:var(--danger);width:0%"><span id="eng-bounce-pct">0%</span></div></div><div class="ecount" id="eng-bounce-n">0</div></div>
+      <div class="erow"><div class="elabel">Skim (1030s)</div><div class="etrack"><div class="ebar" id="eng-skim" style="background:var(--warn);width:0%"><span id="eng-skim-pct">0%</span></div></div><div class="ecount" id="eng-skim-n">0</div></div>
+      <div class="erow"><div class="elabel">Interested (30120s)</div><div class="etrack"><div class="ebar" id="eng-interested" style="background:var(--accent3);width:0%"><span id="eng-interested-pct">0%</span></div></div><div class="ecount" id="eng-interested-n">0</div></div>
+      <div class="erow"><div class="elabel">Engaged (120s+)</div><div class="etrack"><div class="ebar" id="eng-engaged" style="background:var(--accent4);width:0%"><span id="eng-engaged-pct">0%</span></div></div><div class="ecount" id="eng-engaged-n">0</div></div>
+    </div>
+
+    <div class="sh"><h2>PACKAGES & LOCATIONS</h2><div class="sh-line"></div></div>
+    <div class="card-row" style="margin-bottom:24px">
+      <div class="pcard"><h3>Bookings by Package</h3><canvas id="chart-pkg" height="180"></canvas></div>
+      <div class="pcard"><h3>Cards by Location</h3><canvas id="chart-loc" height="180"></canvas></div>
+    </div>
+
+    <div class="sh"><h2>RECENT BOOKINGS</h2><div class="sh-line"></div></div>
+    <div class="tw">\x3ctable>
+      <thead><tr><th>Code</th><th>Name</th><th>Package</th><th>Price</th><th>Date</th><th>Submitted</th></tr></thead>
+      <tbody id="recent-leads-body"></tbody>
+    </table></div>
+
+  </div><!-- /analytics -->
+
+  <!--  REVENUE  -->
+  <div class="panel" id="tab-revenue">
+
+    <div class="sh"><h2>REVENUE OVERVIEW</h2><div class="sh-line"></div></div>
+    <div class="sg" style="margin-bottom:24px">
+      <div class="sc green"><span class="sc-lbl">Total Revenue</span><div class="sc-val" id="rev-total"></div><div class="sc-sub">AED</div></div>
+      <div class="sc teal"><span class="sc-lbl">Avg Booking Value</span><div class="sc-val" id="rev-avg"></div><div class="sc-sub">AED / booking</div></div>
+      <div class="sc amber"><span class="sc-lbl">Revenue Per Card</span><div class="sc-val" id="rev-per-card"></div><div class="sc-sub">AED / issued card</div></div>
+      <div class="sc purple"><span class="sc-lbl">Issued Cards</span><div class="sc-val" id="rev-issued"></div></div>
+      <div class="sc orange"><span class="sc-lbl">Bookings</span><div class="sc-val" id="rev-bookings"></div></div>
+    </div>
+
+    <div class="sh"><h2>PACKAGE BREAKDOWN</h2><div class="sh-line"></div></div>
+    <div class="pkg-blocks" style="margin-bottom:24px">
+      <div class="pkg-block pkg-starter">
+        <div class="pkg-name">STARTER</div>
+        <div class="pkg-rev" id="rev-starter-rev">0 AED</div>
+        <div class="pkg-count" id="rev-starter-count">0 bookings</div>
+      </div>
+      <div class="pkg-block pkg-sig">
+        <div class="pkg-name">SIGNATURE</div>
+        <div class="pkg-rev" id="rev-sig-rev">0 AED</div>
+        <div class="pkg-count" id="rev-sig-count">0 bookings</div>
+      </div>
+      <div class="pkg-block pkg-story">
+        <div class="pkg-name">STORYTELLING</div>
+        <div class="pkg-rev" id="rev-story-rev">0 AED</div>
+        <div class="pkg-count" id="rev-story-count">0 bookings</div>
       </div>
     </div>
 
-    <!-- REVENUE -->
-    <div class="panel" id="tab-revenue">
-      <div class="sh"><h2>REVENUE OVERVIEW</h2><div class="sh-line"></div></div>
-      <div class="sg">
-        <div class="sc green"><span class="sc-lbl">Total Revenue</span><div class="sc-val" id="rev-total">-</div><div class="sc-sub">AED</div></div>
-        <div class="sc teal"><span class="sc-lbl">Avg Booking Value</span><div class="sc-val" id="rev-avg">-</div><div class="sc-sub">AED</div></div>
-        <div class="sc amber"><span class="sc-lbl">Revenue Per Card</span><div class="sc-val" id="rev-per-card">-</div><div class="sc-sub">AED</div></div>
-      </div>
-      <div class="sh"><h2>PACKAGE BREAKDOWN</h2><div class="sh-line"></div></div>
-      <div class="pkg-blocks">
-        <div class="pkg-block"><div class="pkg-name">STARTER</div><div class="pkg-rev" id="rev-starter-rev">0 AED</div><div class="pkg-count" id="rev-starter-count">0 bookings</div></div>
-        <div class="pkg-block"><div class="pkg-name">SIGNATURE</div><div class="pkg-rev" id="rev-sig-rev">0 AED</div><div class="pkg-count" id="rev-sig-count">0 bookings</div></div>
-        <div class="pkg-block"><div class="pkg-name">STORYTELLING</div><div class="pkg-rev" id="rev-story-rev">0 AED</div><div class="pkg-count" id="rev-story-count">0 bookings</div></div>
+    <div class="sh"><h2>REVENUE CHART</h2><div class="sh-line"></div></div>
+    <div class="pcard" style="max-width:440px;margin-bottom:24px"><h3>AED by Package</h3><canvas id="chart-rev" height="200"></canvas></div>
+
+    <div class="sh"><h2>PRICING FORMULA</h2><div class="sh-line"></div></div>
+    <div class="spanel">
+      <div style="font-size:11px;line-height:2.2;color:var(--muted)">
+        <div>Starter &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b style="color:var(--text)">250 AED</b></div>
+        <div>Signature &nbsp;&nbsp;&nbsp; <b style="color:var(--text)">499 AED</b></div>
+        <div>Storytelling  <b style="color:var(--text)">999 AED</b></div>
+        <div style="margin-top:12px;color:var(--dim);font-size:10px">Revenue Per Card = Total Revenue / Issued Cards</div>
+        <div style="color:var(--dim);font-size:10px">Avg Booking Value = Total Revenue / Bookings</div>
       </div>
     </div>
 
-    <!-- CODES -->
-    <div class="panel" id="tab-codes">
-      <div class="fr">
-        <input type="text" id="code-search" placeholder="Search code / location" oninput="renderCodes()" style="flex:1"/>
-        <select id="code-filter" onchange="renderCodes()">
-          <option value="">All statuses</option>
-          <option value="available">Available</option>
-          <option value="issued">Issued</option>
-          <option value="redeemed">Redeemed</option>
-          <option value="expired">Expired</option>
-        </select>
-        <label><input type="checkbox" id="filter-hot" onchange="renderCodes()"/> Hot Leads only</label>
-      </div>
-      <div class="tw">
-        <table>
-          <thead><tr><th>Code</th><th>Status</th><th>Source</th><th>Location</th><th>Notes</th><th>Issued</th><th>Redeemed</th><th>Booking</th></tr></thead>
-          <tbody id="codes-body"></tbody>
-        </table>
-      </div>
+  </div><!-- /revenue -->
+
+  <!--  CODES  -->
+  <div class="panel" id="tab-codes">
+
+    <div class="fr">
+      <input type="text" id="code-search" placeholder="Search code / location" oninput="renderCodes()" style="flex:1;min-width:160px"/>
+      <select id="code-filter" onchange="renderCodes()">
+        <option value="">All statuses</option>
+        <option value="available">Available</option>
+        <option value="issued">Issued</option>
+        <option value="redeemed">Redeemed</option>
+        <option value="expired">Expired</option>
+      </select>
+      <label><input type="checkbox" id="filter-hot" onchange="renderCodes()"/> Hot Leads only</label>
+      <label><input type="checkbox" id="filter-noscan" onchange="renderCodes()"/> No scan yet</label>
+      <label><input type="checkbox" id="filter-referral" onchange="renderCodes()"/> Referrals only</label>
     </div>
 
-    <!-- LEADS -->
-    <div class="panel" id="tab-leads">
-      <div class="fr">
-        <input type="text" id="lead-search" placeholder="Search name / email / code" oninput="renderLeads()" style="flex:1"/>
-        <select id="lead-pkg-filter" onchange="renderLeads()">
-          <option value="">All packages</option>
-          <option value="Starter">Starter</option>
-          <option value="Signature">Signature</option>
-          <option value="Storytelling">Storytelling</option>
-        </select>
-      </div>
-      <div class="tw">
-        <table>
-          <thead><tr><th>Code</th><th>Name</th><th>Email</th><th>WhatsApp</th><th>Package</th><th>Price</th><th>Submitted</th></tr></thead>
-          <tbody id="leads-body"></tbody>
-        </table>
-      </div>
+    <div class="bulk-bar" id="bulk-bar">
+      <span class="bulk-count" id="bulk-count">0 selected</span>
+      <input class="bulk-input" type="text" id="bulk-notes" placeholder="Set notes"/>
+      <input class="bulk-input" type="text" id="bulk-location" placeholder="Set location"/>
+      <button class="btn btn-teal btn-sm" onclick="bulkSetNotes()">SET NOTES</button>
+      <button class="btn btn-amber btn-sm" onclick="bulkSetLocation()">SET LOCATION</button>
+      <button class="btn btn-sm" style="border-color:rgba(76,240,208,.3);color:var(--accent3)" onclick="bulkMarkIssued()">MARK ISSUED</button>
+      <button class="btn btn-danger btn-sm" onclick="bulkDelete()">DELETE</button>
+      <button class="btn btn-sm" style="border-color:var(--border);color:var(--muted)" onclick="clearSelection()">CLEAR</button>
     </div>
 
-    <!-- INVITES -->
-    <div class="panel" id="tab-invites">
-      <div class="sh"><h2>INVITE NETWORK</h2><div class="sh-line"></div></div>
-      <div class="sg">
-        <div class="sc teal"><span class="sc-lbl">Total Invites Sent</span><div class="sc-val" id="inv-total">-</div></div>
-        <div class="sc amber"><span class="sc-lbl">L1 Conversion</span><div class="sc-val" id="inv-l1-rate">-</div></div>
-        <div class="sc purple"><span class="sc-lbl">L2 Conversion</span><div class="sc-val" id="inv-l2-rate">-</div></div>
-      </div>
-      <div class="tw">
-        <table>
-          <thead><tr><th>Code</th><th>Client</th><th>Invites Sent</th><th>L1 Booked</th><th>L2 Booked</th><th>Reward Pts</th></tr></thead>
-          <tbody id="top-referrers-body"></tbody>
-        </table>
-      </div>
+    <div class="tw">\x3ctable>
+      <thead><tr>
+        <th style="width:32px"><input type="checkbox" id="select-all" onchange="toggleSelectAll(this)" style="accent-color:var(--accent);width:13px;height:13px"/></th>
+        <th>Code</th><th>Status</th><th>Source</th><th>Location</th><th>Notes</th><th>Issued</th><th>First Scan</th><th>Redeemed</th><th>Booking</th><th>Session</th><th>Expires</th>
+      </tr></thead>
+      <tbody id="codes-body"></tbody>
+    </table></div>
+    <div style="margin-top:8px;font-size:9px;color:var(--dim);font-family:'Press Start 2P',monospace;letter-spacing:.04em" id="codes-count"></div>
+
+  </div><!-- /codes -->
+
+  <!--  LEADS  -->
+  <div class="panel" id="tab-leads">
+
+    <div class="fr">
+      <input type="text" id="lead-search" placeholder="Search name / email / code" oninput="renderLeads()" style="flex:1;min-width:200px"/>
+      <select id="lead-pkg-filter" onchange="renderLeads()">
+        <option value="">All packages</option>
+        <option value="Starter">Starter</option>
+        <option value="Signature">Signature</option>
+        <option value="Storytelling">Storytelling</option>
+      </select>
+      <label><input type="checkbox" id="lead-hot-filter" onchange="renderLeads()"/> Hot Leads only</label>
     </div>
 
-    <!-- SESSIONS -->
-    <div class="panel" id="tab-sessions">
-      <div class="sh"><h2>SESSION MANAGEMENT</h2><div class="sh-line"></div></div>
-      <div class="spanel">
-        <div class="sform-row">
-          <div class="sfield"><label>Code</label><input id="sess-code" type="text" placeholder="e.g. K7M-4Q9"/></div>
-          <div class="sfield"><label>Client Name</label><input id="sess-name" type="text"/></div>
-          <div class="sfield"><label>Status</label><select id="sess-status"><option value="">select</option><option value="requested">requested</option><option value="confirmed">confirmed</option><option value="scheduled">scheduled</option><option value="completed">completed</option><option value="ready">ready</option></select></div>
+    <div class="tw">\x3ctable>
+      <thead><tr>
+        <th>Code</th><th>Status</th><th>Name</th><th>Email</th><th>WhatsApp</th><th>Package</th><th>Price</th><th>Date</th><th>Location</th><th>Submitted</th>
+      </tr></thead>
+      <tbody id="leads-body"></tbody>
+    </table></div>
+
+  </div><!-- /leads -->
+
+  <!--  SESSIONS  -->
+  <div class="panel" id="tab-sessions">
+
+    <div class="sh"><h2>MANAGE SESSION</h2><div class="sh-line"></div>
+      <button class="btn btn-teal btn-sm" onclick="loadSessions()">REFRESH</button>
+    </div>
+
+    <div class="spanel">
+      <span class="spanel-title">SESSION METADATA</span>
+      <div class="sform-row">
+        <div class="sfield"><label>Code</label><input id="sess-code" type="text" placeholder="e.g. K7M-4Q9"/></div>
+        <div class="sfield"><label>Client Name</label><input id="sess-name" type="text" placeholder="Sarah Al..."/></div>
+        <div class="sfield"><label>Session Date</label><input id="sess-date" type="datetime-local"/></div>
+      </div>
+      <div class="sform-row">
+        <div class="sfield"><label>Status</label>
+          <select id="sess-status">
+            <option value=""> select </option>
+            <option value="requested">requested</option>
+            <option value="confirmed">confirmed</option>
+            <option value="scheduled">scheduled</option>
+            <option value="completed">completed</option>
+            <option value="editing">editing</option>
+            <option value="ready">ready</option>
+          </select>
         </div>
-        <button class="btn btn-amber btn-sm" onclick="saveSession()">SAVE</button>
-        <div id="sess-meta-status" style="margin-top:8px;font-size:10px"></div>
+        <div class="sfield"><label>Max Downloads</label><input id="sess-maxdl" type="number" value="2" min="0" max="99"/></div>
+        <div class="sfield"><label>Gallery Expires</label><input id="sess-expires" type="datetime-local"/></div>
       </div>
-      <div class="tw">
-        <table>
-          <thead><tr><th>Code</th><th>Client</th><th>Status</th><th>Session Date</th><th>File</th><th>Downloads</th></tr></thead>
-          <tbody id="sessions-body"></tbody>
-        </table>
+      <button class="btn btn-amber" onclick="saveSession()">SAVE METADATA</button>
+      <div class="sfstatus" id="sess-meta-status"></div>
+    </div>
+
+    <div class="spanel">
+      <span class="spanel-title">UPLOAD SESSION ZIP</span>
+      <div class="sform-row">
+        <div class="sfield"><label>Code</label><input id="upload-code" type="text" placeholder="e.g. K7M-4Q9"/></div>
+        <div class="sfield" style="flex:2"><label>ZIP File</label>
+          <input id="upload-file" type="file" accept=".zip,application/zip,application/x-zip-compressed" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--text);background:var(--surface3);border:1px solid var(--border);padding:5px 8px"/>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-teal" onclick="uploadSession()" id="upload-btn">UPLOAD ZIP</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSessionFile()">DELETE FILE</button>
+      </div>
+      <div class="prog-track"><div class="prog-bar" id="upload-progress"></div></div>
+      <div class="sfstatus" id="upload-status"></div>
+    </div>
+
+    <div class="sh" style="margin-top:8px"><h2>ALL SESSIONS</h2><div class="sh-line"></div></div>
+    <div class="fr">
+      <input type="text" id="sess-search" placeholder="Search code / name" oninput="renderSessions()" style="flex:1;min-width:160px"/>
+      <select id="sess-filter" onchange="renderSessions()">
+        <option value="">All statuses</option>
+        <option value="requested">requested</option>
+        <option value="confirmed">confirmed</option>
+        <option value="scheduled">scheduled</option>
+        <option value="completed">completed</option>
+        <option value="editing">editing</option>
+        <option value="ready">ready</option>
+      </select>
+    </div>
+    <div class="tw">\x3ctable>
+      <thead><tr>
+        <th>Code</th><th>Client</th><th>Session Status</th><th>Session Date</th><th>File</th><th>Downloads</th><th>Client Link</th>
+      </tr></thead>
+      <tbody id="sessions-body"></tbody>
+    </table></div>
+
+  </div><!-- /sessions -->
+
+  <!--  GENERATE  -->
+  <div class="panel" id="tab-generate">
+
+    <div class="sh"><h2>GENERATE CODES</h2><div class="sh-line"></div></div>
+    <div class="spanel" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+      <div class="sfield" style="min-width:120px">
+        <label>Quantity</label>
+        <input id="gen-count" type="number" value="10" min="1" max="200"/>
+      </div>
+      <button class="btn btn-amber" onclick="generateBulk()">GENERATE BULK</button>
+      <button class="btn btn-teal btn-sm" onclick="generateOne()">+ ONE CODE</button>
+    </div>
+
+    <div class="mini-stats" id="gen-mini-stats"></div>
+
+    <div class="sh" style="margin-top:16px"><h2>OUTPUT</h2><div class="sh-line"></div></div>
+    <div class="code-box" id="gen-output"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn btn-teal btn-sm" onclick="copyAll()">COPY ALL</button>
+      <button class="btn btn-amber btn-sm" onclick="copyCSV()">COPY CSV</button>
+    </div>
+
+    <div class="sh" style="margin-top:20px"><h2>GENERATED THIS SESSION</h2><div class="sh-line"></div></div>
+    <div class="tw gen-tbl">\x3ctable>
+      <thead><tr><th>Code</th><th>Created</th></tr></thead>
+      <tbody id="gen-table-body"></tbody>
+    </table></div>
+
+  </div><!-- /generate -->
+
+  <!--  ACTIVITY  -->
+  <div class="panel" id="tab-activity">
+    <div class="sh"><h2>LIVE ACTIVITY FEED</h2><div class="sh-line"></div>
+      <button class="btn btn-teal btn-sm" onclick="loadActivity()">REFRESH</button>
+    </div>
+    <div class="activity-feed" id="activity-feed"></div>
+  </div><!-- /activity -->
+
+  <!-- INVITES PANEL -->
+  <div class="panel" id="tab-invites">
+
+    <div class="sh"><h2>INVITE NETWORK OVERVIEW</h2><div class="sh-line"></div>
+      <button class="btn btn-teal btn-sm" onclick="loadInvites()">REFRESH</button>
+    </div>
+
+    <!-- Summary stats -->
+    <div class="sg" style="margin-bottom:20px" id="invite-stats-grid">
+      <div class="sc teal"><span class="sc-lbl">Total Invites Sent</span><div class="sc-val" id="inv-total">-</div></div>
+      <div class="sc amber"><span class="sc-lbl">L1 Conversion</span><div class="sc-val" id="inv-l1-rate">-</div><div class="sc-sub">direct bookings</div></div>
+      <div class="sc purple"><span class="sc-lbl">L2 Conversion</span><div class="sc-val" id="inv-l2-rate">-</div><div class="sc-sub">2nd-degree bookings</div></div>
+    </div>
+
+    <!-- Top referrers -->
+    <div class="sh" style="margin-top:4px"><h2>TOP REFERRERS</h2><div class="sh-line"></div></div>
+    <div class="tw" style="margin-bottom:24px">
+      <table>
+        <thead><tr>
+          <th>Code</th><th>Client</th><th>Invites Sent</th>
+          <th>L1 Booked</th><th>L2 Booked</th><th>Reward Pts</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="top-referrers-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Tree lookup -->
+    <div class="sh"><h2>INVITE TREE</h2><div class="sh-line"></div></div>
+    <div class="spanel" style="margin-bottom:16px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <div class="sfield" style="flex:1;min-width:160px">
+          <label>Lookup code</label>
+          <input id="tree-code-input" type="text" placeholder="e.g. K7M-4Q9"
+            style="background:var(--surface3);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:6px 10px"/>
+        </div>
+        <button class="btn btn-teal" onclick="loadTree()">LOAD TREE</button>
       </div>
     </div>
 
-    <!-- GENERATE -->
-    <div class="panel" id="tab-generate">
-      <div class="sh"><h2>GENERATE CODES</h2><div class="sh-line"></div></div>
-      <div class="spanel" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
-        <div class="sfield" style="min-width:120px"><label>Quantity</label><input id="gen-count" type="number" value="10" min="1" max="200"/></div>
-        <button class="btn btn-amber" onclick="generateBulk()">GENERATE BULK</button>
-        <button class="btn btn-teal btn-sm" onclick="generateOne()">+ ONE CODE</button>
+    <!-- Tree + summary -->
+    <div id="tree-container" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start;flex-wrap:wrap;margin-bottom:20px">
+        <div class="spanel" style="margin:0">
+          <span class="spanel-title">INVITE TREE</span>
+          <div id="tree-visual" style="font-family:'Space Mono',monospace;font-size:11px;line-height:2;color:var(--muted)"></div>
+        </div>
+        <div class="spanel" style="margin:0;min-width:200px">
+          <span class="spanel-title">SUMMARY</span>
+          <div id="tree-summary" style="font-family:'Space Mono',monospace;font-size:11px;line-height:2;color:var(--muted)"></div>
+        </div>
       </div>
-      <div class="sh" style="margin-top:16px"><h2>OUTPUT</h2><div class="sh-line"></div></div>
-      <div class="code-box" id="gen-output"></div>
+
+      <!-- Reward controls -->
+      <div class="spanel" style="margin-bottom:16px">
+        <span class="spanel-title">MANAGE REWARDS</span>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px">
+          <div class="sfield">
+            <label>Set Points</label>
+            <input id="reward-pts-input" type="number" min="0" step="0.5" placeholder="0"
+              style="background:var(--surface3);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:6px 10px;width:100px"/>
+          </div>
+          <div class="sfield">
+            <label>Add Reward Badge</label>
+            <input id="reward-badge-input" type="text" placeholder="e.g. vip_session"
+              style="background:var(--surface3);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:6px 10px;width:200px"/>
+          </div>
+          <button class="btn btn-amber btn-sm" onclick="saveRewards()">SAVE REWARDS</button>
+        </div>
+        <div id="reward-save-status" style="font-size:10px;min-height:16px;font-family:'Space Mono',monospace"></div>
+      </div>
     </div>
 
-    <!-- ACTIVITY -->
-    <div class="panel" id="tab-activity">
-      <div class="sh"><h2>LIVE ACTIVITY FEED</h2><div class="sh-line"></div><button class="btn btn-teal btn-sm" onclick="loadActivity()">REFRESH</button></div>
-      <div class="activity-feed" id="activity-feed"></div>
+  </div><!-- /invites -->
+
+  </div><!-- /content-area -->
+</div><!-- /shell -->
+
+<!-- LEAD MODAL -->
+<div class="modal-overlay" id="lead-modal">
+  <div class="modal">
+    <div class="mhdr">
+      <h2 id="modal-code-title">CODE</h2>
+      <button class="mclose" onclick="closeModal()">&#10005;</button>
+    </div>
+    <div class="msec">
+      <h3>Journey Timeline</h3>
+      <div class="tl-strip" id="modal-tl-strip"></div>
+    </div>
+    <div class="msec" id="modal-gap-section">
+      <h3>Time Gaps</h3>
+      <div id="modal-gaps"></div>
+    </div>
+    <div class="msec">
+      <h3>Event Log</h3>
+      <div class="tl-list" id="modal-timeline"></div>
+    </div>
+    <div class="msec" id="modal-lead-section" style="display:none">
+      <h3>Lead Profile</h3>
+      <div class="fgrid" id="modal-lead-fields"></div>
+    </div>
+    <div class="msec">
+      <h3>Edit</h3>
+      <div class="fedit" style="display:flex;flex-direction:column;gap:8px">
+        <input id="edit-location" placeholder="Location / handout spot"/>
+        <textarea id="edit-notes" rows="2" placeholder="Notes"></textarea>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-amber btn-sm" onclick="saveCodeEdits()">SAVE</button>
+          <button class="btn btn-teal btn-sm" onclick="markIssued()">MARK AS ISSUED</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE TEST MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="cmodal">
+    <h2>DELETE TEST DATA</h2>
+    <p>The following codes have notes containing <b style="color:var(--accent)">"test"</b> and will be permanently deleted:</p>
+    <div class="code-list" id="confirm-code-list"></div>
+    <p style="color:var(--dim);font-size:10px">Redeemed and expired codes are never deleted.</p>
+    <div class="confirm-btns">
+      <button class="btn btn-teal btn-sm" onclick="closeConfirm()">CANCEL</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmDeleteTest()">DELETE</button>
+    </div>
+  </div>
+</div>
+
+<!-- GENERAL CONFIRM MODAL -->
+<div class="modal-overlay" id="gen-confirm-modal">
+  <div class="cmodal">
+    <h2 id="gen-confirm-title">CONFIRM</h2>
+    <p id="gen-confirm-msg" style="color:var(--text);font-size:11px;line-height:1.7"></p>
+    <div class="confirm-btns">
+      <button class="btn btn-teal btn-sm" onclick="genConfirmResolve(false)">CANCEL</button>
+      <button class="btn btn-danger btn-sm" onclick="genConfirmResolve(true)">CONFIRM</button>
     </div>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
+//  CONFIG 
 const API = 'https://raoufpx-promo-server-production.up.railway.app';
 let allCodes = [];
 let allLeads = [];
 let genCodes = [];
+let chartPkg = null, chartLoc = null, chartRev = null;
+let currentModalCode = null;
 let _adminKey = '';
 
 function key() { return _adminKey; }
 function headers() { return { 'Content-Type':'application/json', 'Authorization':'Bearer '+key() }; }
 
-// LOGIN
+//  LOGIN 
 async function doLogin() {
   const input = document.getElementById('login-key').value.trim();
   const errEl = document.getElementById('login-error');
   errEl.textContent = '';
   if (!input) { errEl.textContent = 'Enter your admin key.'; return; }
 
+  errEl.style.color = 'var(--muted)';
+  errEl.textContent = 'Connecting...';
+
   try {
-    const r = await fetch(`${API}/admin/activity`, { headers: { 'Authorization': 'Bearer '+input } });
-    if (!r.ok) { errEl.textContent = 'Invalid key.'; return; }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+
+    const r = await fetch(`${API}/admin/activity`, {
+      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+input },
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    if (!r.ok) {
+      errEl.style.color = 'var(--danger)';
+      errEl.textContent = r.status === 401 ? 'Invalid key. Try again.' : 'Server error ' + r.status + '.';
+      return;
+    }
     _adminKey = input;
+    errEl.textContent = '';
     document.getElementById('login-gate').style.display = 'none';
-    document.getElementById('shell').style.display = 'grid';
     document.getElementById('topbar-key-display').textContent = 'authenticated';
     await loadAll();
-  } catch(e) { errEl.textContent = 'Cannot reach server.'; }
+  } catch(e) {
+    errEl.style.color = 'var(--danger)';
+    errEl.textContent = e.name === 'AbortError'
+      ? 'Server timed out. Railway may be waking up - try again in 10s.'
+      : 'Could not reach server. Check connection.';
+  }
 }
 
 function doLogout() {
   _adminKey = '';
   document.getElementById('login-key').value = '';
+  document.getElementById('login-error').textContent = '';
   document.getElementById('login-gate').style.display = 'flex';
-  document.getElementById('shell').style.display = 'none';
+  document.getElementById('topbar-key-display').textContent = '';
 }
 
-function fmtShort(iso) { if (!iso) return ''; return new Date(iso).toLocaleString(); }
-function isHot(entry) { return entry.redeemedAt && !entry.bookingSubmittedAt && entry.status !== 'expired'; }
+//  HELPERS 
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d=new Date(iso);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+function fmtShort(iso) {
+  if (!iso) return '';
+  const d=new Date(iso);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+function fmtDuration(secs) {
+  if (!secs && secs!==0) return '';
+  if (secs<60) return secs+'s';
+  return Math.floor(secs/60)+'m '+Math.round(secs%60)+'s';
+}
+function timeDiff(a,b) {
+  if (!a||!b) return null;
+  const ms=Math.abs(new Date(b)-new Date(a));
+  const mins=Math.round(ms/60000);
+  if (mins<1) return '<1 min';
+  if (mins<60) return mins+' min';
+  const h=Math.floor(mins/60), m=mins%60;
+  return h+'h'+(m?' '+m+'m':'');
+}
+function isHot(entry) { return entry.redeemedAt && !entry.bookingSubmittedAt && entry.status!=='expired'; }
 
-// TABS
+//  TABS 
 document.querySelectorAll('.tab').forEach(t => {
   t.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
     t.classList.add('active');
     document.getElementById('tab-'+t.dataset.tab).classList.add('active');
-    if (t.dataset.tab === 'activity') loadActivity();
-    if (t.dataset.tab === 'sessions') loadSessions();
-    if (t.dataset.tab === 'invites') loadInvites();
+    if (t.dataset.tab==='activity') loadActivity();
+    if (t.dataset.tab==='sessions') loadSessions();
+    if (t.dataset.tab==='invites')  loadInvites();
   });
 });
 
+//  LOAD ALL 
 async function loadAll() {
   await Promise.all([loadAnalytics(), loadCodes(), loadLeads(), loadRevenue()]);
 }
 
+//  ANALYTICS 
 async function loadAnalytics() {
-  try {
-    const r = await fetch(`${API}/admin/analytics`, { headers: headers() });
-    if (!r.ok) return;
-    const d = await r.json();
-    const f = d.funnel || {};
-    const rt = d.rates || {};
-    
-    document.getElementById('s-issued').textContent = f.codesIssued || '0';
-    document.getElementById('s-scans').textContent = f.qrScans || '0';
-    document.getElementById('s-redeemed').textContent = f.codesEntered || '0';
-    document.getElementById('s-bookings').textContent = f.bookingsSubmitted || '0';
-    document.getElementById('s-hot').textContent = allCodes.filter(isHot).length;
-    document.getElementById('s-expired').textContent = allCodes.filter(c => c.status === 'expired').length;
-    document.getElementById('r-scan').textContent = rt.scanRate || '0%';
-    document.getElementById('r-unlock').textContent = rt.unlockRate || '0%';
-    document.getElementById('r-booking').textContent = rt.bookingRate || '0%';
-    
-    const leads = d.recentLeads || [];
-    document.getElementById('recent-leads-body').innerHTML = leads.slice(0,10).map(l => `
-      <tr><td style="color:var(--accent)">${l.code||''}</td><td>${l.clientName||''}</td><td>${l.selectedPackage||''}</td>
-      <td style="color:var(--success)">${l.price?l.price+' AED':''}</td><td>${l.date||''}</td><td style="color:var(--dim)">${fmtShort(l.submittedAt)}</td></tr>
-    `).join('') || '<tr><td colspan="6">No bookings yet</td></tr>';
-  } catch(e) { console.error(e); }
+  const r = await fetch(`${API}/admin/analytics`, {headers:headers()});
+  if (!r.ok) return;
+  const d = await r.json();
+  const f = d.funnel || {};
+  const rt = d.rates || {};
+
+  document.getElementById('s-issued').textContent   = f.codesIssued       ?? '';
+  document.getElementById('s-scans').textContent    = f.qrScans           ?? '';
+  document.getElementById('s-redeemed').textContent = f.codesEntered      ?? '';
+  document.getElementById('s-bookings').textContent = f.bookingsSubmitted ?? '';
+  document.getElementById('s-expired').textContent  = allCodes.filter(c=>c.status==='expired').length;
+  document.getElementById('s-hot').textContent      = allCodes.filter(isHot).length;
+
+  document.getElementById('r-scan').textContent    = rt.scanRate    || '';
+  document.getElementById('r-unlock').textContent  = rt.unlockRate  || '';
+  document.getElementById('r-booking').textContent = rt.bookingRate || '';
+
+  // Funnel bars
+  const funnelEl = document.getElementById('funnel-bars');
+  const steps = [
+    { label:'CARDS ISSUED', val:f.codesIssued||0,       color:'var(--accent)' },
+    { label:'QR SCANS',     val:f.qrScans||0,            color:'var(--accent3)' },
+    { label:'UNLOCKED',     val:f.codesEntered||0,       color:'var(--accent4)' },
+    { label:'BOOKINGS',     val:f.bookingsSubmitted||0,  color:'var(--success)' },
+  ];
+  const maxVal = Math.max(...steps.map(s=>s.val), 1);
+  funnelEl.innerHTML = steps.map(s=>`
+    <div class="frow">
+      <div class="flabel">${s.label}</div>
+      <div class="ftrack">
+        <div class="fbar" style="width:${(s.val/maxVal*100).toFixed(1)}%;background:${s.color}">
+          <span>${s.val}</span>
+        </div>
+      </div>
+      <div class="fval">${s.val}</div>
+    </div>`).join('');
+
+  // Package chart
+  const pkgs = d.packages || {};
+  const pkgLabels = Object.keys(pkgs);
+  const pkgVals   = pkgLabels.map(k=>pkgs[k]);
+  if (chartPkg) chartPkg.destroy();
+  chartPkg = new Chart(document.getElementById('chart-pkg'), {
+    type:'doughnut',
+    data:{ labels:pkgLabels, datasets:[{ data:pkgVals, backgroundColor:['#f0b44c','#4cf0d0','#c84bff'], borderWidth:0 }] },
+    options:{ plugins:{ legend:{ labels:{ color:'rgba(255,255,255,.6)', font:{family:'Space Mono',size:10} } } }, maintainAspectRatio:true }
+  });
+
+  // Location chart
+  const locs = d.locations || {};
+  const locLabels = Object.keys(locs).slice(0,8);
+  const locVals   = locLabels.map(k=>locs[k]);
+  if (chartLoc) chartLoc.destroy();
+  chartLoc = new Chart(document.getElementById('chart-loc'), {
+    type:'bar',
+    data:{ labels:locLabels, datasets:[{ data:locVals, backgroundColor:'rgba(76,240,208,.5)', borderColor:'var(--accent3)', borderWidth:1 }] },
+    options:{ plugins:{ legend:{display:false} }, scales:{ x:{ticks:{color:'rgba(255,255,255,.45)',font:{size:9}}}, y:{ticks:{color:'rgba(255,255,255,.45)',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}} }, maintainAspectRatio:true }
+  });
+
+  // Recent leads
+  const leads = d.recentLeads || [];
+  document.getElementById('recent-leads-body').innerHTML = leads.map(l=>`
+     <tr>
+      <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${l.code||''}</td>
+      <td>${l.clientName||''}</td>
+      <td>${l.selectedPackage||''}</td>
+      <td style="color:var(--success)">${l.price?l.price+' AED':''}</td>
+      <td>${l.date||''}</td>
+      <td style="color:var(--dim)">${fmtShort(l.submittedAt)}</td>
+     </tr>`).join('') || '<tr><td colspan="6" style="color:var(--dim);text-align:center;padding:16px;font-family:Space Mono,monospace">No bookings yet</td></tr>';
+
+  renderEngagement();
 }
 
+//  ENGAGEMENT 
+function renderEngagement() {
+  const withSession = allCodes.filter(c => c.sessionDuration !== null && c.sessionDuration !== undefined);
+  const total = withSession.length || 1;
+  const bounce     = withSession.filter(c=>c.sessionDuration < 10).length;
+  const skim       = withSession.filter(c=>c.sessionDuration>=10  && c.sessionDuration<30).length;
+  const interested = withSession.filter(c=>c.sessionDuration>=30  && c.sessionDuration<120).length;
+  const engaged    = withSession.filter(c=>c.sessionDuration>=120).length;
+  const items = [{id:'bounce',n:bounce},{id:'skim',n:skim},{id:'interested',n:interested},{id:'engaged',n:engaged}];
+  items.forEach(({id,n})=>{
+    const pct = (n/total*100).toFixed(0)+'%';
+    document.getElementById(`eng-${id}`).style.width = pct;
+    document.getElementById(`eng-${id}-pct`).textContent = pct;
+    document.getElementById(`eng-${id}-n`).textContent = n;
+  });
+}
+
+//  REVENUE 
 async function loadRevenue() {
-  try {
-    const r = await fetch(`${API}/admin/revenue`, { headers: headers() });
-    if (!r.ok) return;
-    const d = await r.json();
-    document.getElementById('rev-total').textContent = d.totalRevenue?.toLocaleString() || '0';
-    document.getElementById('rev-avg').textContent = d.avgBookingValue?.toLocaleString() || '0';
-    document.getElementById('rev-per-card').textContent = d.revenuePerCard?.toLocaleString() || '0';
-    
-    const bp = d.byPackage || {};
-    document.getElementById('rev-starter-count').textContent = (bp.Starter?.count||0)+' bookings';
-    document.getElementById('rev-starter-rev').textContent = (bp.Starter?.revenue||0).toLocaleString()+' AED';
-    document.getElementById('rev-sig-count').textContent = (bp.Signature?.count||0)+' bookings';
-    document.getElementById('rev-sig-rev').textContent = (bp.Signature?.revenue||0).toLocaleString()+' AED';
-    document.getElementById('rev-story-count').textContent = (bp.Storytelling?.count||0)+' bookings';
-    document.getElementById('rev-story-rev').textContent = (bp.Storytelling?.revenue||0).toLocaleString()+' AED';
-  } catch(e) { console.error(e); }
+  const r = await fetch(`${API}/admin/revenue`, {headers:headers()});
+  if (!r.ok) return;
+  const d = await r.json();
+  document.getElementById('rev-total').textContent    = d.totalRevenue?.toLocaleString()    || '0';
+  document.getElementById('rev-avg').textContent      = d.avgBookingValue?.toLocaleString() || '0';
+  document.getElementById('rev-per-card').textContent = d.revenuePerCard?.toLocaleString()  || '0';
+  document.getElementById('rev-issued').textContent   = d.issuedCards || '0';
+  document.getElementById('rev-bookings').textContent = d.bookings    || '0';
+
+  const bp = d.byPackage || {};
+  document.getElementById('rev-starter-count').textContent = (bp.Starter?.count||0)+' bookings';
+  document.getElementById('rev-starter-rev').textContent   = (bp.Starter?.revenue||0).toLocaleString()+' AED';
+  document.getElementById('rev-sig-count').textContent     = (bp.Signature?.count||0)+' bookings';
+  document.getElementById('rev-sig-rev').textContent       = (bp.Signature?.revenue||0).toLocaleString()+' AED';
+  document.getElementById('rev-story-count').textContent   = (bp.Storytelling?.count||0)+' bookings';
+  document.getElementById('rev-story-rev').textContent     = (bp.Storytelling?.revenue||0).toLocaleString()+' AED';
+
+  if (chartRev) chartRev.destroy();
+  chartRev = new Chart(document.getElementById('chart-rev'), {
+    type:'bar',
+    data:{
+      labels:['Starter','Signature','Storytelling'],
+      datasets:[{ label:'Revenue (AED)', data:[bp.Starter?.revenue||0,bp.Signature?.revenue||0,bp.Storytelling?.revenue||0], backgroundColor:['rgba(240,180,76,.6)','rgba(76,240,208,.6)','rgba(200,75,255,.6)'], borderColor:['var(--accent)','var(--accent3)','var(--accent4)'], borderWidth:1 }]
+    },
+    options:{ plugins:{legend:{display:false}}, scales:{ x:{ticks:{color:'rgba(255,255,255,.55)',font:{family:'Space Mono',size:9}}}, y:{ticks:{color:'rgba(255,255,255,.55)',font:{size:9},callback:v=>v+' AED'},grid:{color:'rgba(255,255,255,.04)'}} }, maintainAspectRatio:true }
+  });
 }
 
+//  SELECTION STATE 
+let selectedCodes = new Set();
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulk-bar');
+  const count = document.getElementById('bulk-count');
+  if (selectedCodes.size > 0) { bar.classList.add('visible'); count.textContent = selectedCodes.size + ' selected'; }
+  else bar.classList.remove('visible');
+  const allVisible = [...document.querySelectorAll('.row-check')].map(cb=>cb.value);
+  const allChecked = allVisible.length > 0 && allVisible.every(v => selectedCodes.has(v));
+  const selAll = document.getElementById('select-all');
+  if (selAll) selAll.checked = allChecked;
+}
+
+function toggleSelectAll(cb) {
+  document.querySelectorAll('.row-check').forEach(c => {
+    c.checked = cb.checked;
+    cb.checked ? selectedCodes.add(c.value) : selectedCodes.delete(c.value);
+  });
+  updateBulkBar();
+}
+function toggleRow(cb) { cb.checked ? selectedCodes.add(cb.value) : selectedCodes.delete(cb.value); updateBulkBar(); }
+function clearSelection() {
+  selectedCodes.clear();
+  document.querySelectorAll('.row-check').forEach(c=>c.checked=false);
+  const sa=document.getElementById('select-all');
+  if (sa) sa.checked=false;
+  updateBulkBar();
+}
+
+//  CODES 
 async function loadCodes() {
-  try {
-    const r = await fetch(`${API}/admin/codes`, { headers: headers() });
-    if (!r.ok) return;
-    const d = await r.json();
-    allCodes = d.codes || [];
-    renderCodes();
-  } catch(e) { console.error(e); }
+  const r = await fetch(`${API}/admin/codes`, {headers:headers()});
+  if (!r.ok) return;
+  const d = await r.json();
+  allCodes = d.codes || [];
+  renderCodes();
+  renderEngagement();
+  document.getElementById('s-expired').textContent = allCodes.filter(c=>c.status==='expired').length;
+  document.getElementById('s-hot').textContent = allCodes.filter(isHot).length;
+  const total=allCodes.length, av=allCodes.filter(c=>c.status==='available').length, is=allCodes.filter(c=>c.status==='issued').length, re=allCodes.filter(c=>c.status==='redeemed').length;
+  document.getElementById('gen-mini-stats').innerHTML = `<span class="mini-stat">Total: <b>${total}</b></span><span class="mini-stat">Available: <b>${av}</b></span><span class="mini-stat">Issued: <b>${is}</b></span><span class="mini-stat">Redeemed: <b>${re}</b></span>`;
 }
 
 function renderCodes() {
-  const search = (document.getElementById('code-search').value||'').toLowerCase();
-  const filter = document.getElementById('code-filter').value;
-  const hotOnly = document.getElementById('filter-hot')?.checked;
-  
+  const search  = (document.getElementById('code-search').value||'').toLowerCase();
+  const filter  = document.getElementById('code-filter').value;
+  const hotOnly = document.getElementById('filter-hot').checked;
+  const noScan  = document.getElementById('filter-noscan').checked;
+
   let list = allCodes.filter(c => {
     if (filter && c.status !== filter) return false;
     if (hotOnly && !isHot(c)) return false;
-    if (search && !(c.code+c.location+c.notes).toLowerCase().includes(search)) return false;
+    if (noScan && (c.firstScanAt || c.status==='available')) return false;
+    if (search) { const hay=(c.code+c.location+c.notes).toLowerCase(); if (!hay.includes(search)) return false; }
     return true;
   });
-  
-  document.getElementById('codes-body').innerHTML = list.slice(0,200).map(c => `
-    <tr>
-      <td style="color:var(--accent)">${c.code}${isHot(c)?' 🔥':''}${c.source==='referral'?' 📧':''}</td>
+
+  const now = new Date();
+  document.getElementById('codes-body').innerHTML = list.map(c => {
+    const expiry = c.expiresAt ? new Date(c.expiresAt) : null;
+    const expired = expiry && expiry < now;
+    const expiryStr = expiry ? (expired ? '<span style="color:var(--danger);font-size:9px">EXPIRED</span>' : fmtShort(c.expiresAt)) : '';
+    const hot = isHot(c);
+    const checked = selectedCodes.has(c.code) ? 'checked' : '';
+    const src = c.source === 'referral' ? '<span style="color:var(--accent4);font-size:9px">REF</span>' : '<span style="color:var(--dim);font-size:9px">STR</span>';
+    return `<tr>
+      <td onclick="event.stopPropagation()">
+        <input type="checkbox" class="row-check" value="${c.code}" ${checked} onchange="toggleRow(this)" style="accent-color:var(--accent);width:13px;height:13px"/>
+      </td>
+      <td style="cursor:pointer" onclick="openModal('${c.code}')">
+        <span style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${c.code}</span>
+        ${hot?'<br><span class="pill pill-hot" style="margin-top:4px">HOT</span>':''}
+      </td>
       <td><span class="pill pill-${c.status}">${c.status}</span></td>
-      <td>${c.source === 'referral' ? 'REF' : 'STR'}</td>
-      <td>${c.location || '-'}</td>
-      <td style="max-width:150px;overflow:hidden">${c.notes || '-'}</td>
-      <td>${fmtShort(c.issuedAt)}</td>
-      <td>${fmtShort(c.redeemedAt)}</td>
-      <td>${c.bookingSubmittedAt ? '✓' : ''}</td>
-       </tr>
-  `).join('') || '}<td colspan="8">No codes found</td></tr>';
+      <td>${src}</td>
+      <td style="color:var(--muted)">${c.location||''}</td>
+      <td style="color:var(--dim);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(c.notes||'').replace(/"/g,'&quot;')}">${c.notes||''}</td>
+      <td style="color:var(--dim)">${fmtShort(c.issuedAt)}</td>
+      <td style="color:var(--dim)">${fmtShort(c.firstScanAt)}</td>
+      <td style="color:var(--dim)">${fmtShort(c.redeemedAt)}</td>
+      <td>${c.bookingSubmittedAt ? '<span style="color:var(--success);font-size:10px">YES '+fmtShort(c.bookingSubmittedAt)+'</span>' : ''}</td>
+      <td style="color:var(--accent3)">${fmtDuration(c.sessionDuration)}</td>
+      <td>${expiryStr}</td>
+     </tr>`;
+  }).join('') || '<tr><td colspan="12" style="color:var(--dim);text-align:center;padding:20px;font-family:Space Mono,monospace">No codes match filter</td></tr>';
+
+  document.getElementById('codes-count').textContent = `showing ${list.length} of ${allCodes.length}`;
+  updateBulkBar();
 }
 
+//  BULK ACTIONS 
+async function bulkPatch(payload) {
+  if (!selectedCodes.size) return;
+  const codes = [...selectedCodes];
+  await Promise.all(codes.map(code => fetch(`${API}/admin/code/${code}`, { method:'PATCH', headers:headers(), body:JSON.stringify(payload) })));
+  clearSelection(); await loadCodes();
+}
+async function bulkSetNotes() {
+  const notes = document.getElementById('bulk-notes').value;
+  if (!notes) { alert('Enter notes text first.'); return; }
+  if (!await genConfirm('SET NOTES', `Set notes to "${notes}" on ${selectedCodes.size} code(s)?`)) return;
+  await bulkPatch({ notes }); document.getElementById('bulk-notes').value='';
+}
+async function bulkSetLocation() {
+  const location = document.getElementById('bulk-location').value;
+  if (!location) { alert('Enter location first.'); return; }
+  if (!await genConfirm('SET LOCATION', `Set location to "${location}" on ${selectedCodes.size} code(s)?`)) return;
+  await bulkPatch({ location }); document.getElementById('bulk-location').value='';
+}
+async function bulkMarkIssued() {
+  if (!selectedCodes.size) return;
+  if (!await genConfirm('MARK ISSUED', `Mark ${selectedCodes.size} code(s) as issued?`)) return;
+  await bulkPatch({ status:'issued' });
+}
+async function bulkDelete() {
+  if (!selectedCodes.size) return;
+  const codes = [...selectedCodes];
+  const safe = codes.filter(code => { const e=allCodes.find(c=>c.code===code); return e && e.status!=='redeemed' && e.status!=='expired'; });
+  const blocked = codes.length - safe.length;
+  if (blocked > 0) alert(`${blocked} code(s) skipped (redeemed/expired).`);
+  if (!safe.length) return;
+  if (!await genConfirm('DELETE CODES', `Permanently delete ${safe.length} code(s)? Cannot be undone.`)) return;
+  await Promise.all(safe.map(code => fetch(`${API}/admin/code/${code}`, { method:'DELETE', headers:headers() })));
+  clearSelection(); await loadCodes();
+}
+
+//  LEADS 
 async function loadLeads() {
-  try {
-    const r = await fetch(`${API}/admin/leads`, { headers: headers() });
-    if (!r.ok) return;
-    const d = await r.json();
-    allLeads = d.leads || [];
-    renderLeads();
-  } catch(e) { console.error(e); }
+  const r = await fetch(`${API}/admin/leads`, {headers:headers()});
+  if (!r.ok) return;
+  const d = await r.json();
+  allLeads = d.leads || [];
+  renderLeads();
 }
 
 function renderLeads() {
-  const search = (document.getElementById('lead-search').value||'').toLowerCase();
-  const pkg = document.getElementById('lead-pkg-filter').value;
-  
+  const search  = (document.getElementById('lead-search').value||'').toLowerCase();
+  const pkg     = document.getElementById('lead-pkg-filter').value;
+  const hotOnly = document.getElementById('lead-hot-filter').checked;
+  const hotCodes = new Set(allCodes.filter(isHot).map(c=>c.code));
+  const hotNonLeads = allCodes.filter(isHot).filter(c => !allLeads.find(l=>l.code===c.code));
   let list = allLeads.filter(l => {
     if (pkg && l.selectedPackage !== pkg) return false;
-    if (search && !(l.clientName+l.email+l.code).toLowerCase().includes(search)) return false;
+    if (search) { const hay=((l.clientName||'')+(l.email||'')+(l.code||'')+(l.whatsapp||'')).toLowerCase(); if (!hay.includes(search)) return false; }
     return true;
   });
-  
-  document.getElementById('leads-body').innerHTML = list.slice(0,100).map(l => `
-    <tr>
-      <td style="color:var(--accent)">${l.code||''}</td>
+  let combined = hotOnly ? [...list.filter(l=>hotCodes.has(l.code)), ...hotNonLeads.map(c=>({code:c.code,_hotOnly:true,location:c.location,notes:c.notes,redeemedAt:c.redeemedAt}))] : list;
+  document.getElementById('leads-body').innerHTML = combined.map(l => {
+    const isHotLead = hotCodes.has(l.code) || l._hotOnly;
+    const codeEntry = allCodes.find(c=>c.code===l.code)||{};
+    if (l._hotOnly) {
+      return `<tr style="cursor:pointer" onclick="openModal('${l.code}')">
+        <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${l.code}</td>
+        <td><span class="pill pill-hot">HOT</span></td>
+        <td colspan="7" style="color:var(--dim)">Redeemed  not booked yet</td>
+        <td style="color:var(--dim)">${fmtShort(l.redeemedAt)}</td>
+       </tr>`;
+    }
+    return `<tr style="cursor:pointer" onclick="openModal('${l.code}')">
+      <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${l.code||''}${isHotLead?'<br><span class="pill pill-hot" style="margin-top:3px">HOT</span>':''}</td>
+      <td><span class="pill pill-${codeEntry.status||'available'}">${codeEntry.status||''}</span></td>
       <td>${l.clientName||''}</td>
-      <td>${l.email||''}</td>
-      <td>${l.whatsapp||''}</td>
+      <td style="color:var(--dim)">${l.email||''}</td>
+      <td><a href="https://wa.me/${(l.whatsapp||'').replace(/\D/g,'')}" target="_blank" style="color:var(--accent3);text-decoration:none">${l.whatsapp||''}</a></td>
       <td>${l.selectedPackage||''}</td>
       <td style="color:var(--success)">${l.price?l.price+' AED':''}</td>
-      <td>${fmtShort(l.submittedAt)}</td>
-     </tr>
-  `).join('') || '}<td colspan="7">No leads found</td></tr>';
+      <td>${l.date||''}</td>
+      <td style="color:var(--dim)">${l.location||''}</td>
+      <td style="color:var(--dim)">${fmtShort(l.submittedAt)}</td>
+     </tr>`;
+  }).join('') || '<tr><td colspan="10" style="color:var(--dim);text-align:center;padding:20px;font-family:Space Mono,monospace">No leads found</td></tr>';
 }
+
+//  MODAL 
+async function openModal(code) {
+  currentModalCode = code;
+  const r = await fetch(`${API}/admin/lead/${code}`, {headers:headers()});
+  if (!r.ok) return;
+  const d = await r.json();
+  const entry = d.code || {};
+  const lead  = d.lead || null;
+
+  document.getElementById('modal-code-title').textContent = code + (isHot(entry) ? '  HOT' : '');
+
+  const events = [
+    { label:'Created',   ts:entry.createdAt,         icon:'o' },
+    { label:'Issued',    ts:entry.issuedAt,           icon:'>' },
+    { label:'Scanned',   ts:entry.firstScanAt,        icon:'#' },
+    { label:'Redeemed',  ts:entry.redeemedAt,         icon:'*' },
+    { label:'Booked',    ts:entry.bookingSubmittedAt, icon:'+' },
+  ];
+  let stripHTML = '';
+  events.forEach((ev, i) => {
+    const done = !!ev.ts;
+    stripHTML += `<div class="tl-node">
+      <div class="tl-dot ${done?'done':'skip'}">${ev.icon}</div>
+      <div class="tl-node-label ${done?'done':''}">${ev.label}${done?'<br><span style="font-size:7px;color:var(--dim)">'+fmtShort(ev.ts)+'</span>':''}</div>
+    </div>`;
+    if (i < events.length-1) {
+      const gap = (done && events[i+1].ts) ? timeDiff(ev.ts, events[i+1].ts) : null;
+      stripHTML += `<div class="tl-connector ${done?'done':''}" style="position:relative">${gap?`<span class="tl-gap-label">${gap}</span>`:''}</div>`;
+    }
+  });
+  document.getElementById('modal-tl-strip').innerHTML = stripHTML;
+
+  const gaps = [];
+  if (entry.issuedAt   && entry.firstScanAt)        gaps.push({ from:'Issued',   to:'First Scan', diff:timeDiff(entry.issuedAt,entry.firstScanAt) });
+  if (entry.firstScanAt && entry.redeemedAt)         gaps.push({ from:'Scan',     to:'Redeem',     diff:timeDiff(entry.firstScanAt,entry.redeemedAt) });
+  if (entry.redeemedAt  && entry.bookingSubmittedAt) gaps.push({ from:'Redeem',   to:'Booking',    diff:timeDiff(entry.redeemedAt,entry.bookingSubmittedAt) });
+  if (entry.createdAt   && entry.issuedAt)           gaps.unshift({ from:'Created', to:'Issued',   diff:timeDiff(entry.createdAt,entry.issuedAt) });
+  const gapSection = document.getElementById('modal-gap-section');
+  if (gaps.length) {
+    gapSection.style.display='';
+    document.getElementById('modal-gaps').innerHTML = gaps.map(g=>`
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;font-size:11px">
+        <span style="color:var(--dim);min-width:80px">${g.from}</span>
+        <span style="color:var(--border2)">-></span>
+        <span style="color:var(--dim);min-width:80px">${g.to}</span>
+        <span style="color:var(--accent);font-weight:700">${g.diff}</span>
+      </div>`).join('');
+  } else { gapSection.style.display='none'; }
+
+  const tlItems = [
+    { label:'Created',    ts:entry.createdAt },
+    { label:'Issued',     ts:entry.issuedAt },
+    { label:'First Scan', ts:entry.firstScanAt },
+    { label:'Redeemed',   ts:entry.redeemedAt },
+    { label:'Expires',    ts:entry.expiresAt },
+    { label:'Booking',    ts:entry.bookingSubmittedAt },
+  ];
+  let tlHTML = tlItems.map(ev=>`
+    <div class="tl-ev ${ev.ts?'done':'pending'}">
+      <div class="tl-ev-title">${ev.label}</div>
+      <div class="tl-ev-time">${ev.ts ? fmtDate(ev.ts) : 'not yet'}</div>
+    </div>`).join('');
+  if (entry.sessionDuration !== null && entry.sessionDuration !== undefined) {
+    tlHTML += `<div class="tl-ev done"><div class="tl-ev-title">Session Duration</div><div class="tl-ev-time">${fmtDuration(entry.sessionDuration)}</div></div>`;
+  }
+  document.getElementById('modal-timeline').innerHTML = tlHTML;
+
+  const leadSection = document.getElementById('modal-lead-section');
+  if (lead) {
+    leadSection.style.display='';
+    document.getElementById('modal-lead-fields').innerHTML = `
+      <div class="fld"><label>Name</label><span>${lead.clientName||''}</span></div>
+      <div class="fld"><label>Email</label><a href="mailto:${lead.email}">${lead.email||''}</a></div>
+      <div class="fld"><label>WhatsApp</label><a href="https://wa.me/${(lead.whatsapp||'').replace(/\D/g,'')}" target="_blank">${lead.whatsapp||''}</a></div>
+      <div class="fld"><label>Package</label><span>${lead.selectedPackage||''}</span></div>
+      <div class="fld"><label>Price</label><span style="color:var(--success)">${lead.price?lead.price+' AED':''}</span></div>
+      <div class="fld"><label>Session Date</label><span>${lead.date||''}</span></div>`;
+  } else { leadSection.style.display='none'; }
+
+  document.getElementById('edit-location').value = entry.location || '';
+  document.getElementById('edit-notes').value    = entry.notes    || '';
+  document.getElementById('lead-modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('lead-modal').classList.remove('open'); currentModalCode=null; }
+document.getElementById('lead-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeModal(); });
+
+async function saveCodeEdits() {
+  if (!currentModalCode) return;
+  const body = { location:document.getElementById('edit-location').value, notes:document.getElementById('edit-notes').value };
+  await fetch(`${API}/admin/code/${currentModalCode}`, { method:'PATCH', headers:headers(), body:JSON.stringify(body) });
+  closeModal(); await loadCodes();
+}
+async function markIssued() {
+  if (!currentModalCode) return;
+  const body = { status:'issued', location:document.getElementById('edit-location').value, notes:document.getElementById('edit-notes').value };
+  await fetch(`${API}/admin/code/${currentModalCode}`, { method:'PATCH', headers:headers(), body:JSON.stringify(body) });
+  closeModal(); await loadCodes();
+}
+
+//  GENERATE 
+async function generateBulk() {
+  const count = parseInt(document.getElementById('gen-count').value)||10;
+  const r = await fetch(`${API}/admin/generate-bulk`, { method:'POST', headers:headers(), body:JSON.stringify({count}) });
+  const d = await r.json();
+  if (d.codes) { genCodes = [...genCodes, ...d.codes]; renderGenOutput(); await loadCodes(); }
+}
+async function generateOne() {
+  const r = await fetch(`${API}/admin/generate-code`, { method:'POST', headers:headers() });
+  const d = await r.json();
+  if (d.code) { genCodes.push({code:d.code,createdAt:d.createdAt}); renderGenOutput(); await loadCodes(); }
+}
+function renderGenOutput() {
+  document.getElementById('gen-output').textContent = genCodes.map(c=>c.code).join('\n');
+  document.getElementById('gen-table-body').innerHTML = genCodes.slice().reverse().map(c=>`
+     <tr><td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${c.code}</td><td style="color:var(--dim)">${fmtDate(c.createdAt)}</td></tr>`).join('');
+}
+function copyAll() { navigator.clipboard.writeText(genCodes.map(c=>c.code).join('\n')); }
+function copyCSV() { navigator.clipboard.writeText('code,createdAt\n'+genCodes.map(c=>`${c.code},${c.createdAt}`).join('\n')); }
+
+//  ACTIVITY 
+async function loadActivity() {
+  const r = await fetch(`${API}/admin/activity`, {headers:headers()});
+  if (!r.ok) return;
+  const d = await r.json();
+  const feed = document.getElementById('activity-feed');
+  const typeColors = {
+    'QR Scan':'var(--accent3)','Code Redeemed':'var(--accent4)','Booking Submitted':'var(--success)',
+    'HOT Lead Captured':'var(--accent2)','Code Issued':'var(--accent)','Gallery Uploaded':'var(--accent3)',
+    'Gallery Downloaded':'var(--success)','Code Deleted':'var(--danger)','Session Updated':'var(--accent)',
+  };
+  feed.innerHTML = (d.feed||[]).map(ev=>`
+    <div class="aitem">
+      <span class="atime">${fmtShort(ev.time)}</span>
+      <span class="atype" style="color:${typeColors[ev.type]||'var(--accent3)'}">${ev.type}</span>
+      <span class="adetail">${ev.detail||''}</span>
+    </div>`).join('') || '<div style="color:var(--dim);padding:20px;font-family:Space Mono,monospace">No activity yet</div>';
+}
+
+//  EXPORT 
+function exportCSV() { window.open(`${API}/admin/export?key=${encodeURIComponent(key())}`, '_blank'); }
+
+//  DELETE TEST DATA 
+let _pendingTestCodes = [];
+async function showDeleteTestConfirm() {
+  await loadCodes();
+  _pendingTestCodes = allCodes.filter(c => (c.notes||'').toLowerCase().includes('test'));
+  if (!_pendingTestCodes.length) { alert('No test codes found.'); return; }
+  document.getElementById('confirm-code-list').textContent = _pendingTestCodes.map(c=>c.code).join(', ');
+  document.getElementById('confirm-modal').classList.add('open');
+}
+function closeConfirm() { document.getElementById('confirm-modal').classList.remove('open'); }
+async function confirmDeleteTest() {
+  const r = await fetch(`${API}/admin/test-data`, { method:'DELETE', headers:headers() });
+  const d = await r.json();
+  closeConfirm(); await loadCodes();
+  alert(`Deleted ${d.deleted||0} test codes.`);
+}
+document.getElementById('confirm-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeConfirm(); });
+
+//  GENERAL CONFIRM 
+let _genConfirmCb = null;
+function genConfirm(title, msg) {
+  return new Promise(resolve => {
+    _genConfirmCb = resolve;
+    document.getElementById('gen-confirm-title').textContent = title;
+    document.getElementById('gen-confirm-msg').textContent   = msg;
+    document.getElementById('gen-confirm-modal').classList.add('open');
+  });
+}
+function genConfirmResolve(val) {
+  document.getElementById('gen-confirm-modal').classList.remove('open');
+  if (_genConfirmCb) { _genConfirmCb(val); _genConfirmCb=null; }
+}
+document.getElementById('gen-confirm-modal').addEventListener('click', e => { if (e.target===e.currentTarget) genConfirmResolve(false); });
+
+//  AUTO-REFRESH ACTIVITY 
+setInterval(() => {
+  const activeTab = document.querySelector('.tab.active');
+  if (activeTab?.dataset?.tab === 'activity' && key()) loadActivity();
+}, 30000);
+
+//  SESSIONS TAB 
+function loadSessions() { loadCodes().then(() => renderSessions()); }
+
+function renderSessions() {
+  const search = (document.getElementById('sess-search').value||'').toLowerCase();
+  const filter = document.getElementById('sess-filter').value;
+  const CLIENT_SITE = 'https://raoufpx.com';
+  let list = allCodes.filter(c => {
+    if (filter && c.sessionStatus !== filter) return false;
+    if (search) { const hay=((c.code||'')+(c.clientName||'')+(c.sessionStatus||'')).toLowerCase(); if (!hay.includes(search)) return false; }
+    return true;
+  });
+  document.getElementById('sessions-body').innerHTML = list.map(c => {
+    const hasFile   = !!c.galleryFile;
+    const maxDl     = c.maxDownloads !== undefined ? c.maxDownloads : 2;
+    const curDl     = c.downloadCount || 0;
+    const dlDisplay = maxDl===0 ? `${curDl}/inf` : `${curDl}/${maxDl}`;
+    const clientLink = `${CLIENT_SITE}/client.html?code=${encodeURIComponent(c.code)}`;
+    const spill = c.sessionStatus ? `<span class="spill spill-${c.sessionStatus}">${c.sessionStatus}</span>` : '';
+    return `<tr>
+      <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px;cursor:pointer" onclick="prefillSession('${c.code}')">${c.code}</td>
+      <td>${c.clientName||'<span style="color:var(--dim)"></span>'}</td>
+      <td>${spill}</td>
+      <td style="color:var(--dim);font-size:10px">${c.sessionDate ? fmtShort(c.sessionDate) : ''}</td>
+      <td style="text-align:center">${hasFile?'<span style="color:var(--success)">ZIP</span>':'<span style="color:var(--dim)"></span>'}</td>
+      <td style="color:var(--muted);font-size:10px">${c.sessionStatus ? dlDisplay : ''}</td>
+      <td>${c.sessionStatus?`<button class="btn btn-sm btn-teal" onclick="copyToClipboard('${clientLink}')">COPY LINK</button>`:'<span style="color:var(--dim)"></span>'}</td>
+     </tr>`;
+  }).join('') || '<tr><td colspan="7" style="color:var(--dim);text-align:center;padding:20px;font-family:Space Mono,monospace">No sessions found</td></tr>';
+}
+
+function prefillSession(code) {
+  document.getElementById('sess-code').value    = code;
+  document.getElementById('upload-code').value  = code;
+  const entry = allCodes.find(c=>c.code===code);
+  if (entry) {
+    document.getElementById('sess-name').value   = entry.clientName   || '';
+    document.getElementById('sess-status').value = entry.sessionStatus|| '';
+    document.getElementById('sess-maxdl').value  = entry.maxDownloads !== undefined ? entry.maxDownloads : 2;
+    if (entry.sessionDate) { try { const d=new Date(entry.sessionDate); if(!isNaN(d)){const local=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16); document.getElementById('sess-date').value=local;} } catch{} }
+    else document.getElementById('sess-date').value='';
+    if (entry.galleryExpiresAt) { try { const d=new Date(entry.galleryExpiresAt); if(!isNaN(d)){const local=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16); document.getElementById('sess-expires').value=local;} } catch{} }
+    else document.getElementById('sess-expires').value='';
+  }
+  document.getElementById('sess-code').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+async function saveSession() {
+  const code     = document.getElementById('sess-code').value.trim().toUpperCase();
+  const statusEl = document.getElementById('sess-meta-status');
+  if (!code) { statusEl.style.color='var(--danger)'; statusEl.textContent='Enter a code first.'; return; }
+  const body={}, name=document.getElementById('sess-name').value.trim(), status=document.getElementById('sess-status').value, dateVal=document.getElementById('sess-date').value, maxdl=document.getElementById('sess-maxdl').value, expires=document.getElementById('sess-expires').value;
+  if (name)    body.clientName    = name;
+  if (status)  body.sessionStatus = status;
+  if (dateVal) body.sessionDate   = new Date(dateVal).toISOString();
+  if (maxdl!=='') body.maxDownloads = parseInt(maxdl,10);
+  if (expires) body.galleryExpiresAt = new Date(expires).toISOString();
+  statusEl.style.color='var(--muted)'; statusEl.textContent='Saving...';
+  try {
+    const r = await fetch(`${API}/admin/session/${code}`, { method:'PATCH', headers:headers(), body:JSON.stringify(body) });
+    const d = await r.json();
+    if (!r.ok) { statusEl.style.color='var(--danger)'; statusEl.textContent=d.error||'Error.'; return; }
+    statusEl.style.color='var(--success)'; statusEl.textContent='Saved.';
+    await loadCodes(); renderSessions();
+  } catch(e) { statusEl.style.color='var(--danger)'; statusEl.textContent='Network error.'; }
+}
+
+async function uploadSession() {
+  const code=document.getElementById('upload-code').value.trim().toUpperCase(), fileEl=document.getElementById('upload-file'), statusEl=document.getElementById('upload-status'), progressEl=document.getElementById('upload-progress'), btn=document.getElementById('upload-btn');
+  if (!code) { statusEl.style.color='var(--danger)'; statusEl.textContent='Enter a code first.'; return; }
+  if (!fileEl.files||!fileEl.files[0]) { statusEl.style.color='var(--danger)'; statusEl.textContent='Select a ZIP file.'; return; }
+  const file=fileEl.files[0];
+  if (!file.name.toLowerCase().endsWith('.zip')) { statusEl.style.color='var(--danger)'; statusEl.textContent='Only .zip files allowed.'; return; }
+  const form=new FormData(); form.append('code',code); form.append('file',file);
+  btn.disabled=true; btn.textContent='UPLOADING...'; progressEl.style.width='0%';
+  statusEl.style.color='var(--muted)'; statusEl.textContent=`Uploading ${(file.size/1024/1024).toFixed(1)} MB...`;
+  try {
+    await new Promise((resolve,reject) => {
+      const xhr=new XMLHttpRequest();
+      xhr.open('POST',`${API}/admin/upload-session`);
+      xhr.setRequestHeader('Authorization','Bearer '+key());
+      xhr.upload.onprogress=e=>{if(e.lengthComputable) progressEl.style.width=(e.loaded/e.total*100).toFixed(0)+'%';};
+      xhr.onload=()=>{if(xhr.status>=200&&xhr.status<300)resolve(JSON.parse(xhr.responseText));else reject(new Error(xhr.responseText));};
+      xhr.onerror=()=>reject(new Error('Network error'));
+      xhr.send(form);
+    });
+    progressEl.style.width='100%'; statusEl.style.color='var(--success)'; statusEl.textContent='Uploaded. Status set to ready.';
+    fileEl.value=''; await loadCodes(); renderSessions();
+  } catch(e) { progressEl.style.width='0%'; statusEl.style.color='var(--danger)'; statusEl.textContent='Upload failed: '+(e.message||'Unknown error'); }
+  finally { btn.disabled=false; btn.textContent='UPLOAD ZIP'; }
+}
+
+async function deleteSessionFile() {
+  const code=document.getElementById('upload-code').value.trim().toUpperCase(), statusEl=document.getElementById('upload-status');
+  if (!code) { statusEl.style.color='var(--danger)'; statusEl.textContent='Enter a code first.'; return; }
+  if (!await genConfirm('DELETE FILE', `Delete the uploaded file for ${code}? Cannot be undone.`)) return;
+  try {
+    const r=await fetch(`${API}/admin/session-file/${code}`,{method:'DELETE',headers:headers()});
+    const d=await r.json();
+    if (!r.ok) { statusEl.style.color='var(--danger)'; statusEl.textContent=d.error||'Error.'; return; }
+    statusEl.style.color='var(--success)'; statusEl.textContent='File deleted.';
+    await loadCodes(); renderSessions();
+  } catch(e) { statusEl.style.color='var(--danger)'; statusEl.textContent='Network error.'; }
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    document.querySelectorAll('#sessions-body button').forEach(b => {
+      if (b.getAttribute('onclick')&&b.getAttribute('onclick').includes(text)) {
+        const orig=b.textContent; b.textContent='COPIED!';
+        setTimeout(()=>{b.textContent=orig;},1800);
+      }
+    });
+  });
+}
+// ============================================================
+// INVITES TAB
+// ============================================================
+
+let _treeCode = null;
 
 async function loadInvites() {
   try {
     const r = await fetch(`${API}/admin/invite-summary`, { headers: headers() });
     if (!r.ok) return;
     const d = await r.json();
-    document.getElementById('inv-total').textContent = d.totalInvitesSent || 0;
+
+    // Summary stats
+    document.getElementById('inv-total').textContent   = d.totalInvitesSent || 0;
     document.getElementById('inv-l1-rate').textContent = (d.l1BookingRate || 0) + '%';
     document.getElementById('inv-l2-rate').textContent = (d.l2BookingRate || 0) + '%';
-    
+
+    // Top referrers table
     const tbody = document.getElementById('top-referrers-body');
-    const refs = d.topReferrers || [];
-    tbody.innerHTML = refs.map(r => `
-      <tr><td style="color:var(--accent)">${r.code}</td><td>${r.clientName||'-'}</td>
-      <td>${r.sent}</td><td style="color:var(--success)">${r.l1Booked}</td>
-      <td style="color:var(--accent4)">${r.l2Booked}</td><td style="color:var(--accent)">${(r.rewardPoints||0).toFixed(1)}</td>
-     </tr>`).join('') || '}<td colspan="6">No referrals yet</td></tr>';
-  } catch(e) { console.error(e); }
+    const refs  = d.topReferrers || [];
+    tbody.innerHTML = refs.length ? refs.map(r => `
+       <tr>
+        <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px;cursor:pointer"
+            onclick="quickLoadTree('${r.code}')">${r.code}</td>
+        <td>${r.clientName || '<span style="color:var(--dim)">-</span>'}</td>
+        <td style="color:var(--accent3)">${r.sent}</td>
+        <td style="color:var(--success)">${r.l1Booked}</td>
+        <td style="color:var(--accent4)">${r.l2Booked}</td>
+        <td style="color:var(--accent)">${(r.rewardPoints||0).toFixed(1)}</td>
+        <td>
+          <button class="btn btn-sm btn-teal" onclick="quickLoadTree('${r.code}')">VIEW TREE</button>
+        </td>
+       </tr>`).join('')
+    : '<tr><td colspan="7" style="color:var(--dim);text-align:center;padding:16px">No referrals yet</td></tr>';
+
+  } catch(e) { console.error('[loadInvites]', e); }
 }
 
-async function loadSessions() {
-  await loadCodes();
-  const search = (document.getElementById('sess-search')?.value||'').toLowerCase();
-  const filter = document.getElementById('sess-filter')?.value;
-  
-  let list = allCodes.filter(c => {
-    if (filter && c.sessionStatus !== filter) return false;
-    if (search && !(c.code+c.clientName).toLowerCase().includes(search)) return false;
-    return true;
-  });
-  
-  document.getElementById('sessions-body').innerHTML = list.slice(0,100).map(c => `
-    <tr>
-      <td style="color:var(--accent)">${c.code}</td>
-      <td>${c.clientName||'-'}</td>
-      <td>${c.sessionStatus ? `<span class="pill pill-${c.sessionStatus}">${c.sessionStatus}</span>` : '-'}</td>
-      <td>${c.sessionDate ? fmtShort(c.sessionDate) : '-'}</td>
-      <td>${c.galleryFile ? '✓' : '-'}</td>
-      <td>${c.downloadCount||0}/${c.maxDownloads||2}</td>
-     </tr>
-  `).join('') || '}<td colspan="6">No sessions found</td></tr>';
+function quickLoadTree(code) {
+  document.getElementById('tree-code-input').value = code;
+  loadTree();
+  // Scroll to tree
+  document.getElementById('tree-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-async function saveSession() {
-  const code = document.getElementById('sess-code').value.trim().toUpperCase();
-  const statusEl = document.getElementById('sess-meta-status');
-  if (!code) { statusEl.textContent = 'Enter code'; return; }
-  const body = {};
-  const name = document.getElementById('sess-name').value.trim();
-  const status = document.getElementById('sess-status').value;
-  if (name) body.clientName = name;
-  if (status) body.sessionStatus = status;
-  
+async function loadTree() {
+  const code = document.getElementById('tree-code-input').value.trim().toUpperCase();
+  if (!code) return;
+  _treeCode = code;
+
   try {
-    const r = await fetch(`${API}/admin/session/${code}`, { method: 'PATCH', headers: headers(), body: JSON.stringify(body) });
-    if (!r.ok) throw new Error();
-    statusEl.style.color = 'var(--success)'; statusEl.textContent = 'Saved.';
-    await loadSessions();
-  } catch(e) { statusEl.style.color = 'var(--danger)'; statusEl.textContent = 'Error.'; }
-}
-
-async function generateBulk() {
-  const count = parseInt(document.getElementById('gen-count').value) || 10;
-  const r = await fetch(`${API}/admin/generate-bulk`, { method: 'POST', headers: headers(), body: JSON.stringify({ count }) });
-  const d = await r.json();
-  if (d.codes) { genCodes = [...genCodes, ...d.codes]; document.getElementById('gen-output').textContent = genCodes.map(c => c.code).join('\n'); await loadCodes(); }
-}
-
-async function generateOne() {
-  const r = await fetch(`${API}/admin/generate-code`, { method: 'POST', headers: headers() });
-  const d = await r.json();
-  if (d.code) { genCodes.push({ code: d.code, createdAt: d.createdAt }); document.getElementById('gen-output').textContent = genCodes.map(c => c.code).join('\n'); await loadCodes(); }
-}
-
-async function loadActivity() {
-  try {
-    const r = await fetch(`${API}/admin/activity`, { headers: headers() });
+    const r = await fetch(`${API}/admin/invite-tree/${code}`, { headers: headers() });
+    if (r.status === 404) {
+      document.getElementById('tree-visual').textContent = 'Code not found.';
+      document.getElementById('tree-container').style.display = 'block';
+      return;
+    }
     if (!r.ok) return;
     const d = await r.json();
-    document.getElementById('activity-feed').innerHTML = (d.feed||[]).map(ev => `
-      <div class="aitem"><span class="atime">${fmtShort(ev.time)}</span><span class="atype">${ev.type}</span><span class="adetail">${ev.detail||''}</span></div>
-    `).join('') || '<div>No activity yet</div>';
-  } catch(e) { console.error(e); }
+
+    // Render ASCII tree
+    const tree = d.tree || {};
+    const sum  = d.summary || {};
+    let html = '';
+
+    // Root node
+    const rootName  = tree.clientName || code;
+    const rootBooked = tree.booked ? ' <span style="color:var(--success)">(booked)</span>' : '';
+    const rootPts   = tree.rewardPoints > 0
+      ? ' <span style="color:var(--accent)">+' + tree.rewardPoints.toFixed(1) + 'pts</span>' : '';
+    html += '<span style="color:var(--text);font-weight:700">' + rootName + '</span>'
+          + rootBooked + rootPts + '\n';
+
+    const children = tree.children || [];
+    children.forEach((child, ci) => {
+      const isLast   = ci === children.length - 1;
+      const prefix   = isLast ? '&nbsp;&nbsp;&nbsp;' : '|&nbsp;&nbsp;';
+      const connector = isLast ? '&#x2514;&#x2500;&#x2500; ' : '&#x251C;&#x2500;&#x2500; ';
+      const cName    = child.clientName || child.code;
+      const cBooked  = child.booked ? ' <span style="color:var(--success)">(booked)</span>' : ' <span style="color:var(--dim)">(not booked)</span>';
+      const cCode    = ' <span style="color:var(--accent3);font-size:9px">' + child.code + '</span>';
+      html += connector + cName + cCode + cBooked + '\n';
+
+      // L2 children
+      (child.children || []).forEach((cc, cci) => {
+        const isLastCC  = cci === (child.children.length - 1);
+        const ccConnect = prefix + (isLastCC ? '&nbsp;&nbsp;&nbsp;&nbsp;&#x2514;&#x2500;&#x2500; ' : '&nbsp;&nbsp;&nbsp;&nbsp;&#x251C;&#x2500;&#x2500; ');
+        const ccName   = cc.clientName || cc.code;
+        const ccBooked = cc.booked ? ' <span style="color:var(--success)">(booked)</span>' : ' <span style="color:var(--dim)">(not booked)</span>';
+        const ccCode   = ' <span style="color:var(--accent4);font-size:9px">' + cc.code + '</span>';
+        html += ccConnect + ccName + ccCode + ccBooked + '\n';
+      });
+    });
+
+    document.getElementById('tree-visual').innerHTML =
+      '<pre style="white-space:pre-wrap;font-size:11px;line-height:1.9">' + html + '</pre>';
+
+    // Summary
+    document.getElementById('tree-summary').innerHTML = [
+      ['Invites Sent', sum.invitesSent || 0],
+      ['L1 Booked',    '<span style="color:var(--success)">' + (sum.l1Booked||0) + '</span>'],
+      ['L2 Booked',    '<span style="color:var(--accent4)">' + (sum.l2Booked||0) + '</span>'],
+      ['Conversion',   (sum.conversionRate||0) + '%'],
+      ['Reward Points','<span style="color:var(--accent)">' + (sum.rewardPoints||0).toFixed(1) + '</span>'],
+    ].map(([k,v]) => `<div style="display:flex;justify-content:space-between;gap:16px">
+      <span style="color:var(--dim)">${k}</span><span>${v}</span></div>`).join('');
+
+    // Pre-fill reward inputs
+    document.getElementById('reward-pts-input').value   = tree.rewardPoints || 0;
+    document.getElementById('reward-badge-input').value = '';
+    document.getElementById('tree-container').style.display = 'block';
+
+  } catch(e) { console.error('[loadTree]', e); }
 }
 
-function exportCSV() { window.open(`${API}/admin/export?key=${encodeURIComponent(key())}`, '_blank'); }
+async function saveRewards() {
+  if (!_treeCode) { alert('Load a tree first.'); return; }
+  const pts    = parseFloat(document.getElementById('reward-pts-input').value);
+  const badge  = document.getElementById('reward-badge-input').value.trim();
+  const status = document.getElementById('reward-save-status');
+  const body   = {};
+  if (!isNaN(pts)) body.rewardPoints = pts;
+  if (badge)        body.addReward   = badge;
+  if (!Object.keys(body).length) return;
 
-// Load initial data after login
-window.loadAll = loadAll;
-window.renderCodes = renderCodes;
-window.renderLeads = renderLeads;
-window.loadSessions = loadSessions;
-window.loadInvites = loadInvites;
-window.loadActivity = loadActivity;
-window.saveSession = saveSession;
-window.generateBulk = generateBulk;
-window.generateOne = generateOne;
-window.exportCSV = exportCSV;
+  status.style.color = 'var(--muted)'; status.textContent = 'Saving...';
+  try {
+    const r = await fetch(`${API}/admin/reward/${_treeCode}`, {
+      method: 'PATCH', headers: headers(), body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (!r.ok) { status.style.color='var(--danger)'; status.textContent = d.error||'Error.'; return; }
+    status.style.color = 'var(--success)'; status.textContent = 'Saved. Points: ' + (d.rewardPoints||0).toFixed(1);
+    loadTree(); // refresh tree
+  } catch(e) { status.style.color='var(--danger)'; status.textContent='Network error.'; }
+}
 </script>
 </body>
 </html>
