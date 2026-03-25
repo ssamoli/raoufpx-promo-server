@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>RAOUF px Admin</title>
+<title>RAOUF px  Admin</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Press+Start+2P&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -523,7 +523,7 @@ td{padding:9px 12px;font-size:11px;vertical-align:middle}
     </div>
 
     <div class="sh"><h2>RECENT BOOKINGS</h2><div class="sh-line"></div></div>
-    <div class="tw">\x3ctable>
+    <div class="tw"><table>
       <thead><tr><th>Code</th><th>Name</th><th>Package</th><th>Price</th><th>Date</th><th>Submitted</th></tr></thead>
       <tbody id="recent-leads-body"></tbody>
     </table></div>
@@ -605,7 +605,7 @@ td{padding:9px 12px;font-size:11px;vertical-align:middle}
       <button class="btn btn-sm" style="border-color:var(--border);color:var(--muted)" onclick="clearSelection()">CLEAR</button>
     </div>
 
-    <div class="tw">\x3ctable>
+    <div class="tw"><table>
       <thead><tr>
         <th style="width:32px"><input type="checkbox" id="select-all" onchange="toggleSelectAll(this)" style="accent-color:var(--accent);width:13px;height:13px"/></th>
         <th>Code</th><th>Status</th><th>Source</th><th>Location</th><th>Notes</th><th>Issued</th><th>First Scan</th><th>Redeemed</th><th>Booking</th><th>Session</th><th>Expires</th>
@@ -630,7 +630,7 @@ td{padding:9px 12px;font-size:11px;vertical-align:middle}
       <label><input type="checkbox" id="lead-hot-filter" onchange="renderLeads()"/> Hot Leads only</label>
     </div>
 
-    <div class="tw">\x3ctable>
+    <div class="tw"><table>
       <thead><tr>
         <th>Code</th><th>Status</th><th>Name</th><th>Email</th><th>WhatsApp</th><th>Package</th><th>Price</th><th>Date</th><th>Location</th><th>Submitted</th>
       </tr></thead>
@@ -701,7 +701,7 @@ td{padding:9px 12px;font-size:11px;vertical-align:middle}
         <option value="ready">ready</option>
       </select>
     </div>
-    <div class="tw">\x3ctable>
+    <div class="tw"><table>
       <thead><tr>
         <th>Code</th><th>Client</th><th>Session Status</th><th>Session Date</th><th>File</th><th>Downloads</th><th>Client Link</th>
       </tr></thead>
@@ -733,7 +733,7 @@ td{padding:9px 12px;font-size:11px;vertical-align:middle}
     </div>
 
     <div class="sh" style="margin-top:20px"><h2>GENERATED THIS SESSION</h2><div class="sh-line"></div></div>
-    <div class="tw gen-tbl">\x3ctable>
+    <div class="tw gen-tbl"><table>
       <thead><tr><th>Code</th><th>Created</th></tr></thead>
       <tbody id="gen-table-body"></tbody>
     </table></div>
@@ -1057,14 +1057,14 @@ async function loadAnalytics() {
   // Recent leads
   const leads = d.recentLeads || [];
   document.getElementById('recent-leads-body').innerHTML = leads.map(l=>`
-     <tr>
+    <tr>
       <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${l.code||''}</td>
       <td>${l.clientName||''}</td>
       <td>${l.selectedPackage||''}</td>
       <td style="color:var(--success)">${l.price?l.price+' AED':''}</td>
       <td>${l.date||''}</td>
       <td style="color:var(--dim)">${fmtShort(l.submittedAt)}</td>
-     </tr>`).join('') || '<tr><td colspan="6" style="color:var(--dim);text-align:center;padding:16px;font-family:Space Mono,monospace">No bookings yet</td></tr>';
+    </tr>`).join('') || '<tr><td colspan="6" style="color:var(--dim);text-align:center;padding:16px;font-family:Space Mono,monospace">No bookings yet</td></tr>';
 
   renderEngagement();
 }
@@ -1200,7 +1200,7 @@ function renderCodes() {
       <td>${c.bookingSubmittedAt ? '<span style="color:var(--success);font-size:10px">YES '+fmtShort(c.bookingSubmittedAt)+'</span>' : ''}</td>
       <td style="color:var(--accent3)">${fmtDuration(c.sessionDuration)}</td>
       <td>${expiryStr}</td>
-     </tr>`;
+    </tr>`;
   }).join('') || '<tr><td colspan="12" style="color:var(--dim);text-align:center;padding:20px;font-family:Space Mono,monospace">No codes match filter</td></tr>';
 
   document.getElementById('codes-count').textContent = `showing ${list.length} of ${allCodes.length}`;
@@ -1273,7 +1273,7 @@ function renderLeads() {
         <td><span class="pill pill-hot">HOT</span></td>
         <td colspan="7" style="color:var(--dim)">Redeemed  not booked yet</td>
         <td style="color:var(--dim)">${fmtShort(l.redeemedAt)}</td>
-       </tr>`;
+      </tr>`;
     }
     return `<tr style="cursor:pointer" onclick="openModal('${l.code}')">
       <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${l.code||''}${isHotLead?'<br><span class="pill pill-hot" style="margin-top:3px">HOT</span>':''}</td>
@@ -1286,7 +1286,7 @@ function renderLeads() {
       <td>${l.date||''}</td>
       <td style="color:var(--dim)">${l.location||''}</td>
       <td style="color:var(--dim)">${fmtShort(l.submittedAt)}</td>
-     </tr>`;
+    </tr>`;
   }).join('') || '<tr><td colspan="10" style="color:var(--dim);text-align:center;padding:20px;font-family:Space Mono,monospace">No leads found</td></tr>';
 }
 
@@ -1405,7 +1405,7 @@ async function generateOne() {
 function renderGenOutput() {
   document.getElementById('gen-output').textContent = genCodes.map(c=>c.code).join('\n');
   document.getElementById('gen-table-body').innerHTML = genCodes.slice().reverse().map(c=>`
-     <tr><td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${c.code}</td><td style="color:var(--dim)">${fmtDate(c.createdAt)}</td></tr>`).join('');
+    <tr><td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${c.code}</td><td style="color:var(--dim)">${fmtDate(c.createdAt)}</td></tr>`).join('');
 }
 function copyAll() { navigator.clipboard.writeText(genCodes.map(c=>c.code).join('\n')); }
 function copyCSV() { navigator.clipboard.writeText('code,createdAt\n'+genCodes.map(c=>`${c.code},${c.createdAt}`).join('\n')); }
@@ -1499,7 +1499,7 @@ function renderSessions() {
       <td style="text-align:center">${hasFile?'<span style="color:var(--success)">ZIP</span>':'<span style="color:var(--dim)"></span>'}</td>
       <td style="color:var(--muted);font-size:10px">${c.sessionStatus ? dlDisplay : ''}</td>
       <td>${c.sessionStatus?`<button class="btn btn-sm btn-teal" onclick="copyToClipboard('${clientLink}')">COPY LINK</button>`:'<span style="color:var(--dim)"></span>'}</td>
-     </tr>`;
+    </tr>`;
   }).join('') || '<tr><td colspan="7" style="color:var(--dim);text-align:center;padding:20px;font-family:Space Mono,monospace">No sessions found</td></tr>';
 }
 
@@ -1586,7 +1586,7 @@ function copyToClipboard(text) {
       }
     });
   });
-}
+  } //
 // ============================================================
 // INVITES TAB
 // ============================================================
@@ -1608,7 +1608,7 @@ async function loadInvites() {
     const tbody = document.getElementById('top-referrers-body');
     const refs  = d.topReferrers || [];
     tbody.innerHTML = refs.length ? refs.map(r => `
-       <tr>
+      <tr>
         <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px;cursor:pointer"
             onclick="quickLoadTree('${r.code}')">${r.code}</td>
         <td>${r.clientName || '<span style="color:var(--dim)">-</span>'}</td>
@@ -1619,7 +1619,7 @@ async function loadInvites() {
         <td>
           <button class="btn btn-sm btn-teal" onclick="quickLoadTree('${r.code}')">VIEW TREE</button>
         </td>
-       </tr>`).join('')
+      </tr>`).join('')
     : '<tr><td colspan="7" style="color:var(--dim);text-align:center;padding:16px">No referrals yet</td></tr>';
 
   } catch(e) { console.error('[loadInvites]', e); }
