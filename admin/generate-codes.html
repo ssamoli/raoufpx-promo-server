@@ -1721,7 +1721,6 @@ async function saveRewards() {
     status.style.color = 'var(--success)'; status.textContent = 'Saved. Points: ' + (d.rewardPoints||0).toFixed(1);
     loadTree(); // refresh tree
   } catch(e) { status.style.color='var(--danger)'; status.textContent='Network error.'; }
-}
 </script>
 </body>
 </html>
