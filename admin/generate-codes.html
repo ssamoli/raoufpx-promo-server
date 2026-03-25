@@ -476,6 +476,7 @@ td{padding:9px 12px;font-size:11px;vertical-align:middle}
     <div class="tab" data-tab="revenue">REVENUE</div>
     <div class="tab" data-tab="codes">CODES</div>
     <div class="tab" data-tab="leads">LEADS</div>
+    <div class="tab" data-tab="invites">INVITES</div>
     <div class="tab" data-tab="sessions">SESSIONS</div>
     <div class="tab" data-tab="generate">GENERATE</div>
     <div class="tab" data-tab="activity">ACTIVITY</div>
@@ -747,6 +748,80 @@ td{padding:9px 12px;font-size:11px;vertical-align:middle}
     <div class="activity-feed" id="activity-feed"></div>
   </div><!-- /activity -->
 
+  <!-- INVITES PANEL -->
+  <div class="panel" id="tab-invites">
+
+    <div class="sh"><h2>INVITE NETWORK OVERVIEW</h2><div class="sh-line"></div>
+      <button class="btn btn-teal btn-sm" onclick="loadInvites()">REFRESH</button>
+    </div>
+
+    <!-- Summary stats -->
+    <div class="sg" style="margin-bottom:20px" id="invite-stats-grid">
+      <div class="sc teal"><span class="sc-lbl">Total Invites Sent</span><div class="sc-val" id="inv-total">-</div></div>
+      <div class="sc amber"><span class="sc-lbl">L1 Conversion</span><div class="sc-val" id="inv-l1-rate">-</div><div class="sc-sub">direct bookings</div></div>
+      <div class="sc purple"><span class="sc-lbl">L2 Conversion</span><div class="sc-val" id="inv-l2-rate">-</div><div class="sc-sub">2nd-degree bookings</div></div>
+    </div>
+
+    <!-- Top referrers -->
+    <div class="sh" style="margin-top:4px"><h2>TOP REFERRERS</h2><div class="sh-line"></div></div>
+    <div class="tw" style="margin-bottom:24px">
+      <table>
+        <thead><tr>
+          <th>Code</th><th>Client</th><th>Invites Sent</th>
+          <th>L1 Booked</th><th>L2 Booked</th><th>Reward Pts</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="top-referrers-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Tree lookup -->
+    <div class="sh"><h2>INVITE TREE</h2><div class="sh-line"></div></div>
+    <div class="spanel" style="margin-bottom:16px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <div class="sfield" style="flex:1;min-width:160px">
+          <label>Lookup code</label>
+          <input id="tree-code-input" type="text" placeholder="e.g. K7M-4Q9"
+            style="background:var(--surface3);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:6px 10px"/>
+        </div>
+        <button class="btn btn-teal" onclick="loadTree()">LOAD TREE</button>
+      </div>
+    </div>
+
+    <!-- Tree + summary -->
+    <div id="tree-container" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start;flex-wrap:wrap;margin-bottom:20px">
+        <div class="spanel" style="margin:0">
+          <span class="spanel-title">INVITE TREE</span>
+          <div id="tree-visual" style="font-family:'Space Mono',monospace;font-size:11px;line-height:2;color:var(--muted)"></div>
+        </div>
+        <div class="spanel" style="margin:0;min-width:200px">
+          <span class="spanel-title">SUMMARY</span>
+          <div id="tree-summary" style="font-family:'Space Mono',monospace;font-size:11px;line-height:2;color:var(--muted)"></div>
+        </div>
+      </div>
+
+      <!-- Reward controls -->
+      <div class="spanel" style="margin-bottom:16px">
+        <span class="spanel-title">MANAGE REWARDS</span>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px">
+          <div class="sfield">
+            <label>Set Points</label>
+            <input id="reward-pts-input" type="number" min="0" step="0.5" placeholder="0"
+              style="background:var(--surface3);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:6px 10px;width:100px"/>
+          </div>
+          <div class="sfield">
+            <label>Add Reward Badge</label>
+            <input id="reward-badge-input" type="text" placeholder="e.g. vip_session"
+              style="background:var(--surface3);border:1px solid var(--border);color:var(--text);font-family:'Space Mono',monospace;font-size:11px;padding:6px 10px;width:200px"/>
+          </div>
+          <button class="btn btn-amber btn-sm" onclick="saveRewards()">SAVE REWARDS</button>
+        </div>
+        <div id="reward-save-status" style="font-size:10px;min-height:16px;font-family:'Space Mono',monospace"></div>
+      </div>
+    </div>
+
+  </div><!-- /invites -->
+
   </div><!-- /content-area -->
 </div><!-- /shell -->
 
@@ -891,6 +966,7 @@ document.querySelectorAll('.tab').forEach(t => {
     document.getElementById('tab-'+t.dataset.tab).classList.add('active');
     if (t.dataset.tab==='activity') loadActivity();
     if (t.dataset.tab==='sessions') loadSessions();
+    if (t.dataset.tab==='invites')  loadInvites();
   });
 });
 
@@ -1492,6 +1568,141 @@ function copyToClipboard(text) {
       }
     });
   });
+// ============================================================
+// INVITES TAB
+// ============================================================
+
+let _treeCode = null;
+
+async function loadInvites() {
+  try {
+    const r = await fetch(`${API}/admin/invite-summary`, { headers: headers() });
+    if (!r.ok) return;
+    const d = await r.json();
+
+    // Summary stats
+    document.getElementById('inv-total').textContent   = d.totalInvitesSent || 0;
+    document.getElementById('inv-l1-rate').textContent = (d.l1BookingRate || 0) + '%';
+    document.getElementById('inv-l2-rate').textContent = (d.l2BookingRate || 0) + '%';
+
+    // Top referrers table
+    const tbody = document.getElementById('top-referrers-body');
+    const refs  = d.topReferrers || [];
+    tbody.innerHTML = refs.length ? refs.map(r => `
+      <tr>
+        <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px;cursor:pointer"
+            onclick="quickLoadTree('${r.code}')">${r.code}</td>
+        <td>${r.clientName || '<span style="color:var(--dim)">-</span>'}</td>
+        <td style="color:var(--accent3)">${r.sent}</td>
+        <td style="color:var(--success)">${r.l1Booked}</td>
+        <td style="color:var(--accent4)">${r.l2Booked}</td>
+        <td style="color:var(--accent)">${(r.rewardPoints||0).toFixed(1)}</td>
+        <td>
+          <button class="btn btn-sm btn-teal" onclick="quickLoadTree('${r.code}')">VIEW TREE</button>
+        </td>
+      </tr>`).join('')
+    : '<tr><td colspan="7" style="color:var(--dim);text-align:center;padding:16px">No referrals yet</td></tr>';
+
+  } catch(e) { console.error('[loadInvites]', e); }
+}
+
+function quickLoadTree(code) {
+  document.getElementById('tree-code-input').value = code;
+  loadTree();
+  // Scroll to tree
+  document.getElementById('tree-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function loadTree() {
+  const code = document.getElementById('tree-code-input').value.trim().toUpperCase();
+  if (!code) return;
+  _treeCode = code;
+
+  try {
+    const r = await fetch(`${API}/admin/invite-tree/${code}`, { headers: headers() });
+    if (r.status === 404) {
+      document.getElementById('tree-visual').textContent = 'Code not found.';
+      document.getElementById('tree-container').style.display = 'block';
+      return;
+    }
+    if (!r.ok) return;
+    const d = await r.json();
+
+    // Render ASCII tree
+    const tree = d.tree || {};
+    const sum  = d.summary || {};
+    let html = '';
+
+    // Root node
+    const rootName  = tree.clientName || code;
+    const rootBooked = tree.booked ? ' <span style="color:var(--success)">(booked)</span>' : '';
+    const rootPts   = tree.rewardPoints > 0
+      ? ' <span style="color:var(--accent)">+' + tree.rewardPoints.toFixed(1) + 'pts</span>' : '';
+    html += '<span style="color:var(--text);font-weight:700">' + rootName + '</span>'
+          + rootBooked + rootPts + '\n';
+
+    const children = tree.children || [];
+    children.forEach((child, ci) => {
+      const isLast   = ci === children.length - 1;
+      const prefix   = isLast ? '&nbsp;&nbsp;&nbsp;' : '|&nbsp;&nbsp;';
+      const connector = isLast ? '&#x2514;&#x2500;&#x2500; ' : '&#x251C;&#x2500;&#x2500; ';
+      const cName    = child.clientName || child.code;
+      const cBooked  = child.booked ? ' <span style="color:var(--success)">(booked)</span>' : ' <span style="color:var(--dim)">(not booked)</span>';
+      const cCode    = ' <span style="color:var(--accent3);font-size:9px">' + child.code + '</span>';
+      html += connector + cName + cCode + cBooked + '\n';
+
+      // L2 children
+      (child.children || []).forEach((cc, cci) => {
+        const isLastCC  = cci === (child.children.length - 1);
+        const ccConnect = prefix + (isLastCC ? '&nbsp;&nbsp;&nbsp;&nbsp;&#x2514;&#x2500;&#x2500; ' : '&nbsp;&nbsp;&nbsp;&nbsp;&#x251C;&#x2500;&#x2500; ');
+        const ccName   = cc.clientName || cc.code;
+        const ccBooked = cc.booked ? ' <span style="color:var(--success)">(booked)</span>' : ' <span style="color:var(--dim)">(not booked)</span>';
+        const ccCode   = ' <span style="color:var(--accent4);font-size:9px">' + cc.code + '</span>';
+        html += ccConnect + ccName + ccCode + ccBooked + '\n';
+      });
+    });
+
+    document.getElementById('tree-visual').innerHTML =
+      '<pre style="white-space:pre-wrap;font-size:11px;line-height:1.9">' + html + '</pre>';
+
+    // Summary
+    document.getElementById('tree-summary').innerHTML = [
+      ['Invites Sent', sum.invitesSent || 0],
+      ['L1 Booked',    '<span style="color:var(--success)">' + (sum.l1Booked||0) + '</span>'],
+      ['L2 Booked',    '<span style="color:var(--accent4)">' + (sum.l2Booked||0) + '</span>'],
+      ['Conversion',   (sum.conversionRate||0) + '%'],
+      ['Reward Points','<span style="color:var(--accent)">' + (sum.rewardPoints||0).toFixed(1) + '</span>'],
+    ].map(([k,v]) => `<div style="display:flex;justify-content:space-between;gap:16px">
+      <span style="color:var(--dim)">${k}</span><span>${v}</span></div>`).join('');
+
+    // Pre-fill reward inputs
+    document.getElementById('reward-pts-input').value   = tree.rewardPoints || 0;
+    document.getElementById('reward-badge-input').value = '';
+    document.getElementById('tree-container').style.display = 'block';
+
+  } catch(e) { console.error('[loadTree]', e); }
+}
+
+async function saveRewards() {
+  if (!_treeCode) { alert('Load a tree first.'); return; }
+  const pts    = parseFloat(document.getElementById('reward-pts-input').value);
+  const badge  = document.getElementById('reward-badge-input').value.trim();
+  const status = document.getElementById('reward-save-status');
+  const body   = {};
+  if (!isNaN(pts)) body.rewardPoints = pts;
+  if (badge)        body.addReward   = badge;
+  if (!Object.keys(body).length) return;
+
+  status.style.color = 'var(--muted)'; status.textContent = 'Saving...';
+  try {
+    const r = await fetch(`${API}/admin/reward/${_treeCode}`, {
+      method: 'PATCH', headers: headers(), body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (!r.ok) { status.style.color='var(--danger)'; status.textContent = d.error||'Error.'; return; }
+    status.style.color = 'var(--success)'; status.textContent = 'Saved. Points: ' + (d.rewardPoints||0).toFixed(1);
+    loadTree(); // refresh tree
+  } catch(e) { status.style.color='var(--danger)'; status.textContent='Network error.'; }
 }
 </script>
 </body>
