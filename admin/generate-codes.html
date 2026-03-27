@@ -1266,7 +1266,8 @@ function renderLeads() {
   let combined = hotOnly ? [...list.filter(l=>hotCodes.has(l.code)), ...hotNonLeads.map(c=>({code:c.code,_hotOnly:true,location:c.location,notes:c.notes,redeemedAt:c.redeemedAt}))] : list;
   document.getElementById('leads-body').innerHTML = combined.map(l => {
     const isHotLead = hotCodes.has(l.code) || l._hotOnly;
-    const codeEntry = allCodes.find(c=>c.code===l.code)||{};
+    const isDirect  = !l.code;
+    const codeEntry = l.code ? (allCodes.find(c=>c.code===l.code)||{}) : {};
     if (l._hotOnly) {
       return `<tr style="cursor:pointer" onclick="openModal('${l.code}')">
         <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${l.code}</td>
@@ -1275,9 +1276,15 @@ function renderLeads() {
         <td style="color:var(--dim)">${fmtShort(l.redeemedAt)}</td>
       </tr>`;
     }
-    return `<tr style="cursor:pointer" onclick="openModal('${l.code}')">
-      <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${l.code||''}${isHotLead?'<br><span class="pill pill-hot" style="margin-top:3px">HOT</span>':''}</td>
-      <td><span class="pill pill-${codeEntry.status||'available'}">${codeEntry.status||''}</span></td>
+    const codeCell = isDirect
+      ? `<td><span style="font-family:'Press Start 2P',monospace;font-size:7px;color:var(--accent3);border:1px solid rgba(76,240,208,.25);padding:2px 6px">DIRECT</span></td>`
+      : `<td style="cursor:pointer" onclick="openModal('${l.code}')"><span style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${l.code}</span>${isHotLead?'<br><span class="pill pill-hot" style="margin-top:3px">HOT</span>':''}</td>`;
+    const statusCell = isDirect
+      ? `<td><span style="font-size:9px;color:var(--dim)">direct</span></td>`
+      : `<td><span class="pill pill-${codeEntry.status||'available'}">${codeEntry.status||'-'}</span></td>`;
+    return `<tr>
+      ${codeCell}
+      ${statusCell}
       <td>${l.clientName||''}</td>
       <td style="color:var(--dim)">${l.email||''}</td>
       <td><a href="https://wa.me/${(l.whatsapp||'').replace(/\D/g,'')}" target="_blank" style="color:var(--accent3);text-decoration:none">${l.whatsapp||''}</a></td>
@@ -1586,7 +1593,8 @@ function copyToClipboard(text) {
       }
     });
   });
-  } //
+}
+
 // ============================================================
 // INVITES TAB
 // ============================================================
