@@ -81,33 +81,6 @@ function requireAdmin(req, res, next) {
 }
 
 // ---------------------------------------------------------------------------
-// LOGIN ENDPOINT - FIXED!
-// ---------------------------------------------------------------------------
-app.post('/admin/login', function(req, res) {
-  const { password } = req.body;
-  
-  if (!password) {
-    return res.status(400).json({ 
-      success: false, 
-      message: 'Password required' 
-    });
-  }
-  
-  if (password === ADMIN_KEY) {
-    return res.json({ 
-      success: true, 
-      token: ADMIN_KEY,
-      message: 'Login successful'
-    });
-  }
-  
-  res.status(401).json({ 
-    success: false, 
-    message: 'Invalid admin key' 
-  });
-});
-
-// ---------------------------------------------------------------------------
 // JSON FILE HELPERS
 // ---------------------------------------------------------------------------
 function readJSON(file, fallback) {
@@ -390,8 +363,9 @@ app.post('/track-booking', function(req, res) {
   var price           = body.price;
   var date            = body.date;
   var now             = new Date().toISOString();
-  var upperCode       = (code || '').toUpperCase();
+  var upperCode       = code ? (code || '').toUpperCase().trim() : null;
 
+  // Only touch codeStore when a promo code is provided
   if (upperCode) {
     var entry = codeStore.get(upperCode);
     if (entry) {
@@ -402,7 +376,7 @@ app.post('/track-booking', function(req, res) {
   }
 
   var lead = {
-    code:            upperCode,
+    code:            upperCode || null,   // null = direct booking (no promo code)
     clientName:      clientName      || '',
     email:           email           || '',
     whatsapp:        whatsapp        || '',
@@ -411,65 +385,68 @@ app.post('/track-booking', function(req, res) {
     date:            date            || '',
     submittedAt:     now,
     referralCodes:   [],
+    source:          upperCode ? 'promo' : 'direct',
   };
 
-  // --- Determine invite level of the booking code ---
-  var bookingEntry = codeStore.get(upperCode);
-  var bookerLevel  = bookingEntry ? (bookingEntry.inviteLevel || 0) : 0;
-
-  // --- Award reward points to the referrer (parent code holder) ---
-  if (bookingEntry && bookingEntry.parentCode) {
-    var parentEntry = codeStore.get(bookingEntry.parentCode);
-    if (parentEntry) {
-      var pointsToAdd = (bookerLevel === 1) ? 1 : 0.5; // L1 booking = 1pt, L2 = 0.5pt
-      parentEntry.rewardPoints = (parentEntry.rewardPoints || 0) + pointsToAdd;
-      // Check reward milestones
-      var pts = parentEntry.rewardPoints;
-      if (pts >= 3 && parentEntry.rewardsUnlocked.indexOf('3_bookings_bonus') === -1) {
-        parentEntry.rewardsUnlocked.push('3_bookings_bonus');
-        pushActivity('Reward Unlocked', parentEntry.code + ' - 3 bookings bonus');
-      } else if (pts >= 1 && parentEntry.rewardsUnlocked.indexOf('first_booking') === -1) {
-        parentEntry.rewardsUnlocked.push('first_booking');
-      }
-      codeStore.set(parentEntry.code, parentEntry);
-      pushActivity('Reward Points', parentEntry.code + ' +' + pointsToAdd + 'pt (now ' + parentEntry.rewardPoints + ')');
-    }
-  }
-
-  // --- Generate 3 invite codes for this new booker ---
-  // Level cap: never generate invites beyond level 2
-  var canGenerateInvites = (bookerLevel < 2);
   var referralCodes = [];
   var referralLinks = [];
 
-  if (canGenerateInvites) {
-    try {
-      for (var i = 0; i < 3; i++) {
-        var refCode  = generateUniqueCode();
-        var refEntry = makeCodeEntry(refCode);
-        refEntry.source           = 'referral';
-        refEntry.parentCode       = upperCode;
-        refEntry.referralSource   = upperCode;
-        refEntry.referrerName     = clientName || '';
-        refEntry.referrerWhatsapp = whatsapp   || '';
-        refEntry.inviteLevel      = bookerLevel + 1;   // L0 booker -> L1 invites, L1 -> L2
-        refEntry.referredBy       = upperCode;
-        codeStore.set(refCode, refEntry);
-        referralCodes.push(refCode);
-        referralLinks.push('https://raoufpx.com/secret.html?code=' + refCode);
+  // Invite generation and reward logic only applies to promo-code bookings
+  if (upperCode) {
+    var bookingEntry = codeStore.get(upperCode);
+    var bookerLevel  = bookingEntry ? (bookingEntry.inviteLevel || 0) : 0;
+
+    // Award reward points to the referrer
+    if (bookingEntry && bookingEntry.parentCode) {
+      var parentEntry = codeStore.get(bookingEntry.parentCode);
+      if (parentEntry) {
+        var pointsToAdd = (bookerLevel === 1) ? 1 : 0.5;
+        parentEntry.rewardPoints = (parentEntry.rewardPoints || 0) + pointsToAdd;
+        var pts = parentEntry.rewardPoints;
+        if (pts >= 3 && parentEntry.rewardsUnlocked.indexOf('3_bookings_bonus') === -1) {
+          parentEntry.rewardsUnlocked.push('3_bookings_bonus');
+          pushActivity('Reward Unlocked', parentEntry.code + ' - 3 bookings bonus');
+        } else if (pts >= 1 && parentEntry.rewardsUnlocked.indexOf('first_booking') === -1) {
+          parentEntry.rewardsUnlocked.push('first_booking');
+        }
+        codeStore.set(parentEntry.code, parentEntry);
+        pushActivity('Reward Points', parentEntry.code + ' +' + pointsToAdd + 'pt (now ' + parentEntry.rewardPoints + ')');
       }
-    } catch(err) {
-      console.error('[track-booking] Invite generation failed:', err.message);
     }
+
+    // Generate 3 invite codes (level cap: max 2)
+    var canGenerateInvites = (bookerLevel < 2);
+    if (canGenerateInvites) {
+      try {
+        for (var i = 0; i < 3; i++) {
+          var refCode  = generateUniqueCode();
+          var refEntry = makeCodeEntry(refCode);
+          refEntry.source           = 'referral';
+          refEntry.parentCode       = upperCode;
+          refEntry.referralSource   = upperCode;
+          refEntry.referrerName     = clientName || '';
+          refEntry.referrerWhatsapp = whatsapp   || '';
+          refEntry.inviteLevel      = bookerLevel + 1;
+          refEntry.referredBy       = upperCode;
+          codeStore.set(refCode, refEntry);
+          referralCodes.push(refCode);
+          referralLinks.push('https://raoufpx.com/secret.html?code=' + refCode);
+        }
+      } catch(err) {
+        console.error('[track-booking] Invite generation failed:', err.message);
+      }
+    }
+
+    saveCodes(codeStore);
   }
 
   lead.referralCodes = referralCodes;
   leadStore.push(lead);
   saveLeads();
-  saveCodes(codeStore);
 
-  pushActivity('Booking Submitted', (selectedPackage || '?') + ' - ' + (clientName || 'unknown') + ' (+3 referrals)');
-  console.log('[' + now + '] Booking: ' + upperCode + ' | ' + clientName + ' | ' + selectedPackage + ' | referrals: ' + referralCodes.join(', '));
+  var logSuffix = upperCode ? ('referrals: ' + referralCodes.join(', ')) : 'direct booking';
+  pushActivity('Booking Submitted', (selectedPackage || '?') + ' - ' + (clientName || 'unknown') + (upperCode ? ' (+3 referrals)' : ' (direct)'));
+  console.log('[' + now + '] Booking: ' + (upperCode || 'DIRECT') + ' | ' + clientName + ' | ' + selectedPackage + ' | ' + logSuffix);
 
   return res.json({ ok: true, referralCodes: referralCodes, referralLinks: referralLinks });
 });
@@ -886,18 +863,25 @@ app.get('/admin/analytics', requireAdmin, function(req, res) {
   var total      = codes.length;
   var issued     = codes.filter(function(c) { return c.status === 'issued' || c.issuedAt; }).length;
   var redeemed   = codes.filter(function(c) { return c.status === 'redeemed' || c.used; }).length;
+  // Funnel bookings = only promo-code bookings (code != null), matches codeStore.bookingSubmittedAt
   var withBooking= codes.filter(function(c) { return c.bookingSubmittedAt; }).length;
   var scans      = scanStore.length;
 
+  // Packages: ALL leads including direct (code = null)
   var packages = {};
   leadStore.forEach(function(l) {
     var p = l.selectedPackage || 'Unknown';
-    packages[p] = (packages[p] || 0) + 1;
+    if (p) packages[p] = (packages[p] || 0) + 1;
   });
 
   var locations = {};
   codes.forEach(function(c) {
     if (c.location) locations[c.location] = (locations[c.location] || 0) + 1;
+  });
+
+  // Recent leads: all, but show direct leads clearly
+  var recentLeads = leadStore.slice(-10).reverse().map(function(l) {
+    return Object.assign({}, l, { code: l.code || null });
   });
 
   res.json({
@@ -906,7 +890,7 @@ app.get('/admin/analytics', requireAdmin, function(req, res) {
       codesIssued:       issued,
       qrScans:           scans,
       codesEntered:      redeemed,
-      bookingsSubmitted: withBooking,
+      bookingsSubmitted: withBooking,  // promo-code bookings only (matches codeStore timeline)
     },
     rates: {
       scanRate:    issued   > 0 ? ((scans       / issued)   * 100).toFixed(1) + '%' : '-',
@@ -916,7 +900,7 @@ app.get('/admin/analytics', requireAdmin, function(req, res) {
     packages:    packages,
     locations:   locations,
     recentScans: scanStore.slice(-10).reverse(),
-    recentLeads: leadStore.slice(-10).reverse(),
+    recentLeads: recentLeads,
   });
 });
 
@@ -928,8 +912,13 @@ app.get('/admin/activity', requireAdmin, function(req, res) {
 // GET /admin/leads
 app.get('/admin/leads', requireAdmin, function(req, res) {
   var profiles = leadStore.map(function(lead) {
-    var entry = codeStore.get(lead.code) || {};
-    return Object.assign({}, lead, { location: entry.location || '', notes: entry.notes || '' });
+    // Direct bookings have code = null - don't look them up in codeStore
+    var entry = lead.code ? (codeStore.get(lead.code) || {}) : {};
+    return Object.assign({}, lead, {
+      location: entry.location || '',
+      notes:    entry.notes    || '',
+      source:   lead.source   || (lead.code ? 'promo' : 'direct'),
+    });
   });
   res.json({ total: profiles.length, leads: profiles });
 });
@@ -1250,5 +1239,5 @@ app.use(function(err, req, res, next) {
 // ===========================================================================
 app.listen(PORT, function() {
   console.log('RAOUF px promo server running on http://localhost:' + PORT);
-  console.log('Admin: http://localhost:' + PORT + '/admin/generate-codes.html');
+  console.log('Admin: http://localhost:' + PORT + '/admin/codes?key=' + ADMIN_KEY);
 });
