@@ -923,6 +923,44 @@ app.get('/admin/leads', requireAdmin, function(req, res) {
   res.json({ total: profiles.length, leads: profiles });
 });
 
+// POST /admin/delete-lead
+// Body: { submittedAt, code, isTest }
+// Identifies lead by submittedAt + code (unique enough), removes from leadStore
+app.post('/admin/delete-lead', requireAdmin, function(req, res) {
+  var body        = req.body || {};
+  var submittedAt = body.submittedAt;
+  var code        = body.code ? body.code.toUpperCase() : null;
+  var isTest      = !!body.isTest;
+
+  if (!submittedAt) return res.status(400).json({ error: 'submittedAt required.' });
+
+  var idx = -1;
+  for (var i = 0; i < leadStore.length; i++) {
+    var l = leadStore[i];
+    var codeMatch = code ? l.code === code : (l.code === null || !l.code);
+    if (l.submittedAt === submittedAt && codeMatch) { idx = i; break; }
+  }
+
+  // Fallback: match by submittedAt alone if code match failed
+  if (idx === -1) {
+    for (var j = 0; j < leadStore.length; j++) {
+      if (leadStore[j].submittedAt === submittedAt) { idx = j; break; }
+    }
+  }
+
+  if (idx === -1) return res.status(404).json({ error: 'Lead not found.' });
+
+  var removed = leadStore.splice(idx, 1)[0];
+  saveLeads();
+
+  var label = isTest ? 'test' : 'real';
+  var who   = removed.clientName || removed.code || 'unknown';
+  pushActivity('Lead Deleted', who + ' (' + label + ')');
+  console.log('[delete-lead] Removed ' + label + ' lead: ' + who + ' | ' + submittedAt);
+
+  return res.json({ ok: true, deleted: who, isTest: isTest });
+});
+
 // GET /admin/lead/:code
 app.get('/admin/lead/:code', requireAdmin, function(req, res) {
   var code  = req.params.code.toUpperCase();
