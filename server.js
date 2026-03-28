@@ -1033,7 +1033,10 @@ app.get('/admin/export', requireAdmin, function(req, res) {
 });
 
 // GET /admin/revenue
-const PACKAGE_PRICES = { Starter: 250, Signature: 499, Storytelling: 999 };
+// Prices: promo bookings use the discounted price stored in lead.price (e.g. 125, 249, 499)
+//         direct bookings use lead.price at full price (250, 499, 999)
+//         Both cases: always read from lead.price - never hardcode package lookup.
+const PACKAGE_PRICES_FULL = { Starter: 250, Signature: 499, Storytelling: 999 };
 
 app.get('/admin/revenue', requireAdmin, function(req, res) {
   var codes  = Array.from(codeStore.values());
@@ -1041,24 +1044,36 @@ app.get('/admin/revenue', requireAdmin, function(req, res) {
     return c.issuedAt || c.status === 'issued' || c.status === 'redeemed';
   }).length;
 
+  // Use actual price paid (lead.price) for every booking
+  function getPrice(l) {
+    var p = parseFloat(l.price);
+    if (!isNaN(p) && p > 0) return p;
+    // Fallback for old leads that may not have price: use full package price
+    return PACKAGE_PRICES_FULL[l.selectedPackage] || 0;
+  }
+
   var totalRevenue = 0;
-  leadStore.forEach(function(l) {
-    totalRevenue += PACKAGE_PRICES[l.selectedPackage] || 0;
-  });
+  leadStore.forEach(function(l) { totalRevenue += getPrice(l); });
 
-  var bookings          = leadStore.length;
-  var avgBookingValue   = bookings > 0 ? Math.round(totalRevenue / bookings) : 0;
-  var revenuePerCard    = issued   > 0 ? Math.round(totalRevenue / issued)   : 0;
+  var bookings        = leadStore.filter(function(l) { return l.status !== 'hot_lead'; }).length;
+  var avgBookingValue = bookings > 0 ? Math.round(totalRevenue / bookings) : 0;
+  var revenuePerCard  = issued   > 0 ? Math.round(totalRevenue / issued)   : 0;
 
+  // Package breakdown - count and revenue by package, using actual price paid
   var byPackage = {};
-  Object.keys(PACKAGE_PRICES).forEach(function(p) { byPackage[p] = { count: 0, revenue: 0 }; });
+  Object.keys(PACKAGE_PRICES_FULL).forEach(function(p) { byPackage[p] = { count: 0, revenue: 0 }; });
   leadStore.forEach(function(l) {
-    var p = l.selectedPackage;
-    if (byPackage[p]) { byPackage[p].count++; byPackage[p].revenue += PACKAGE_PRICES[p]; }
+    if (l.status === 'hot_lead') return;
+    // Normalise package name (booking.html sends lowercase e.g. "signature")
+    var rawPkg = l.selectedPackage || '';
+    var pkg = rawPkg.charAt(0).toUpperCase() + rawPkg.slice(1).toLowerCase();
+    if (!byPackage[pkg]) byPackage[pkg] = { count: 0, revenue: 0 };
+    byPackage[pkg].count++;
+    byPackage[pkg].revenue += getPrice(l);
   });
 
   return res.json({
-    totalRevenue:    totalRevenue,
+    totalRevenue:    Math.round(totalRevenue),
     avgBookingValue: avgBookingValue,
     revenuePerCard:  revenuePerCard,
     issuedCards:     issued,
