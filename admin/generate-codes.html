@@ -443,6 +443,80 @@ td{padding:9px 12px;font-size:11px;vertical-align:middle}
   .aitem{grid-template-columns:60px 1fr}
   .atype{grid-column:1/-1;order:-1}
 }
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+/* Panel fade-in when tab switches */
+.panel.active{animation:panelIn .25s ease both}
+@keyframes panelIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Stat card entrance stagger */
+.sc{animation:cardIn .3s ease both}
+.sc:nth-child(1){animation-delay:.04s}
+.sc:nth-child(2){animation-delay:.08s}
+.sc:nth-child(3){animation-delay:.12s}
+.sc:nth-child(4){animation-delay:.16s}
+.sc:nth-child(5){animation-delay:.20s}
+.sc:nth-child(6){animation-delay:.24s}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* Table rows fade in */
+tbody tr{animation:rowIn .2s ease both}
+@keyframes rowIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:none}}
+
+/* Activity feed items */
+.aitem{animation:aitemIn .3s ease both}
+@keyframes aitemIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+
+/* Modal entrance */
+.modal-overlay.open .modal,
+.modal-overlay.open .cmodal{animation:modalIn .2s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes modalIn{from{opacity:0;transform:scale(.94) translateY(8px)}to{opacity:1;transform:none}}
+
+/* Topbar logo pulse - already exists, boost glow on auth */
+#topbar.authed .tb-logo::before{
+  background:var(--accent3);
+  animation:diamond-pulse-auth 1.5s ease-in-out infinite;
+}
+@keyframes diamond-pulse-auth{0%,100%{opacity:1;transform:scale(1);box-shadow:0 0 8px var(--accent3)}50%{opacity:.5;transform:scale(.7);box-shadow:none}}
+
+/* Delete button in leads table */
+.lead-del-btn{
+  font-family:'Press Start 2P',monospace;font-size:7px;
+  padding:3px 8px;background:transparent;
+  border:1px solid rgba(255,76,76,.25);color:rgba(255,76,76,.5);
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.lead-del-btn:hover{
+  border-color:var(--danger);color:var(--danger);
+  background:rgba(255,76,76,.06);
+}
+
+/* Delete lead modal radio option hover */
+#dlm-opt-test:has(input:checked){border-color:rgba(76,240,208,.4);background:rgba(76,240,208,.04)}
+#dlm-opt-real:has(input:checked){border-color:rgba(255,76,76,.4);background:rgba(255,76,76,.04)}
+
+/* Shake animation for delete confirm */
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+.shake{animation:shake .3s ease}
+
+/* Number counter animation for stat cards */
+@keyframes countUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.sc-val{animation:countUp .4s ease both}
+
+/* Funnel bars animate in */
+.fbar{transition:width .9s cubic-bezier(.4,0,.2,1)!important}
+
+/* Tab active indicator slide */
+.tab{position:relative;overflow:hidden}
+.tab::after{content:'';position:absolute;bottom:0;left:50%;right:50%;height:2px;background:var(--accent);transition:left .2s ease,right .2s ease}
+.tab.active::after{left:0;right:0}
+
+/* Refresh button spin */
+.spinning{animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -632,7 +706,7 @@ td{padding:9px 12px;font-size:11px;vertical-align:middle}
 
     <div class="tw"><table>
       <thead><tr>
-        <th>Code</th><th>Status</th><th>Name</th><th>Email</th><th>WhatsApp</th><th>Package</th><th>Price</th><th>Date</th><th>Location</th><th>Submitted</th>
+        <th>Code</th><th>Status</th><th>Name</th><th>Email</th><th>WhatsApp</th><th>Package</th><th>Price</th><th>Date</th><th>Location</th><th>Submitted</th><th></th>
       </tr></thead>
       <tbody id="leads-body"></tbody>
     </table></div>
@@ -877,6 +951,40 @@ td{padding:9px 12px;font-size:11px;vertical-align:middle}
 </div>
 
 <!-- GENERAL CONFIRM MODAL -->
+<!-- DELETE LEAD MODAL -->
+<div class="modal-overlay" id="delete-lead-modal">
+  <div class="cmodal" style="border-color:rgba(255,76,76,.3);max-width:420px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div id="dlm-icon" style="font-size:20px;line-height:1">x</div>
+      <h2 style="color:var(--danger);font-size:9px;margin:0" id="dlm-title">DELETE LEAD</h2>
+    </div>
+    <p style="font-size:11px;color:var(--muted);line-height:1.8;margin-bottom:16px" id="dlm-desc"></p>
+    <!-- Test / Real choice -->
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
+      <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:var(--dim);letter-spacing:.08em;margin-bottom:4px">MARK AS:</div>
+      <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);cursor:pointer;transition:.15s" id="dlm-opt-test">
+        <input type="radio" name="dlm-type" value="test" style="accent-color:var(--accent3)"/>
+        <div>
+          <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--accent3)">TEST DATA</div>
+          <div style="font-size:10px;color:var(--dim);margin-top:3px">This was a test booking  not a real client</div>
+        </div>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);cursor:pointer;transition:.15s" id="dlm-opt-real">
+        <input type="radio" name="dlm-type" value="real" style="accent-color:var(--danger)"/>
+        <div>
+          <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--danger)">REAL LEAD</div>
+          <div style="font-size:10px;color:var(--dim);margin-top:3px">Delete permanently  this cannot be undone</div>
+        </div>
+      </label>
+    </div>
+    <div class="confirm-btns">
+      <button class="btn btn-sm" style="border-color:var(--border);color:var(--muted)" onclick="closeDeleteLeadModal()">CANCEL</button>
+      <button class="btn btn-danger btn-sm" id="dlm-confirm-btn" onclick="confirmDeleteLead()">DELETE</button>
+    </div>
+    <div id="dlm-status" style="font-size:10px;margin-top:10px;min-height:14px;font-family:'Space Mono',monospace"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="gen-confirm-modal">
   <div class="cmodal">
     <h2 id="gen-confirm-title">CONFIRM</h2>
@@ -1264,7 +1372,7 @@ function renderLeads() {
     return true;
   });
   let combined = hotOnly ? [...list.filter(l=>hotCodes.has(l.code)), ...hotNonLeads.map(c=>({code:c.code,_hotOnly:true,location:c.location,notes:c.notes,redeemedAt:c.redeemedAt}))] : list;
-  document.getElementById('leads-body').innerHTML = combined.map(l => {
+  document.getElementById('leads-body').innerHTML = combined.map((l, idx) => {
     const isHotLead = hotCodes.has(l.code) || l._hotOnly;
     const isDirect  = !l.code;
     const codeEntry = l.code ? (allCodes.find(c=>c.code===l.code)||{}) : {};
@@ -1272,8 +1380,9 @@ function renderLeads() {
       return `<tr style="cursor:pointer" onclick="openModal('${l.code}')">
         <td style="color:var(--accent);font-family:'Press Start 2P',monospace;font-size:9px">${l.code}</td>
         <td><span class="pill pill-hot">HOT</span></td>
-        <td colspan="7" style="color:var(--dim)">Redeemed  not booked yet</td>
+        <td colspan="8" style="color:var(--dim)">Redeemed  not booked yet</td>
         <td style="color:var(--dim)">${fmtShort(l.redeemedAt)}</td>
+        <td></td>
       </tr>`;
     }
     const codeCell = isDirect
@@ -1282,6 +1391,8 @@ function renderLeads() {
     const statusCell = isDirect
       ? `<td><span style="font-size:9px;color:var(--dim)">direct</span></td>`
       : `<td><span class="pill pill-${codeEntry.status||'available'}">${codeEntry.status||'-'}</span></td>`;
+    // Encode lead info for delete modal
+    const leadId = encodeURIComponent(JSON.stringify({ submittedAt: l.submittedAt, code: l.code, clientName: l.clientName }));
     return `<tr>
       ${codeCell}
       ${statusCell}
@@ -1293,8 +1404,9 @@ function renderLeads() {
       <td>${l.date||''}</td>
       <td style="color:var(--dim)">${l.location||''}</td>
       <td style="color:var(--dim)">${fmtShort(l.submittedAt)}</td>
+      <td><button class="lead-del-btn" onclick="openDeleteLeadModal(${idx}, allLeads)">DEL</button></td>
     </tr>`;
-  }).join('') || '<tr><td colspan="10" style="color:var(--dim);text-align:center;padding:20px;font-family:Space Mono,monospace">No leads found</td></tr>';
+  }).join('') || '<tr><td colspan="11" style="color:var(--dim);text-align:center;padding:20px;font-family:Space Mono,monospace">No leads found</td></tr>';
 }
 
 //  MODAL 
@@ -1729,8 +1841,127 @@ async function saveRewards() {
     if (!r.ok) { status.style.color='var(--danger)'; status.textContent = d.error||'Error.'; return; }
     status.style.color = 'var(--success)'; status.textContent = 'Saved. Points: ' + (d.rewardPoints||0).toFixed(1);
     loadTree(); // refresh tree
-  } catch(e) { status.style.color='var(--danger)'; status.textContent='Network error.'; }
+// ============================================================
+// DELETE LEAD
+// ============================================================
+
+let _deleteLead = null; // { submittedAt, code, clientName, idx }
+
+function openDeleteLeadModal(leadIdx, leadsArr) {
+  // Find from allLeads directly using index from the filtered list
+  // We pass allLeads reference so use the actual allLeads array
+  const lead = allLeads[leadIdx] || (leadsArr && leadsArr[leadIdx]);
+  if (!lead) return;
+  _deleteLead = lead;
+
+  const name = lead.clientName || 'Unknown';
+  const pkg  = lead.selectedPackage || '';
+  const date = lead.submittedAt ? fmtShort(lead.submittedAt) : '';
+
+  document.getElementById('dlm-title').textContent = 'DELETE LEAD';
+  document.getElementById('dlm-desc').innerHTML =
+    `<b style="color:var(--text)">${name}</b> &nbsp; ${pkg} &nbsp; <span style="color:var(--dim)">${date}</span><br/>
+    <span style="color:var(--dim);font-size:10px">Choose what kind of data this is before deleting.</span>`;
+
+  // Reset radio selection
+  document.querySelectorAll('input[name="dlm-type"]').forEach(r => r.checked = false);
+  document.getElementById('dlm-status').textContent = '';
+  document.getElementById('dlm-status').style.color = 'var(--muted)';
+
+  document.getElementById('delete-lead-modal').classList.add('open');
 }
+
+function closeDeleteLeadModal() {
+  document.getElementById('delete-lead-modal').classList.remove('open');
+  _deleteLead = null;
+}
+
+document.getElementById('delete-lead-modal').addEventListener('click', function(e) {
+  if (e.target === e.currentTarget) closeDeleteLeadModal();
+});
+
+async function confirmDeleteLead() {
+  if (!_deleteLead) return;
+
+  const selected = document.querySelector('input[name="dlm-type"]:checked');
+  if (!selected) {
+    // Shake the modal to prompt selection
+    const modal = document.querySelector('#delete-lead-modal .cmodal');
+    modal.classList.remove('shake');
+    void modal.offsetWidth; // force reflow
+    modal.classList.add('shake');
+    document.getElementById('dlm-status').style.color = 'var(--danger)';
+    document.getElementById('dlm-status').textContent = 'Please choose Test or Real first.';
+    return;
+  }
+
+  const isTest = selected.value === 'test';
+  const btn    = document.getElementById('dlm-confirm-btn');
+  const status = document.getElementById('dlm-status');
+  btn.disabled = true;
+  status.style.color = 'var(--muted)';
+  status.textContent = 'Deleting...';
+
+  try {
+    // DELETE lead from backend
+    // We send submittedAt + code as the identifier since leads have no unique ID
+    const r = await fetch(`${API}/admin/delete-lead`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({
+        submittedAt: _deleteLead.submittedAt,
+        code:        _deleteLead.code || null,
+        isTest:      isTest,
+      }),
+    });
+
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      status.style.color = 'var(--danger)';
+      status.textContent = d.error || 'Server error.';
+      btn.disabled = false;
+      return;
+    }
+
+    status.style.color = 'var(--success)';
+    status.textContent = isTest ? 'Test lead deleted.' : 'Lead permanently deleted.';
+
+    // Animate row out before reload
+    setTimeout(async () => {
+      closeDeleteLeadModal();
+      await Promise.all([loadLeads(), loadRevenue(), loadAnalytics()]);
+    }, 700);
+
+  } catch(e) {
+    status.style.color = 'var(--danger)';
+    status.textContent = 'Network error.';
+    btn.disabled = false;
+  }
+}
+
+// ============================================================
+// ANIMATIONS  tab switch + refresh button
+// ============================================================
+
+// Stagger table row animations on render
+function animateTableRows(tbodyId) {
+  const rows = document.querySelectorAll('#' + tbodyId + ' tr');
+  rows.forEach((row, i) => {
+    row.style.animationDelay = (i * 0.025) + 's';
+  });
+}
+
+// Patch renderLeads / renderCodes to trigger row stagger
+const _origRenderCodes = renderCodes;
+
+// Refresh button spin
+document.querySelector('.tb-btn.teal').addEventListener('click', function() {
+  this.classList.add('spinning');
+  setTimeout(() => this.classList.remove('spinning'), 600);
+});
+
+// Authed state  pulse logo teal
+const origDoLogin = doLogin;
 </script>
 </body>
 </html>
