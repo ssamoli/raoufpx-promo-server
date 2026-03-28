@@ -1840,7 +1840,10 @@ async function saveRewards() {
     const d = await r.json();
     if (!r.ok) { status.style.color='var(--danger)'; status.textContent = d.error||'Error.'; return; }
     status.style.color = 'var(--success)'; status.textContent = 'Saved. Points: ' + (d.rewardPoints||0).toFixed(1);
-    loadTree(); // refresh tree
+    loadTree();
+  } catch(e) { status.style.color='var(--danger)'; status.textContent='Network error.'; }
+}
+
 // ============================================================
 // DELETE LEAD
 // ============================================================
@@ -1952,16 +1955,13 @@ function animateTableRows(tbodyId) {
 }
 
 // Patch renderLeads / renderCodes to trigger row stagger
-const _origRenderCodes = renderCodes;
-
 // Refresh button spin
 document.querySelector('.tb-btn.teal').addEventListener('click', function() {
   this.classList.add('spinning');
   setTimeout(() => this.classList.remove('spinning'), 600);
 });
 
-// Authed state  pulse logo teal
-const origDoLogin = doLogin;
+//  END OF SCRIPT  do not write code below this line 
 </script>
 </body>
 </html>
