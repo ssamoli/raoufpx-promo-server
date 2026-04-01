@@ -1071,10 +1071,10 @@ app.get('/admin/export', requireAdmin, function(req, res) {
 });
 
 // GET /admin/revenue
-// Prices: promo bookings use the discounted price stored in lead.price (e.g. 125, 249, 499)
-//         direct bookings use lead.price at full price (250, 499, 999)
-//         Both cases: always read from lead.price - never hardcode package lookup.
-const PACKAGE_PRICES_FULL = { Starter: 250, Signature: 499, Storytelling: 999 };
+// Prices: promo bookings (code exists in codeStore) use discounted prices.
+//         Normal bookings (no code or code not in codeStore) use full prices.
+const NORMAL_PACKAGE_PRICES = { Starter: 250, Signature: 499, Storytelling: 999 };
+const PROMO_PACKAGE_PRICES  = { Starter: 125, Signature: 249, Storytelling: 499 };
 
 app.get('/admin/revenue', requireAdmin, function(req, res) {
   var codes  = Array.from(codeStore.values());
@@ -1082,12 +1082,16 @@ app.get('/admin/revenue', requireAdmin, function(req, res) {
     return c.issuedAt || c.status === 'issued' || c.status === 'redeemed';
   }).length;
 
-  // Use actual price paid (lead.price) for every booking
+  // Determine price: use lead.price if set, otherwise derive from package + funnel type
   function getPrice(l) {
     var p = parseFloat(l.price);
     if (!isNaN(p) && p > 0) return p;
-    // Fallback for old leads that may not have price: use full package price
-    return PACKAGE_PRICES_FULL[l.selectedPackage] || 0;
+    // Fallback for old leads without a stored price: use promo price if code is known
+    var entry = l.code ? codeStore.get(l.code.toUpperCase()) : null;
+    var priceMap = entry ? PROMO_PACKAGE_PRICES : NORMAL_PACKAGE_PRICES;
+    var rawPkg = l.selectedPackage || '';
+    var pkg = rawPkg.charAt(0).toUpperCase() + rawPkg.slice(1).toLowerCase();
+    return priceMap[pkg] || 0;
   }
 
   var totalRevenue = 0;
@@ -1099,7 +1103,7 @@ app.get('/admin/revenue', requireAdmin, function(req, res) {
 
   // Package breakdown - count and revenue by package, using actual price paid
   var byPackage = {};
-  Object.keys(PACKAGE_PRICES_FULL).forEach(function(p) { byPackage[p] = { count: 0, revenue: 0 }; });
+  Object.keys(NORMAL_PACKAGE_PRICES).forEach(function(p) { byPackage[p] = { count: 0, revenue: 0 }; });
   leadStore.forEach(function(l) {
     if (l.status === 'hot_lead') return;
     // Normalise package name (booking.html sends lowercase e.g. "signature")
