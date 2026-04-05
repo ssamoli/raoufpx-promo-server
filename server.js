@@ -1269,6 +1269,83 @@ app.delete('/admin/test-data', requireAdmin, function(req, res) {
 });
 
 // ===========================================================================
+// LEAD RADAR API ROUTES
+// ===========================================================================
+
+var RADAR_DB_PATH = path.join(__dirname, 'leads-radar.json');
+
+function loadRadarLeads() {
+  try { return JSON.parse(fs.readFileSync(RADAR_DB_PATH, 'utf8')); } catch(_) { return []; }
+}
+function saveRadarLeads(leads) {
+  fs.writeFileSync(RADAR_DB_PATH, JSON.stringify(leads, null, 2));
+}
+
+function requireAdminKey(req, res, next) {
+  var key = req.headers['x-admin-key'] || req.query.key;
+  if (key === ADMIN_KEY) return next();
+  var authHeader = req.headers['authorization'] || '';
+  var bearer = authHeader.indexOf('Bearer ') === 0 ? authHeader.slice(7) : null;
+  if (bearer === ADMIN_KEY) return next();
+  return res.status(401).json({ error: 'Unauthorized.' });
+}
+
+// GET /api/leads
+app.get('/api/leads', requireAdminKey, function(req, res) {
+  var leads = loadRadarLeads();
+  if (req.query.status)   leads = leads.filter(function(l) { return l.status   === req.query.status;   });
+  if (req.query.platform) leads = leads.filter(function(l) { return l.platform === req.query.platform; });
+  res.json({ leads: leads, total: leads.length });
+});
+
+// PATCH /api/leads/:id
+app.patch('/api/leads/:id', requireAdminKey, function(req, res) {
+  var leads = loadRadarLeads();
+  var idx   = -1;
+  for (var i = 0; i < leads.length; i++) { if (leads[i].id === req.params.id) { idx = i; break; } }
+  if (idx < 0) return res.status(404).json({ error: 'Not found.' });
+  var body = req.body || {};
+  if (body.status !== undefined) leads[idx].status = body.status;
+  if (body.notes  !== undefined) leads[idx].notes  = body.notes;
+  saveRadarLeads(leads);
+  res.json(leads[idx]);
+});
+
+// DELETE /api/leads/:id
+app.delete('/api/leads/:id', requireAdminKey, function(req, res) {
+  var leads    = loadRadarLeads();
+  var filtered = leads.filter(function(l) { return l.id !== req.params.id; });
+  if (filtered.length === leads.length) return res.status(404).json({ error: 'Not found.' });
+  saveRadarLeads(filtered);
+  res.json({ deleted: true });
+});
+
+// POST /api/leads/test - inject a test lead manually
+app.post('/api/leads/test', requireAdminKey, function(req, res) {
+  var leads = loadRadarLeads();
+  var body  = req.body || {};
+  var lead  = {
+    id:                   Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+    platform:             body.platform || 'reddit',
+    username:             body.username || '@test_user',
+    profile_or_post_link: body.link     || 'https://reddit.com/r/dubai/test',
+    location:             body.location || 'Dubai',
+    caption_or_title:     body.caption  || 'Test lead injected manually',
+    detected_time:        new Date().toISOString(),
+    status:               'new',
+    notes:                '',
+  };
+  leads.unshift(lead);
+  saveRadarLeads(leads);
+  res.json(lead);
+});
+
+// GET /radar - serve the radar UI
+app.get('/radar', function(req, res) {
+  res.sendFile(path.join(__dirname, 'public', 'radar', 'index.html'));
+});
+
+// ===========================================================================
 // CATCH-ALL
 // ===========================================================================
 app.get('*', function(req, res) {
