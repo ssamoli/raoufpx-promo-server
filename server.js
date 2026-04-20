@@ -136,13 +136,16 @@ function makeCodeEntry(code) {
     used:              false,
     usedAt:            null,
     // --- Invite / referral tracking fields ---
-    inviteLevel:       0,       // 0=street, 1=direct invite, 2=invite-of-invite
-    referredBy:        null,    // parentCode of the booker who sent this invite
-    sharedAt:          null,    // when booker first shared/copied this invite code
-    shareMethod:       null,    // 'copy_code'|'copy_link'|'whatsapp'|'copy_all'
+    inviteLevel:       0,
+    referredBy:        null,
+    sharedAt:          null,
+    shareMethod:       null,
     // --- Reward fields ---
-    rewardPoints:      0,       // points earned by the holder of this code
-    rewardsUnlocked:   [],      // array of reward strings unlocked
+    rewardPoints:      0,
+    rewardsUnlocked:   [],
+    // --- Persistent token (survives restarts) ---
+    accessToken:       null,
+    tokenExpiresAt:    null,
   };
 }
 
@@ -285,6 +288,9 @@ app.post('/track-scan', function(req, res) {
 });
 
 // POST /check-code
+// CHANGED: code is now marked 'unlocked' (not redeemed) on first valid entry.
+// Token is persisted to codeStore so it survives server restarts.
+// 'redeemed' status is only set in /track-booking when a booking is submitted.
 app.post('/check-code', function(req, res) {
   var raw  = req.body && req.body.code;
   var code = typeof raw === 'string' ? raw.trim().toUpperCase() : '';
@@ -302,10 +308,9 @@ app.post('/check-code', function(req, res) {
 
   if (!entry.firstScanAt) {
     entry.firstScanAt = new Date().toISOString();
-    codeStore.set(code, entry);
-    saveCodes(codeStore);
   }
 
+  // Check expiry
   if (entry.status === 'expired' || (entry.expiresAt && entry.expiresAt < new Date().toISOString())) {
     entry.status = 'expired';
     saveCodes(codeStore);
@@ -313,46 +318,85 @@ app.post('/check-code', function(req, res) {
     return res.json({ valid: false, message: 'This offer has expired.' });
   }
 
-  if (entry.used || entry.status === 'redeemed') {
-    pushActivity('Already Used', code);
+  // Already booked (fully redeemed via booking form)
+  if (entry.status === 'redeemed' && entry.bookingSubmittedAt) {
+    pushActivity('Already Booked', code);
     return res.json({ valid: false, message: 'Code already redeemed.' });
   }
 
   var now      = new Date().toISOString();
-  var expiresAt = new Date(Date.now() + TOKEN_TTL_MS).toISOString();
+  var expMs    = Date.now() + TOKEN_TTL_MS;
+  var expiresAt = new Date(expMs).toISOString();
 
-  entry.used       = true;
-  entry.usedAt     = now;
-  entry.redeemedAt = now;
-  entry.expiresAt  = expiresAt;
-  entry.status     = 'redeemed';
+  // If code was already unlocked and has a valid persistent token, reuse it
+  var token;
+  if (entry.accessToken && entry.tokenExpiresAt && entry.tokenExpiresAt > now) {
+    token = entry.accessToken;
+    expMs = new Date(entry.tokenExpiresAt).getTime();
+  } else {
+    // Issue a fresh token and persist it to codeStore
+    token = crypto.randomBytes(32).toString('hex');
+    entry.accessToken    = token;
+    entry.tokenExpiresAt = expiresAt;
+    entry.expiresAt      = expiresAt;
+    // Mark as unlocked (not yet redeemed - booking hasn't happened)
+    if (entry.status === 'available' || entry.status === 'issued') {
+      entry.status  = 'unlocked';
+      entry.usedAt  = now;
+    }
+    if (!entry.redeemedAt) entry.redeemedAt = now;
+    entry.used = true;
+  }
+
+  // Always keep in-memory store warm
+  tokenStore.set(token, { createdAt: Date.now(), expiresAt: expMs, code: code });
+
   codeStore.set(code, entry);
   saveCodes(codeStore);
-
-  var token = crypto.randomBytes(32).toString('hex');
-  var expMs  = Date.now() + TOKEN_TTL_MS;
-  tokenStore.set(token, { createdAt: Date.now(), expiresAt: expMs, code: code });
 
   res.cookie('raoufpx_access', token, {
     httpOnly: true, sameSite: 'None', secure: true, maxAge: TOKEN_TTL_MS,
   });
 
-  pushActivity('Code Redeemed', code);
-  console.log('[' + now + '] Code redeemed: ' + code);
+  pushActivity('Code Unlocked', code);
+  console.log('[' + now + '] Code unlocked: ' + code);
   return res.json({ valid: true, message: 'Code accepted.', expiresAt: expMs });
 });
 
 // GET /verify-token
+// CHANGED: falls back to codeStore.accessToken when not found in memory
+// (handles server restarts within the 48-hour window).
 app.get('/verify-token', function(req, res) {
   var token = req.cookies && req.cookies.raoufpx_access;
   if (!token) return res.json({ valid: false });
+
+  // 1. Check in-memory store first (fast path)
   var meta = tokenStore.get(token);
-  if (!meta) return res.json({ valid: false });
-  if (meta.expiresAt < Date.now()) { tokenStore.delete(token); return res.json({ valid: false }); }
-  return res.json({ valid: true, expiresAt: meta.expiresAt });
+  if (meta) {
+    if (meta.expiresAt < Date.now()) { tokenStore.delete(token); return res.json({ valid: false }); }
+    return res.json({ valid: true, expiresAt: meta.expiresAt });
+  }
+
+  // 2. Fallback: scan codeStore for a matching persistent token (post-restart path)
+  var found = null;
+  codeStore.forEach(function(entry) {
+    if (!found && entry.accessToken === token) found = entry;
+  });
+
+  if (!found) return res.json({ valid: false });
+
+  var now = new Date().toISOString();
+  if (!found.tokenExpiresAt || found.tokenExpiresAt < now) return res.json({ valid: false });
+
+  // Warm up in-memory store so next check is fast
+  var expMs = new Date(found.tokenExpiresAt).getTime();
+  tokenStore.set(token, { createdAt: Date.now(), expiresAt: expMs, code: found.code });
+
+  return res.json({ valid: true, expiresAt: expMs });
 });
 
 // POST /track-booking
+// CHANGED: marks code as 'redeemed' here (not in /check-code).
 app.post('/track-booking', function(req, res) {
   var body            = req.body || {};
   var code            = body.code;
@@ -371,12 +415,14 @@ app.post('/track-booking', function(req, res) {
     if (entry) {
       entry.bookingSubmittedAt = now;
       if (whatsapp) entry.referrerWhatsapp = whatsapp;
+      // Mark as fully redeemed now that booking is submitted
+      entry.status = 'redeemed';
       codeStore.set(entry.code, entry);
     }
   }
 
   var lead = {
-    code:            upperCode || null,   // null = direct booking (no promo code)
+    code:            upperCode || null,
     clientName:      clientName      || '',
     email:           email           || '',
     whatsapp:        whatsapp        || '',
@@ -391,12 +437,10 @@ app.post('/track-booking', function(req, res) {
   var referralCodes = [];
   var referralLinks = [];
 
-  // Invite generation and reward logic only applies to promo-code bookings
   if (upperCode) {
     var bookingEntry = codeStore.get(upperCode);
     var bookerLevel  = bookingEntry ? (bookingEntry.inviteLevel || 0) : 0;
 
-    // Award reward points to the referrer
     if (bookingEntry && bookingEntry.parentCode) {
       var parentEntry = codeStore.get(bookingEntry.parentCode);
       if (parentEntry) {
@@ -414,7 +458,6 @@ app.post('/track-booking', function(req, res) {
       }
     }
 
-    // Generate 3 invite codes (level cap: max 2)
     var canGenerateInvites = (bookerLevel < 2);
     if (canGenerateInvites) {
       try {
@@ -444,9 +487,8 @@ app.post('/track-booking', function(req, res) {
   leadStore.push(lead);
   saveLeads();
 
-  var logSuffix = upperCode ? ('referrals: ' + referralCodes.join(', ')) : 'direct booking';
   pushActivity('Booking Submitted', (selectedPackage || '?') + ' - ' + (clientName || 'unknown') + (upperCode ? ' (+3 referrals)' : ' (direct)'));
-  console.log('[' + now + '] Booking: ' + (upperCode || 'DIRECT') + ' | ' + clientName + ' | ' + selectedPackage + ' | ' + logSuffix);
+  console.log('[' + now + '] Booking: ' + (upperCode || 'DIRECT') + ' | ' + clientName + ' | ' + selectedPackage);
 
   return res.json({ ok: true, referralCodes: referralCodes, referralLinks: referralLinks });
 });
@@ -509,7 +551,7 @@ app.post('/capture-hot-lead', function(req, res) {
   return res.json({ ok: true });
 });
 
-// POST /save-referral-contacts - unchanged signature, extended to record sharedAt
+// POST /save-referral-contacts
 app.post('/save-referral-contacts', function(req, res) {
   var body       = req.body || {};
   var parentCode = body.parentCode;
@@ -530,7 +572,6 @@ app.post('/save-referral-contacts', function(req, res) {
     if (!entry) return;
     if (whatsapp) entry.friendWhatsapp = whatsapp;
     if (name)     entry.friendName     = name;
-    // Mark sharedAt on first contact save (indicates booker shared this invite)
     if (!entry.sharedAt) {
       entry.sharedAt = now;
       pushActivity('Invite Shared', entry.code);
@@ -545,10 +586,7 @@ app.post('/save-referral-contacts', function(req, res) {
   return res.json({ ok: true, saved: saved });
 });
 
-// ---------------------------------------------------------------------------
-// POST /track-share - lightweight share event tracking
-// Body: { code, method } - method: 'copy_code'|'copy_link'|'whatsapp'|'copy_all'
-// ---------------------------------------------------------------------------
+// POST /track-share
 app.post('/track-share', function(req, res) {
   var body   = req.body || {};
   var code   = (body.code   || '').toUpperCase().trim();
@@ -558,7 +596,6 @@ app.post('/track-share', function(req, res) {
   var entry = codeStore.get(code);
   if (!entry) return res.status(404).json({ ok: false, error: 'Code not found.' });
 
-  // Record first share
   if (!entry.sharedAt) {
     entry.sharedAt   = new Date().toISOString();
     entry.shareMethod = method;
@@ -569,11 +606,7 @@ app.post('/track-share', function(req, res) {
   return res.json({ ok: true });
 });
 
-// ---------------------------------------------------------------------------
-// GET /invite/status?parentCode=XXX
-// Returns live status of all 3 invite codes for a parent booking code
-// Used by referrals.html to show real-time card statuses + countdowns
-// ---------------------------------------------------------------------------
+// GET /invite/status
 app.get('/invite/status', function(req, res) {
   var parentCode = (req.query.parentCode || '').toUpperCase().trim();
   if (!parentCode) return res.status(400).json({ error: 'parentCode required.' });
@@ -583,7 +616,7 @@ app.get('/invite/status', function(req, res) {
     .map(function(c) {
       return {
         code:        c.code,
-        status:      c.status,           // available|issued|redeemed|expired
+        status:      c.status,
         sharedAt:    c.sharedAt   || null,
         redeemedAt:  c.redeemedAt || null,
         expiresAt:   c.expiresAt  || null,
@@ -593,9 +626,8 @@ app.get('/invite/status', function(req, res) {
       };
     });
 
-  // Parent's own reward state
   var parentEntry = codeStore.get(parentCode);
-  var rewardPoints   = parentEntry ? (parentEntry.rewardPoints   || 0)  : 0;
+  var rewardPoints    = parentEntry ? (parentEntry.rewardPoints    || 0)  : 0;
   var rewardsUnlocked = parentEntry ? (parentEntry.rewardsUnlocked || []) : [];
 
   return res.json({
@@ -610,9 +642,7 @@ app.get('/invite/status', function(req, res) {
   });
 });
 
-// ---------------------------------------------------------------------------
-// GET /admin/invite-tree/:code - full referral tree for a code (max 2 levels)
-// ---------------------------------------------------------------------------
+// GET /admin/invite-tree/:code
 app.get('/admin/invite-tree/:code', requireAdmin, function(req, res) {
   var rootCode = req.params.code.toUpperCase();
   var all      = Array.from(codeStore.values());
@@ -624,7 +654,6 @@ app.get('/admin/invite-tree/:code', requireAdmin, function(req, res) {
     for (var i = 0; i < leadStore.length; i++) {
       if (leadStore[i].code === code) { lead = leadStore[i]; break; }
     }
-    // Find direct children (invites this code generated)
     var children = all
       .filter(function(c) { return c.parentCode === code && c.source === 'referral'; })
       .map(function(c) {
@@ -640,7 +669,6 @@ app.get('/admin/invite-tree/:code', requireAdmin, function(req, res) {
           booked:     !!c.bookingSubmittedAt,
           sharedAt:   c.sharedAt   || null,
           redeemedAt: c.redeemedAt || null,
-          // Level 2 children of this child
           children: all
             .filter(function(cc) { return cc.parentCode === c.code && cc.source === 'referral'; })
             .map(function(cc) {
@@ -676,7 +704,6 @@ app.get('/admin/invite-tree/:code', requireAdmin, function(req, res) {
   var tree = buildNode(rootCode);
   if (!tree) return res.status(404).json({ error: 'Code not found.' });
 
-  // Summary stats
   var l1 = tree.children || [];
   var l2 = l1.reduce(function(acc, c) { return acc.concat(c.children || []); }, []);
   return res.json({
@@ -692,14 +719,11 @@ app.get('/admin/invite-tree/:code', requireAdmin, function(req, res) {
   });
 });
 
-// ---------------------------------------------------------------------------
-// GET /admin/invite-summary - top referrers + overall invite metrics
-// ---------------------------------------------------------------------------
+// GET /admin/invite-summary
 app.get('/admin/invite-summary', requireAdmin, function(req, res) {
   var all    = Array.from(codeStore.values());
   var booked = all.filter(function(c) { return !!c.bookingSubmittedAt; });
 
-  // Build referrer stats: for each L0 code that has L1 children
   var referrers = {};
   all.filter(function(c) { return c.source === 'referral'; }).forEach(function(c) {
     var parent = c.referredBy || c.parentCode;
@@ -723,8 +747,8 @@ app.get('/admin/invite-summary', requireAdmin, function(req, res) {
     return Object.assign({ code: code, clientName: lead ? lead.clientName : null }, referrers[code]);
   }).sort(function(a, b) { return (b.l1Booked + b.l2Booked) - (a.l1Booked + a.l2Booked); }).slice(0, 20);
 
-  var totalL1 = all.filter(function(c) { return (c.inviteLevel || 0) === 1; }).length;
-  var totalL2 = all.filter(function(c) { return (c.inviteLevel || 0) === 2; }).length;
+  var totalL1  = all.filter(function(c) { return (c.inviteLevel || 0) === 1; }).length;
+  var totalL2  = all.filter(function(c) { return (c.inviteLevel || 0) === 2; }).length;
   var l1Booked = all.filter(function(c) { return (c.inviteLevel||0)===1 && c.bookingSubmittedAt; }).length;
   var l2Booked = all.filter(function(c) { return (c.inviteLevel||0)===2 && c.bookingSubmittedAt; }).length;
 
@@ -738,10 +762,7 @@ app.get('/admin/invite-summary', requireAdmin, function(req, res) {
   });
 });
 
-// ---------------------------------------------------------------------------
-// PATCH /admin/reward/:code - manually assign reward points / unlock rewards
-// Body: { rewardPoints, addReward }
-// ---------------------------------------------------------------------------
+// PATCH /admin/reward/:code
 app.patch('/admin/reward/:code', requireAdmin, function(req, res) {
   var code  = req.params.code.toUpperCase();
   var entry = codeStore.get(code);
@@ -863,11 +884,9 @@ app.get('/admin/analytics', requireAdmin, function(req, res) {
   var total      = codes.length;
   var issued     = codes.filter(function(c) { return c.status === 'issued' || c.issuedAt; }).length;
   var redeemed   = codes.filter(function(c) { return c.status === 'redeemed' || c.used; }).length;
-  // Funnel bookings = only promo-code bookings (code != null), matches codeStore.bookingSubmittedAt
   var withBooking= codes.filter(function(c) { return c.bookingSubmittedAt; }).length;
   var scans      = scanStore.length;
 
-  // Packages: ALL leads including direct (code = null)
   var packages = {};
   leadStore.forEach(function(l) {
     var p = l.selectedPackage || 'Unknown';
@@ -879,7 +898,6 @@ app.get('/admin/analytics', requireAdmin, function(req, res) {
     if (c.location) locations[c.location] = (locations[c.location] || 0) + 1;
   });
 
-  // Recent leads: all, but show direct leads clearly
   var recentLeads = leadStore.slice(-10).reverse().map(function(l) {
     return Object.assign({}, l, { code: l.code || null });
   });
@@ -890,7 +908,7 @@ app.get('/admin/analytics', requireAdmin, function(req, res) {
       codesIssued:       issued,
       qrScans:           scans,
       codesEntered:      redeemed,
-      bookingsSubmitted: withBooking,  // promo-code bookings only (matches codeStore timeline)
+      bookingsSubmitted: withBooking,
     },
     rates: {
       scanRate:    issued   > 0 ? ((scans       / issued)   * 100).toFixed(1) + '%' : '-',
@@ -912,7 +930,6 @@ app.get('/admin/activity', requireAdmin, function(req, res) {
 // GET /admin/leads
 app.get('/admin/leads', requireAdmin, function(req, res) {
   var profiles = leadStore.map(function(lead) {
-    // Direct bookings have code = null - don't look them up in codeStore
     var entry = lead.code ? (codeStore.get(lead.code) || {}) : {};
     return Object.assign({}, lead, {
       location: entry.location || '',
@@ -924,8 +941,6 @@ app.get('/admin/leads', requireAdmin, function(req, res) {
 });
 
 // POST /admin/delete-lead
-// Body: { submittedAt, code, isTest }
-// Identifies lead by submittedAt + code (unique enough), removes from leadStore
 app.post('/admin/delete-lead', requireAdmin, function(req, res) {
   var body        = req.body || {};
   var submittedAt = body.submittedAt;
@@ -941,7 +956,6 @@ app.post('/admin/delete-lead', requireAdmin, function(req, res) {
     if (l.submittedAt === submittedAt && codeMatch) { idx = i; break; }
   }
 
-  // Fallback: match by submittedAt alone if code match failed
   if (idx === -1) {
     for (var j = 0; j < leadStore.length; j++) {
       if (leadStore[j].submittedAt === submittedAt) { idx = j; break; }
@@ -1071,8 +1085,6 @@ app.get('/admin/export', requireAdmin, function(req, res) {
 });
 
 // GET /admin/revenue
-// Prices: promo bookings (code exists in codeStore) use discounted prices.
-//         Normal bookings (no code or code not in codeStore) use full prices.
 const NORMAL_PACKAGE_PRICES = { Starter: 250, Signature: 499, Storytelling: 999 };
 const PROMO_PACKAGE_PRICES  = { Starter: 125, Signature: 249, Storytelling: 499 };
 
@@ -1082,11 +1094,9 @@ app.get('/admin/revenue', requireAdmin, function(req, res) {
     return c.issuedAt || c.status === 'issued' || c.status === 'redeemed';
   }).length;
 
-  // Determine price: use lead.price if set, otherwise derive from package + funnel type
   function getPrice(l) {
     var p = parseFloat(l.price);
     if (!isNaN(p) && p > 0) return p;
-    // Fallback for old leads without a stored price: use promo price if code is known
     var entry = l.code ? codeStore.get(l.code.toUpperCase()) : null;
     var priceMap = entry ? PROMO_PACKAGE_PRICES : NORMAL_PACKAGE_PRICES;
     var rawPkg = l.selectedPackage || '';
@@ -1101,12 +1111,10 @@ app.get('/admin/revenue', requireAdmin, function(req, res) {
   var avgBookingValue = bookings > 0 ? Math.round(totalRevenue / bookings) : 0;
   var revenuePerCard  = issued   > 0 ? Math.round(totalRevenue / issued)   : 0;
 
-  // Package breakdown - count and revenue by package, using actual price paid
   var byPackage = {};
   Object.keys(NORMAL_PACKAGE_PRICES).forEach(function(p) { byPackage[p] = { count: 0, revenue: 0 }; });
   leadStore.forEach(function(l) {
     if (l.status === 'hot_lead') return;
-    // Normalise package name (booking.html sends lowercase e.g. "signature")
     var rawPkg = l.selectedPackage || '';
     var pkg = rawPkg.charAt(0).toUpperCase() + rawPkg.slice(1).toLowerCase();
     if (!byPackage[pkg]) byPackage[pkg] = { count: 0, revenue: 0 };
@@ -1320,7 +1328,7 @@ app.delete('/api/leads/:id', requireAdminKey, function(req, res) {
   res.json({ deleted: true });
 });
 
-// POST /api/leads/test - inject a test lead manually
+// POST /api/leads/test
 app.post('/api/leads/test', requireAdminKey, function(req, res) {
   var leads = loadRadarLeads();
   var body  = req.body || {};
@@ -1340,7 +1348,7 @@ app.post('/api/leads/test', requireAdminKey, function(req, res) {
   res.json(lead);
 });
 
-// GET /radar - serve the radar UI
+// GET /radar
 app.get('/radar', function(req, res) {
   res.sendFile(path.join(__dirname, 'public', 'radar', 'index.html'));
 });
@@ -1356,7 +1364,7 @@ app.get('*', function(req, res) {
 });
 
 // ===========================================================================
-// MULTER ERROR HANDLER (must be last middleware)
+// MULTER ERROR HANDLER
 // ===========================================================================
 app.use(function(err, req, res, next) {
   if (err && err.code === 'LIMIT_FILE_SIZE') {
